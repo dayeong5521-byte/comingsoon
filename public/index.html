@@ -280,71 +280,43 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   .cal-btn,.lcal-btn{font-size:10px;padding:0 8px;height:27px;}
 }
 </style>
-<!-- Firebase Google Auth (compat 버전 - 전역 변수 공유 가능) -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 firebase.initializeApp({
-  apiKey: "AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
-  authDomain: "commingsoon-859cb.firebaseapp.com",
-  projectId: "commingsoon-859cb",
-  storageBucket: "commingsoon-859cb.firebasestorage.app",
-  messagingSenderId: "937539044603",
-  appId: "1:937539044603:web:1bb76b906028ad337f1c5e"
+  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
+  authDomain:"commingsoon-859cb.firebaseapp.com",
+  projectId:"commingsoon-859cb",
+  storageBucket:"commingsoon-859cb.firebasestorage.app",
+  messagingSenderId:"937539044603",
+  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
 });
-
-var fbAuth = firebase.auth();
-var fbProvider = new firebase.auth.GoogleAuthProvider();
-
-function googleLogin() {
-  fbAuth.signInWithPopup(fbProvider).then(function(result) {
-    var u = result.user;
-    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL };
-    updateUserUI();
-    closeModal('loginModalBg');
-    showToast(u.displayName + '님, 환영해요 ✓');
-    renderArchive();
-  }).catch(function(e) {
-    if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
+var fbAuth=firebase.auth();
+var fbProvider=new firebase.auth.GoogleAuthProvider();
+function googleLogin(){
+  fbAuth.signInWithPopup(fbProvider).then(function(r){
+    var u=r.user;
+    currentUser={name:u.displayName,email:u.email,photo:u.photoURL};
+    updateUserUI();closeModal('loginModalBg');
+    showToast(u.displayName+'님, 환영해요 ✓');renderArchive();
+  }).catch(function(e){
+    if(e.code!=='auth/popup-closed-by-user')showToast('로그인 실패: '+e.message);
   });
 }
-
-function googleLogout() {
-  fbAuth.signOut().then(function() {
-    currentUser = null;
-    updateUserUI();
-    showToast('로그아웃됐어요.');
-    renderArchive();
+function googleLogout(){
+  fbAuth.signOut().then(function(){
+    currentUser=null;updateUserUI();
+    showToast('로그아웃됐어요.');renderArchive();
   });
 }
-
-fbAuth.onAuthStateChanged(function(u) {
-  currentUser = u ? { name: u.displayName, email: u.email, photo: u.photoURL } : null;
-  if (typeof updateUserUI === 'function') { updateUserUI(); renderArchive(); }
+fbAuth.onAuthStateChanged(function(u){
+  currentUser=u?{name:u.displayName,email:u.email,photo:u.photoURL}:null;
+  if(typeof updateUserUI==='function'){updateUserUI();renderArchive();}
 });
 </script>
 </head>
 <body>
-
-    <div class="modal-desc">릴리즈 탐색을 위해 두 가지 API 키가 필요합니다.<br>키는 이 브라우저에만 저장됩니다.</div>
-    <div class="modal-field">
-      <div class="modal-label">Gemini API Key</div>
-      <input class="modal-input" type="password" id="geminiKeyInput" placeholder="AIza..."/>
-    </div>
-    <div class="modal-field">
-      <div class="modal-label">Serper.dev API Key</div>
-      <input class="modal-input" type="password" id="serperKeyInput" placeholder="..."/>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal('modalBg')">취소</button>
-      <button class="modal-save" onclick="saveKeys()">저장하고 시작하기</button>
-    </div>
-    <div class="modal-links">
-      <a class="modal-link" href="https://aistudio.google.com/app/apikey" target="_blank">↗ Gemini 키 발급</a>
-      <a class="modal-link" href="https://serper.dev" target="_blank">↗ Serper 키 발급</a>
-    </div>
-  </div>
-</div>
 
 <!-- ── GOOGLE LOGIN MODAL ── -->
 <div class="modal-bg" id="loginModalBg">
@@ -524,9 +496,6 @@ var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]
 function saveArchived(){ localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds))); }
 function saveBrands(){ localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands))); }
 
-/* ── KEYS ── */
-
-
 /* ── MODAL ── */
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -534,13 +503,7 @@ document.querySelectorAll('.modal-bg').forEach(function(el){
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 
-/* ── GOOGLE LOGIN (mock) ── */
-;
-  closeModal('loginModalBg');
-  updateUserUI();
-  showToast('Google 계정으로 로그인되었습니다 ✓');
-  renderArchive();
-}
+
 function continueAsGuest(){
   closeModal('loginModalBg');
   showToast('게스트로 계속합니다. 아카이브는 로그인 후 저장됩니다.');
