@@ -56,12 +56,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 /* Footer */
 .sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
 
-
-
-
-
-
-
 /* ── USER PROFILE SECTION ── */
 .user-area{display:flex;align-items:center;gap:10px;}
 .av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;}
@@ -280,41 +274,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   .cal-btn,.lcal-btn{font-size:10px;padding:0 8px;height:27px;}
 }
 </style>
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
-  authDomain:"commingsoon-859cb.firebaseapp.com",
-  projectId:"commingsoon-859cb",
-  storageBucket:"commingsoon-859cb.firebasestorage.app",
-  messagingSenderId:"937539044603",
-  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
-});
-var fbAuth=firebase.auth();
-var fbProvider=new firebase.auth.GoogleAuthProvider();
-function googleLogin(){
-  fbAuth.signInWithPopup(fbProvider).then(function(r){
-    var u=r.user;
-    currentUser={name:u.displayName,email:u.email,photo:u.photoURL};
-    updateUserUI();closeModal('loginModalBg');
-    showToast(u.displayName+'님, 환영해요 ✓');renderArchive();
-  }).catch(function(e){
-    if(e.code!=='auth/popup-closed-by-user')showToast('로그인 실패: '+e.message);
-  });
-}
-function googleLogout(){
-  fbAuth.signOut().then(function(){
-    currentUser=null;updateUserUI();
-    showToast('로그아웃됐어요.');renderArchive();
-  });
-}
-fbAuth.onAuthStateChanged(function(u){
-  currentUser=u?{name:u.displayName,email:u.email,photo:u.photoURL}:null;
-  if(typeof updateUserUI==='function'){updateUserUI();renderArchive();}
-});
-</script>
 </head>
 <body>
 
@@ -481,7 +440,6 @@ var TODAY = new Date().toISOString().split('T')[0];
 var CY = new Date().getFullYear();
 var FALLBACK = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
 
-
 /* ── USER STATE ── */
 var currentUser = null; // null = guest, {name, email, photo} = logged in
 
@@ -502,7 +460,6 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(function(el){
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
-
 
 function continueAsGuest(){
   closeModal('loginModalBg');
@@ -774,9 +731,8 @@ async function startHunt(){
       var chunk=await reader.read();
       if(chunk.done)break;
       buf+=decoder.decode(chunk.value,{stream:true});
-      var parts=buf.split('
+      var parts=buf.split('\n\n');buf=parts.pop();
 
-');buf=parts.pop();
       for(var i=0;i<parts.length;i++){
         var line=parts[i];
         if(!line.startsWith('data: '))continue;
@@ -818,6 +774,49 @@ document.getElementById('overlay').addEventListener('click',closeSidebar);
 updateUserUI();
 renderArchive();
 
+</script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
+  authDomain:"commingsoon-859cb.firebaseapp.com",
+  projectId:"commingsoon-859cb",
+  storageBucket:"commingsoon-859cb.firebasestorage.app",
+  messagingSenderId:"937539044603",
+  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
+});
+var fbAuth = firebase.auth();
+var fbProvider = new firebase.auth.GoogleAuthProvider();
+
+function googleLogin() {
+  fbAuth.signInWithPopup(fbProvider).then(function(r) {
+    var u = r.user;
+    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL };
+    updateUserUI();
+    closeModal('loginModalBg');
+    showToast(u.displayName + '님, 환영해요 ✓');
+    renderArchive();
+  }).catch(function(e) {
+    if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
+  });
+}
+
+function googleLogout() {
+  fbAuth.signOut().then(function() {
+    currentUser = null;
+    updateUserUI();
+    showToast('로그아웃됐어요.');
+    renderArchive();
+  });
+}
+
+fbAuth.onAuthStateChanged(function(u) {
+  currentUser = u ? { name: u.displayName, email: u.email, photo: u.photoURL } : null;
+  if (typeof updateUserUI === 'function') { updateUserUI(); renderArchive(); }
+});
 </script>
 </body>
 </html>
