@@ -286,7 +286,7 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       <div class="modal-desc" style="text-align:center;margin-bottom:0">로그인하면 나만의 릴리즈 아카이브를<br>어디서든 이어볼 수 있어요.</div>
     </div>
     <button class="google-btn" onclick="googleLogin()">
-      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
       Google로 계속하기
     </button>
     <div class="login-divider"><span>또는</span></div>
@@ -457,22 +457,23 @@ var viewMode = 'grid';
 var currentSort = 'imminent';
 var currentTab = 'radar';
 
-// 1. 초기 데이터는 브라우저 로컬 스토리지에서 먼저 불러옵니다.
+function archiveKey(p){return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.release_date||'');}
+
+// 1. 초기 데이터는 브라우저 로컬 스토리지에서 객체 배열로 불러옵니다.
 var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]');
-var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
+var archivedItems = JSON.parse(localStorage.getItem('cs_archivedItems')||'[]');
+var archivedIds = new Set(archivedItems.map(function(item) { return archiveKey(item); }));
 var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
 
-/* ── 하이브리드 동기화 함수 (핵심!) ── */
+/* ── 하이브리드 동기화 함수 (병합 및 저장) ── */
 function syncToCloud() {
-  // A. 항상 로컬 스토리지에 즉시 백업 (빠른 렌더링용)
-  localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
+  localStorage.setItem('cs_archivedItems', JSON.stringify(archivedItems));
   localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
   localStorage.setItem('cs_allItems', JSON.stringify(allItems));
 
-  // B. 로그인 상태라면 Firestore에 영구 저장
   if (currentUser) {
     db.collection('users').doc(currentUser.uid).set({
-      archivedIds: Array.from(archivedIds),
+      archivedItems: archivedItems,
       savedBrands: Array.from(savedBrands),
       allItems: allItems,
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
@@ -483,22 +484,24 @@ function syncToCloud() {
 function loadFromCloud(uid) {
   db.collection('users').doc(uid).get().then(function(doc) {
     if (doc.exists) {
-      // 클라우드에 데이터가 있으면 로컬을 덮어씌웁니다.
       var data = doc.data();
-      archivedIds = new Set(data.archivedIds || []);
-      savedBrands = new Set(data.savedBrands || []);
-      allItems = data.allItems || [];
       
-      // 불러온 클라우드 데이터를 로컬 스토리지에도 세팅
-      localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
-      localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
-      localStorage.setItem('cs_allItems', JSON.stringify(allItems));
+      // 기존 로컬 데이터와 클라우드 데이터 병합 (중복 제거 처리)
+      var cloudItems = data.allItems || [];
+      var combinedItems = allItems.concat(cloudItems);
+      var itemsMap = new Map();
+      combinedItems.forEach(function(item) { itemsMap.set(archiveKey(item), item); });
+      allItems = Array.from(itemsMap.values());
+      
+      archivedItems = data.archivedItems || [];
+      archivedIds = new Set(archivedItems.map(function(item) { return archiveKey(item); }));
+      savedBrands = new Set(data.savedBrands || []);
+      
+      syncToCloud(); // 병합된 데이터를 다시 로컬/클라우드에 동기화
     } else {
-      // 첫 로그인 시: 현재 브라우저에 있는 임시 데이터를 클라우드로 백업
       syncToCloud();
     }
     
-    // UI 전체 리렌더링
     rebuildNav();
     renderItems();
     renderArchive();
@@ -563,14 +566,12 @@ function switchTab(tab){
   if(tab==='archive') renderArchive();
 }
 
-/* ── ARCHIVE KEY ── */
-function archiveKey(p){return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.release_date||'');}
-
 /* ── ARCHIVE TOGGLE ── */
 function toggleArchive(p, el){
-  var key=archiveKey(p);
+  var key = archiveKey(p);
   if(archivedIds.has(key)){
     archivedIds.delete(key);
+    archivedItems = archivedItems.filter(function(item) { return archiveKey(item) !== key; });
     el.classList.remove('archived');
     showToast('아카이브에서 제거되었습니다.');
   } else {
@@ -580,15 +581,16 @@ function toggleArchive(p, el){
       return;
     }
     archivedIds.add(key);
+    archivedItems.push(p); // 카드 전체 데이터를 배열에 추가
     el.classList.add('archived');
     el.classList.add('archive-pop');
     setTimeout(function(){el.classList.remove('archive-pop');},400);
     showToast('"'+p.item_name+'" 아카이브에 추가됐어요 ✓');
   }
-  syncToCloud(); // 동기화 호출
+  syncToCloud(); 
   updateArchiveCnt();
   if(currentTab==='archive') renderArchive();
-  renderItems();
+  renderItems(); // 레이더 탭의 뱃지 상태 업데이트를 위해
 }
 
 function updateArchiveCnt(){
@@ -597,27 +599,28 @@ function updateArchiveCnt(){
   el.textContent=cnt;
   el.style.display=cnt>0?'':'none';
   document.getElementById('archiveStatCount').textContent=cnt;
+  
   var brands=new Set();
-  allItems.filter(function(p){return archivedIds.has(archiveKey(p));}).forEach(function(p){brands.add(p.brand);});
+  archivedItems.forEach(function(p){ brands.add(p.brand); });
   document.getElementById('archiveStatBrands').textContent=brands.size;
-  var upcoming=allItems.filter(function(p){return archivedIds.has(archiveKey(p))&&isUrgent(p.release_date);}).length;
+  
+  var upcoming=archivedItems.filter(function(p){ return isUrgent(p.release_date); }).length;
   document.getElementById('archiveStatUpcoming').textContent=upcoming;
 }
 
 /* ── ARCHIVE RENDER ── */
 function renderArchive(){
   var ac=document.getElementById('archiveContent');
-  var archived=allItems.filter(function(p){return archivedIds.has(archiveKey(p));});
   if(!currentUser){
     ac.innerHTML='<div style="display:flex;justify-content:center;padding-top:60px;"><div class="archive-guest"><div class="archive-guest-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="9" r="5" stroke="#BDBDBD" stroke-width="1.5"/><path d="M4 22c0-5 4-8 9-8s9 3 9 8" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="archive-guest-title">아카이브를 시작해볼까요?</div><div class="archive-guest-desc">로그인하면 발견한 릴리즈 정보를 내 아카이브에 저장하고, 어디서든 꺼내볼 수 있어요.</div><button class="archive-login-btn" onclick="openModal(\'loginModalBg\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2 A8 8 0 1 1 10 18" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Google로 로그인하기</button><button class="archive-login-btn-outline" onclick="continueAsGuest()">나중에 할게요</button></div></div>';
     return;
   }
-  if(!archived.length){
+  if(!archivedItems.length){
     ac.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="13" rx="2" stroke="#BDBDBD" stroke-width="1.4"/><path d="M2 9h16" stroke="#BDBDBD" stroke-width="1.4"/><path d="M7 13h6" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/></svg></div><div class="empty-title">아카이브가 비어있어요</div><div class="empty-desc">릴리즈 카드의 <strong>🔖</strong> 버튼을 눌러<br>내 컬렉션에 담아보세요.</div></div>';
     return;
   }
   var html='<div class="card-grid">';
-  archived.forEach(function(p){html+=mkGrid(p);});
+  archivedItems.forEach(function(p){ html += mkGrid(p); });
   ac.innerHTML=html+'</div>';
   bindCardEvents(ac);
 }
@@ -655,7 +658,7 @@ function saveCurrentKeyword(){
     return;
   }
   if(savedBrands.has(kw))savedBrands.delete(kw); else savedBrands.add(kw);
-  syncToCloud(); // 동기화 호출
+  syncToCloud(); 
   updateSaveKwBtn(); rebuildNav();
   showToast(savedBrands.has(kw)?'"'+kw+'" Focus Group에 추가됐어요 ✓':'"'+kw+'" Focus Group에서 제거됐어요.');
 }
@@ -745,11 +748,13 @@ function bindCardEvents(container){
       setTimeout(function(){btn.classList.remove('added');btn.innerHTML=prev;},2000);
     });
   });
+  // 전역 데이터에서 카드를 찾는 로직 보강
   container.querySelectorAll('.archive-btn,.larchive-btn').forEach(function(btn){
     btn.addEventListener('click',function(e){
       e.stopPropagation();
       var key=btn.dataset.key;
-      var p=allItems.find(function(x){return archiveKey(x)===key;});
+      // 먼저 archivedItems에서 찾고, 없으면 allItems에서 찾음
+      var p=archivedItems.find(function(x){return archiveKey(x)===key;}) || allItems.find(function(x){return archiveKey(x)===key;});
       if(p) toggleArchive(p,btn);
     });
   });
@@ -765,20 +770,27 @@ function setStatus(msg,on){
   document.getElementById('statusBar').classList.toggle('on',!!on);
 }
 
-/* ── HUNT — 서버 /api/hunt 경유 ── */
+/* ── HUNT — 데이터 누적(Accumulation) 로직으로 변경 ── */
 async function startHunt(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){document.getElementById('mainSearch').focus();return;}
   var btn=document.getElementById('huntBtn');
   btn.disabled=true;btn.textContent='탐색 중...';
-  allItems=[];rebuildNav();showSkeleton();
+  
+  // allItems = [] 삭제: 기존 데이터를 보존하면서 새 데이터를 뒤에 붙입니다.
+  currentFilter = 'all'; // 검색할 때는 전체 결과가 보이도록 필터를 초기화
+  rebuildNav();
+  showSkeleton();
   setStatus("'"+kw+"' 수색 중...",true);
+
   try{
     var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
     if(!res.ok){var e=await res.json();throw new Error(e.error||'서버 오류 '+res.status);}
     var reader=res.body.getReader();
     var decoder=new TextDecoder();
     var buf='';
+    var foundAny = false;
+
     while(true){
       var chunk=await reader.read();
       if(chunk.done)break;
@@ -790,23 +802,36 @@ async function startHunt(){
         if(!line.startsWith('data: '))continue;
         try{
           var ev=JSON.parse(line.slice(6));
-          if(ev.type==='status')setStatus(ev.message,true);
-          else if(ev.type==='item'){allItems.push(ev.data);rebuildNav();renderItems();}
-          else if(ev.type==='done')setStatus('탐색 완료! '+ev.total+'개 시그널 확보.',false);
-          else if(ev.type==='error')throw new Error(ev.message);
+          if(ev.type==='status') setStatus(ev.message,true);
+          else if(ev.type==='item'){
+            foundAny = true;
+            var itemKey = archiveKey(ev.data);
+            // 기존 데이터에 없는 카드만 누적해서 추가
+            if(!allItems.some(function(x){ return archiveKey(x) === itemKey; })) {
+              allItems.push(ev.data);
+            }
+            rebuildNav(); renderItems();
+          }
+          else if(ev.type==='done') setStatus('탐색 완료! '+ev.total+'개 시그널 확보.',false);
+          else if(ev.type==='error') throw new Error(ev.message);
         }catch(e){if(e.message&&!e.message.includes('JSON'))throw e;}
       }
     }
-    if(!allItems.length)document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">결과를 찾지 못했습니다</div><div class="empty-desc">다른 키워드로 시도해보세요.</div></div>';
+    // 이번 검색에서 아무것도 찾지 못했고, 화면에 그릴 과거 데이터도 없을 때만 빈 화면 표시
+    if(!foundAny && allItems.length === 0) {
+      document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">결과를 찾지 못했습니다</div><div class="empty-desc">다른 키워드로 시도해보세요.</div></div>';
+    } else if (!foundAny) {
+      showToast('새로운 시그널을 찾지 못했습니다.');
+      renderItems(); // 스켈레톤 지우고 기존 카드 복구
+    }
   }catch(err){
     setStatus('',false);
-    document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">오류 발생</div><div class="empty-desc">'+err.message+'</div></div>';
+    showToast('오류 발생: ' + err.message);
+    renderItems(); // 에러 시 스켈레톤 지우고 기존 카드 복구
   }finally{
+    syncToCloud(); // 검색 결과 누적 후 클라우드 동기화
     btn.disabled=false;
     btn.innerHTML='<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg> 발견하기';
-    
-    // 수색이 성공적으로 끝난 후, 검색된 내용(allItems)도 영구보존을 위해 클라우드 동기화 호출
-    syncToCloud(); 
   }
 }
 
@@ -832,7 +857,6 @@ function googleLogin() {
     updateUserUI();
     closeModal('loginModalBg');
     showToast(u.displayName + '님, 환영해요 ✓');
-    // 실제 클라우드 데이터 호출은 아래 onAuthStateChanged에서 자동으로 일어납니다.
   }).catch(function(e) {
     if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
   });
@@ -846,18 +870,16 @@ function googleLogout() {
   });
 }
 
-// 브라우저 켤 때 & 로그인 상태 바뀔 때 알아서 감지하는 옵저버
 fbAuth.onAuthStateChanged(function(u) {
   if (u) {
-    // 1. 로그인 상태인 경우
     currentUser = { name: u.displayName, email: u.email, photo: u.photoURL, uid: u.uid };
-    loadFromCloud(u.uid); // 클라우드에서 안전하게 데이터 불러오기 (혹은 최초 백업)
+    loadFromCloud(u.uid); 
   } else {
-    // 2. 로그아웃 (또는 게스트) 상태인 경우
     currentUser = null;
     
-    // 로컬 스토리지에 남아있는 게스트 데이터로 폴백
-    archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
+    // 로그아웃 상태면 로컬에 있는 게스트 데이터 로드
+    archivedItems = JSON.parse(localStorage.getItem('cs_archivedItems')||'[]');
+    archivedIds = new Set(archivedItems.map(function(item) { return archiveKey(item); }));
     savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
     allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]');
     
