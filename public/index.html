@@ -445,12 +445,22 @@ var currentUser = null; // null = guest, {name, email, photo} = logged in
 
 /* ── DATA STATE ── */
 var allItems = [];
-var archivedIds = new Set(); // item key: brand+name+date
-var savedBrands = new Set();
 var currentFilter = 'all';
 var viewMode = 'grid';
 var currentSort = 'imminent';
 var currentTab = 'radar';
+
+// localStorage에서 불러오기
+var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived') || '[]'));
+var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands') || '[]'));
+
+// 저장 함수
+function saveArchived() {
+  localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
+}
+function saveBrands() {
+  localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
+}
 
 /* ── KEYS ── */
 
@@ -542,6 +552,7 @@ function toggleArchive(p, el){
     setTimeout(function(){el.classList.remove('archive-pop');},400);
     showToast('"'+p.item_name+'" 아카이브에 추가됐어요 ✓');
   }
+  saveArchived();
   updateArchiveCnt();
   if(currentTab==='archive') renderArchive();
   renderItems();
@@ -611,6 +622,7 @@ function saveCurrentKeyword(){
     return;
   }
   if(savedBrands.has(kw))savedBrands.delete(kw); else savedBrands.add(kw);
+  saveBrands();
   updateSaveKwBtn(); rebuildNav();
   showToast(savedBrands.has(kw)?'"'+kw+'" Focus Group에 추가됐어요 ✓':'"'+kw+'" Focus Group에서 제거됐어요.');
 }
