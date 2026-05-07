@@ -175,7 +175,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 .pbadge{position:absolute;top:9px;left:9px;font-size:9px;font-weight:800;border-radius:20px;padding:3px 7px;letter-spacing:.05em;text-transform:uppercase;z-index:1;}
 .pb-hot{background:var(--accent);color:#fff;}
 .pb-up{background:rgba(255,255,255,.88);color:var(--text2);border:0.5px solid var(--border-md);}
-/* Archive button on card */
 .archive-btn{position:absolute;top:9px;right:9px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);border:0.5px solid var(--border-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;transition:all .18s;color:var(--text3);}
 .archive-btn:hover{background:var(--white);border-color:var(--accent);color:var(--accent);}
 .archive-btn.archived{background:var(--accent);border-color:var(--accent);color:#fff;}
@@ -277,7 +276,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 </head>
 <body>
 
-<!-- ── GOOGLE LOGIN MODAL ── -->
 <div class="modal-bg" id="loginModalBg">
   <div class="modal login-modal">
     <div class="login-header">
@@ -288,7 +286,7 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       <div class="modal-desc" style="text-align:center;margin-bottom:0">로그인하면 나만의 릴리즈 아카이브를<br>어디서든 이어볼 수 있어요.</div>
     </div>
     <button class="google-btn" onclick="googleLogin()">
-      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
       Google로 계속하기
     </button>
     <div class="login-divider"><span>또는</span></div>
@@ -297,13 +295,11 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   </div>
 </div>
 
-<!-- ── TOAST ── -->
 <div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
 
 <div class="layout">
 <div class="sb-overlay" id="overlay"></div>
 
-<!-- ── SIDEBAR ── -->
 <aside class="sb" id="sidebar">
   <div class="sb-logo">
     <div class="logo-row"><span class="logo-txt">Coming Soon</span><span class="logo-dot"></span></div>
@@ -345,7 +341,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   </div>
 
   <div class="sb-footer">
-    <!-- USER AREA -->
     <div class="user-area" id="userArea">
       <div class="av" id="userAv">?</div>
       <div class="av-info">
@@ -357,7 +352,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   </div>
 </aside>
 
-<!-- ── MAIN ── -->
 <div class="main">
   <div class="mob-header">
     <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
@@ -366,7 +360,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
     </button>
   </div>
 
-  <!-- ── RADAR TAB ── -->
   <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
     <div class="hd">
       <div class="search-bar">
@@ -402,12 +395,11 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       <div class="empty-state">
         <div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#BDBDBD" stroke-width="1.4"/><circle cx="10" cy="10" r="3.5" stroke="#BDBDBD" stroke-width="1.4"/><line x1="10" y1="2" x2="10" y2="4" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="18" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="18" y1="10" x2="16" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="4" y1="10" x2="2" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/></svg></div>
         <div class="empty-title">레이더 대기 중</div>
-        <div class="empty-desc">키워드를 입력하고 <strong>발견하기</strong>를 눌러주세요.</div>
+        <div class="empty-desc">검색창에 키워드를 입력하고 <strong>발견하기</strong>를 눌러주세요.</div>
       </div>
     </div>
   </div>
 
-  <!-- ── ARCHIVE TAB ── -->
   <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="archive-header">
       <div class="archive-title-row">
@@ -429,30 +421,92 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       </div>
     </div>
     <div class="content" id="archiveContent">
-      <!-- rendered by renderArchive() -->
-    </div>
+      </div>
   </div>
 </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
+/* ── FIREBASE 초기화 ── */
+firebase.initializeApp({
+  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
+  authDomain:"commingsoon-859cb.firebaseapp.com",
+  projectId:"commingsoon-859cb",
+  storageBucket:"commingsoon-859cb.firebasestorage.app",
+  messagingSenderId:"937539044603",
+  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
+});
+var fbAuth = firebase.auth();
+var fbProvider = new firebase.auth.GoogleAuthProvider();
+var db = firebase.firestore();
+
 var TODAY = new Date().toISOString().split('T')[0];
 var CY = new Date().getFullYear();
 var FALLBACK = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
 
 /* ── USER STATE ── */
-var currentUser = null; // null = guest, {name, email, photo} = logged in
+var currentUser = null; 
 
 /* ── DATA STATE ── */
-var allItems = [];
 var currentFilter = 'all';
 var viewMode = 'grid';
 var currentSort = 'imminent';
 var currentTab = 'radar';
+
+// 1. 초기 데이터는 브라우저 로컬 스토리지에서 먼저 불러옵니다.
+var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]');
 var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
 var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
-function saveArchived(){ localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds))); }
-function saveBrands(){ localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands))); }
+
+/* ── 하이브리드 동기화 함수 (핵심!) ── */
+function syncToCloud() {
+  // A. 항상 로컬 스토리지에 즉시 백업 (빠른 렌더링용)
+  localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
+  localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
+  localStorage.setItem('cs_allItems', JSON.stringify(allItems));
+
+  // B. 로그인 상태라면 Firestore에 영구 저장
+  if (currentUser) {
+    db.collection('users').doc(currentUser.uid).set({
+      archivedIds: Array.from(archivedIds),
+      savedBrands: Array.from(savedBrands),
+      allItems: allItems,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+}
+
+function loadFromCloud(uid) {
+  db.collection('users').doc(uid).get().then(function(doc) {
+    if (doc.exists) {
+      // 클라우드에 데이터가 있으면 로컬을 덮어씌웁니다.
+      var data = doc.data();
+      archivedIds = new Set(data.archivedIds || []);
+      savedBrands = new Set(data.savedBrands || []);
+      allItems = data.allItems || [];
+      
+      // 불러온 클라우드 데이터를 로컬 스토리지에도 세팅
+      localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
+      localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
+      localStorage.setItem('cs_allItems', JSON.stringify(allItems));
+    } else {
+      // 첫 로그인 시: 현재 브라우저에 있는 임시 데이터를 클라우드로 백업
+      syncToCloud();
+    }
+    
+    // UI 전체 리렌더링
+    rebuildNav();
+    renderItems();
+    renderArchive();
+    updateArchiveCnt();
+  }).catch(function(e) {
+    console.error("Firestore Error: ", e);
+  });
+}
 
 /* ── MODAL ── */
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -463,8 +517,9 @@ document.querySelectorAll('.modal-bg').forEach(function(el){
 
 function continueAsGuest(){
   closeModal('loginModalBg');
-  showToast('게스트로 계속합니다. 아카이브는 로그인 후 저장됩니다.');
+  showToast('게스트로 계속합니다. 아카이브는 브라우저에 임시 저장됩니다.');
 }
+
 function updateUserUI(){
   var av=document.getElementById('userAv');
   var uname=document.getElementById('userName');
@@ -530,7 +585,7 @@ function toggleArchive(p, el){
     setTimeout(function(){el.classList.remove('archive-pop');},400);
     showToast('"'+p.item_name+'" 아카이브에 추가됐어요 ✓');
   }
-  saveArchived();
+  syncToCloud(); // 동기화 호출
   updateArchiveCnt();
   if(currentTab==='archive') renderArchive();
   renderItems();
@@ -600,7 +655,7 @@ function saveCurrentKeyword(){
     return;
   }
   if(savedBrands.has(kw))savedBrands.delete(kw); else savedBrands.add(kw);
-  saveBrands();
+  syncToCloud(); // 동기화 호출
   updateSaveKwBtn(); rebuildNav();
   showToast(savedBrands.has(kw)?'"'+kw+'" Focus Group에 추가됐어요 ✓':'"'+kw+'" Focus Group에서 제거됐어요.');
 }
@@ -640,7 +695,6 @@ function renderItems(){
   bindCardEvents(el);
 }
 
-/* ── ARCHIVE ICON SVG ── */
 var ARC_ICON='<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M1 5.5h11" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 8h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>';
 
 function mkGrid(p){
@@ -678,7 +732,6 @@ function mkList(p){
 }
 
 function bindCardEvents(container){
-  // Calendar buttons
   container.querySelectorAll('.cal-btn,.lcal-btn').forEach(function(btn){
     btn.addEventListener('click',function(e){
       e.stopPropagation();
@@ -692,7 +745,6 @@ function bindCardEvents(container){
       setTimeout(function(){btn.classList.remove('added');btn.innerHTML=prev;},2000);
     });
   });
-  // Archive buttons — look up item by key
   container.querySelectorAll('.archive-btn,.larchive-btn').forEach(function(btn){
     btn.addEventListener('click',function(e){
       e.stopPropagation();
@@ -752,6 +804,9 @@ async function startHunt(){
   }finally{
     btn.disabled=false;
     btn.innerHTML='<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg> 발견하기';
+    
+    // 수색이 성공적으로 끝난 후, 검색된 내용(allItems)도 영구보존을 위해 클라우드 동기화 호출
+    syncToCloud(); 
   }
 }
 
@@ -769,36 +824,15 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 document.getElementById('mobToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');});
 document.getElementById('overlay').addEventListener('click',closeSidebar);
 
-/* ── INIT ── */
-
-updateUserUI();
-renderArchive();
-
-</script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
-  authDomain:"commingsoon-859cb.firebaseapp.com",
-  projectId:"commingsoon-859cb",
-  storageBucket:"commingsoon-859cb.firebasestorage.app",
-  messagingSenderId:"937539044603",
-  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
-});
-var fbAuth = firebase.auth();
-var fbProvider = new firebase.auth.GoogleAuthProvider();
-
+/* ── GOOGLE AUTH (하이브리드 동기화 연동) ── */
 function googleLogin() {
   fbAuth.signInWithPopup(fbProvider).then(function(r) {
     var u = r.user;
-    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL };
+    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL, uid: u.uid };
     updateUserUI();
     closeModal('loginModalBg');
     showToast(u.displayName + '님, 환영해요 ✓');
-    renderArchive();
+    // 실제 클라우드 데이터 호출은 아래 onAuthStateChanged에서 자동으로 일어납니다.
   }).catch(function(e) {
     if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
   });
@@ -809,14 +843,33 @@ function googleLogout() {
     currentUser = null;
     updateUserUI();
     showToast('로그아웃됐어요.');
-    renderArchive();
   });
 }
 
+// 브라우저 켤 때 & 로그인 상태 바뀔 때 알아서 감지하는 옵저버
 fbAuth.onAuthStateChanged(function(u) {
-  currentUser = u ? { name: u.displayName, email: u.email, photo: u.photoURL } : null;
-  if (typeof updateUserUI === 'function') { updateUserUI(); renderArchive(); }
+  if (u) {
+    // 1. 로그인 상태인 경우
+    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL, uid: u.uid };
+    loadFromCloud(u.uid); // 클라우드에서 안전하게 데이터 불러오기 (혹은 최초 백업)
+  } else {
+    // 2. 로그아웃 (또는 게스트) 상태인 경우
+    currentUser = null;
+    
+    // 로컬 스토리지에 남아있는 게스트 데이터로 폴백
+    archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
+    savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
+    allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]');
+    
+    rebuildNav();
+    renderItems();
+    renderArchive();
+    updateArchiveCnt();
+  }
+  
+  if (typeof updateUserUI === 'function') { updateUserUI(); }
 });
+
 </script>
 </body>
 </html>
