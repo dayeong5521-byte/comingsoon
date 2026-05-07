@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/hunt.js": {
+      "maxDuration": 60
+    }
+  }
+}
