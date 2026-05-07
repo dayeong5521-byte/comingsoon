@@ -1,822 +1,115 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>COMING SOON. — Release Tracker</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --accent:#F2664B;--accent-bg:rgba(242,102,75,0.08);--accent-dim:rgba(242,102,75,0.15);
-  --sidebar:#F4F4F2;--white:#fff;
-  --text1:#111;--text2:#666;--text3:#BDBDBD;
-  --border:rgba(0,0,0,0.07);--border-md:rgba(0,0,0,0.10);
-  --font:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
-  --ls:-0.02em;--sb-w:224px;
-}
-html,body{height:100%;background:var(--sidebar);}
-body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
-.layout{display:flex;height:100dvh;min-height:0;}
+// api/hunt.js — Jina 제거, Serper snippet 직접 사용 (속도 대폭 개선)
+export const config = { maxDuration: 60 };
 
-/* ── SIDEBAR ── */
-.sb{width:var(--sb-w);min-width:var(--sb-w);background:var(--sidebar);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:28px 18px 0;overflow-y:auto;flex-shrink:0;transition:transform .25s;}
-.sb-logo{margin-bottom:24px;}
-.logo-row{display:flex;align-items:center;gap:7px;}
-.logo-txt{font-size:16px;font-weight:900;color:var(--text1);letter-spacing:.01em;text-transform:uppercase;line-height:1;}
-.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-.logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;}
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
 
-/* Search in sidebar */
-.sb-search-wrap{margin-bottom:22px;}
-.sb-search-bar{display:flex;align-items:center;gap:8px;background:var(--white);border:0.5px solid var(--border-md);border-radius:10px;padding:0 12px;height:40px;transition:border-color .15s;}
-.sb-search-bar:focus-within{border-color:rgba(242,102,75,.45);}
-.sb-search-bar input{flex:1;border:none;outline:none;font-size:12px;font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);background:transparent;}
-.sb-search-bar input::placeholder{color:var(--text3);}
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+  const SERPER_KEY = process.env.SERPER_API_KEY;
+  if (!GEMINI_KEY || !SERPER_KEY)
+    return res.status(500).json({ error: 'API 키가 서버에 설정되지 않았습니다.' });
 
-/* Nav */
-.sb-sec-lbl{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;padding:0 4px;}
-.nav-list{display:flex;flex-direction:column;gap:2px;margin-bottom:16px;}
-.nav-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .12s;user-select:none;}
-.nav-item:hover{background:rgba(0,0,0,.04);}
-.nav-item.active{background:var(--accent-bg);}
-.ni-left{display:flex;align-items:center;gap:9px;}
-.ni-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .15s;}
-.nav-item.active .ni-dot,.nav-item:hover .ni-dot{background:var(--accent);}
-.ni-label{font-size:13px;font-weight:600;color:var(--text2);}
-.nav-item.active .ni-label{color:var(--text1);font-weight:700;}
-.ni-count{font-size:12px;font-weight:700;color:var(--text3);}
-.nav-item.active .ni-count{color:var(--accent);}
-.ni-icon{width:15px;height:15px;flex-shrink:0;color:var(--text3);}
-.nav-item.active .ni-icon{color:var(--accent);}
+  const { keyword } = req.body;
+  if (!keyword?.trim())
+    return res.status(400).json({ error: '키워드를 입력해주세요.' });
 
-/* Divider */
-.sb-div{height:0.5px;background:var(--border);margin:8px 0 14px;}
+  const TODAY = new Date().toISOString().split('T')[0];
+  const CY    = new Date().getFullYear();
 
-/* Footer */
-.sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
+  res.setHeader('Content-Type',  'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection',    'keep-alive');
+  res.flushHeaders();
 
-/* ── USER PROFILE SECTION ── */
-.user-area{display:flex;align-items:center;gap:10px;}
-.av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;}
-.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.av-info{flex:1;min-width:0;}
-.av-name{font-size:12px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.av-role{font-size:10px;color:var(--text3);}
-.login-btn-small{padding:5px 10px;border:0.5px solid var(--border-md);border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font);color:var(--text2);background:transparent;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.login-btn-small:hover{border-color:var(--accent);color:var(--accent);}
+  const send = obj => res.write(`data: ${JSON.stringify(obj)}\n\n`);
+  const seen = new Set();
 
-/* ── MODAL BASE ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
-.modal-bg.open{display:flex;}
-.modal{background:var(--white);border-radius:20px;padding:32px;width:100%;max-width:420px;margin:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
-.modal-title{font-size:18px;font-weight:800;color:var(--text1);margin-bottom:4px;}
-.modal-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
-.modal-field{margin-bottom:14px;}
-.modal-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
-.modal-input{width:100%;height:44px;border:1px solid var(--border-md);border-radius:10px;padding:0 14px;font-size:13px;font-family:var(--font);color:var(--text1);outline:none;transition:border-color .15s;background:var(--white);}
-.modal-input:focus{border-color:var(--accent);}
-.modal-input::placeholder{color:var(--text3);}
-.modal-actions{display:flex;gap:8px;margin-top:24px;}
-.modal-save{flex:1;height:44px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;transition:opacity .15s;}
-.modal-save:hover{opacity:.88;}
-.modal-cancel{height:44px;padding:0 18px;background:transparent;border:0.5px solid var(--border-md);border-radius:10px;color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;}
-.modal-cancel:hover{background:rgba(0,0,0,.04);}
-.modal-links{display:flex;gap:12px;margin-top:16px;}
-.modal-link{font-size:11px;color:var(--accent);text-decoration:none;}
-.modal-link:hover{text-decoration:underline;}
+  try {
+    send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
-/* ── GOOGLE LOGIN MODAL ── */
-.login-modal{max-width:380px;}
-.login-header{text-align:center;margin-bottom:28px;}
-.login-logo-mark{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
-.google-btn{width:100%;height:48px;background:var(--white);border:1px solid var(--border-md);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;font-family:var(--font);color:var(--text1);cursor:pointer;transition:all .15s;margin-bottom:12px;}
-.google-btn:hover{border-color:rgba(0,0,0,.2);background:#FAFAFA;}
-.google-icon{width:20px;height:20px;flex-shrink:0;}
-.login-divider{display:flex;align-items:center;gap:12px;margin:18px 0;}
-.login-divider span{font-size:11px;color:var(--text3);white-space:nowrap;}
-.login-divider::before,.login-divider::after{content:'';flex:1;height:0.5px;background:var(--border-md);}
-.guest-btn{width:100%;height:44px;background:transparent;border:0.5px solid var(--border-md);border-radius:12px;font-size:13px;font-weight:600;font-family:var(--font);color:var(--text2);cursor:pointer;transition:all .15s;}
-.guest-btn:hover{background:rgba(0,0,0,.03);}
-.login-terms{font-size:11px;color:var(--text3);text-align:center;margin-top:16px;line-height:1.6;}
-
-/* ── MAIN ── */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--white);}
-.mob-header{display:none;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.mob-logo{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:5px;}
-.mob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
-.mob-toggle{width:34px;height:34px;border:0.5px solid var(--border-md);border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
-.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;}
-.sb-overlay.open{display:block;}
-
-/* ── TABS (Radar / Archive) ── */
-.main-tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);flex-shrink:0;padding:0 28px;}
-.main-tab{padding:14px 0;margin-right:24px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;user-select:none;}
-.main-tab:hover{color:var(--text2);}
-.main-tab.active{color:var(--text1);border-bottom-color:var(--accent);}
-.main-tab-count{display:inline-flex;align-items:center;justify-content:center;background:var(--accent-bg);color:var(--accent);font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:6px;min-width:18px;}
-
-/* ── SEARCH HEADER ── */
-.hd{padding:18px 28px 14px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.search-bar{display:flex;align-items:center;background:var(--white);border:1px solid var(--border-md);border-radius:10px;overflow:hidden;transition:border-color .15s;}
-.search-bar:focus-within{border-color:rgba(242,102,75,.5);}
-.s-icon{padding:0 12px;display:flex;align-items:center;color:var(--text3);flex-shrink:0;}
-.s-input{flex:1;height:44px;border:none;outline:none;font-size:14px;font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);background:transparent;min-width:0;}
-.s-input::placeholder{color:var(--text3);}
-.hunt-btn{margin:5px;height:34px;padding:0 16px;background:var(--accent);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:opacity .15s;flex-shrink:0;display:flex;align-items:center;gap:5px;}
-.hunt-btn:hover{opacity:.86;}
-.hunt-btn:disabled{opacity:.5;cursor:not-allowed;}
-.save-kw-btn{margin:5px 5px 5px 0;width:32px;height:32px;border:0.5px solid var(--border-md);border-radius:50%;background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
-.save-kw-btn:hover{border-color:var(--accent);color:var(--accent);}
-.save-kw-btn.saved{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
-
-/* ── STATUS / TOOLBAR ── */
-.status-bar{padding:7px 28px;background:rgba(242,102,75,.04);border-bottom:0.5px solid var(--border);font-size:11px;font-weight:500;color:var(--text2);display:none;align-items:center;gap:8px;flex-shrink:0;}
-.status-bar.on{display:flex;}
-.spinner{width:11px;height:11px;border:1.5px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.toolbar{padding:9px 28px;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:0.5px solid var(--border);flex-wrap:wrap;row-gap:8px;}
-.view-sw{display:flex;gap:3px;}
-.vs-btn{width:30px;height:30px;border:0.5px solid var(--border-md);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;transition:all .15s;color:var(--text3);}
-.vs-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-.vs-btn:hover:not(.on){background:rgba(0,0,0,.04);color:var(--text2);}
-.filter-sep{width:0.5px;height:18px;background:var(--border-md);}
-.sort-group{display:flex;gap:5px;flex-wrap:wrap;}
-.sort-btn{height:30px;padding:0 11px;border:0.5px solid var(--border-md);border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font);letter-spacing:var(--ls);color:var(--text2);background:transparent;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.sort-btn:hover{border-color:rgba(242,102,75,.4);color:var(--accent);}
-.sort-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-.result-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;}
-
-/* ── CONTENT ── */
-.content{flex:1;overflow-y:auto;padding:20px 28px 28px;}
-.content::-webkit-scrollbar{width:4px;}
-.content::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:4px;}
-
-/* ── EMPTY / SKELETON ── */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--text3);text-align:center;padding:40px;}
-.empty-icon{width:52px;height:52px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;}
-.empty-title{font-size:15px;font-weight:700;color:var(--text2);}
-.empty-desc{font-size:13px;color:var(--text3);line-height:1.7;max-width:300px;}
-.skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px;}
-.sk-card{border-radius:14px;overflow:hidden;border:0.5px solid var(--border);background:var(--white);}
-.sk-img{width:100%;padding-top:72%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
-.sk-body{padding:13px;}
-.sk-line{height:10px;border-radius:5px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:8px;}
-.sk-line.s{width:50%;}.sk-line.m{width:75%;}
-@keyframes shimmer{to{background-position:-200% 0;}}
-
-/* ── GRID CARDS ── */
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px;align-items:start;}
-.pcard{background:var(--white);border-radius:14px;overflow:hidden;border:0.5px solid var(--border);transition:transform .18s,border-color .18s;display:flex;flex-direction:column;cursor:pointer;position:relative;}
-.pcard:hover{transform:translateY(-3px);border-color:rgba(242,102,75,.25);}
-.pcard-img-wrap{position:relative;width:100%;padding-top:72%;overflow:hidden;flex-shrink:0;}
-.pcard-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#f0f0f0;transition:transform .3s;}
-.pcard:hover .pcard-img{transform:scale(1.04);}
-.pbadge{position:absolute;top:9px;left:9px;font-size:9px;font-weight:800;border-radius:20px;padding:3px 7px;letter-spacing:.05em;text-transform:uppercase;z-index:1;}
-.pb-hot{background:var(--accent);color:#fff;}
-.pb-up{background:rgba(255,255,255,.88);color:var(--text2);border:0.5px solid var(--border-md);}
-/* Archive button on card */
-.archive-btn{position:absolute;top:9px;right:9px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);border:0.5px solid var(--border-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;transition:all .18s;color:var(--text3);}
-.archive-btn:hover{background:var(--white);border-color:var(--accent);color:var(--accent);}
-.archive-btn.archived{background:var(--accent);border-color:var(--accent);color:#fff;}
-.archive-btn svg{width:13px;height:13px;pointer-events:none;}
-.pcard-body{padding:12px 12px 13px;display:flex;flex-direction:column;flex:1;}
-.pc-brand{font-size:9px;font-weight:800;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;background:var(--accent-bg);display:inline-block;padding:2px 7px;border-radius:20px;margin-bottom:4px;align-self:flex-start;}
-.pc-name{font-size:13px;font-weight:700;color:var(--text1);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em;margin-bottom:auto;}
-.pc-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:0.5px solid var(--border);}
-.pc-date-lbl{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-.pc-date{font-size:13px;font-weight:900;color:var(--text1);letter-spacing:-.03em;line-height:1;}
-.pc-date.urg{color:var(--accent);}
-.cal-btn{height:30px;padding:0 10px;background:var(--accent);border:none;border-radius:50px;color:#fff;font-size:10px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;}
-.cal-btn:hover{opacity:.85;}
-.cal-btn.added{background:#DCFCE7;color:#166534;}
-
-/* ── LIST CARDS ── */
-.card-list{display:flex;flex-direction:column;gap:7px;}
-.lcard{display:flex;align-items:center;background:var(--white);border:0.5px solid var(--border-md);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s;min-height:72px;position:relative;}
-.lcard:hover{border-color:rgba(242,102,75,.3);}
-.lcard-img{width:96px;height:72px;object-fit:cover;flex-shrink:0;background:#f0f0f0;}
-.lcard-body{flex:1;min-width:0;padding:9px 12px;}
-.lc-brand{font-size:9px;font-weight:800;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;}
-.lc-name{font-size:13px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lc-desc{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lcard-right{padding:0 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.lc-date-lbl{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
-.lc-date{font-size:13px;font-weight:900;color:var(--text1);letter-spacing:-.03em;text-align:right;}
-.lc-date.urg{color:var(--accent);}
-.lcal-btn{height:30px;padding:0 10px;background:var(--accent);border:none;border-radius:50px;color:#fff;font-size:10px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;}
-.lcal-btn:hover{opacity:.85;}
-.lcal-btn.added{background:#DCFCE7;color:#166534;}
-.larchive-btn{width:28px;height:28px;border-radius:50%;border:0.5px solid var(--border-md);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--text3);flex-shrink:0;}
-.larchive-btn:hover{border-color:var(--accent);color:var(--accent);}
-.larchive-btn.archived{background:var(--accent);border-color:var(--accent);color:#fff;}
-.larchive-btn svg{width:13px;height:13px;pointer-events:none;}
-
-/* ── ARCHIVE PAGE ── */
-.archive-header{padding:24px 28px 16px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.archive-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-.archive-title{font-size:20px;font-weight:900;color:var(--text1);letter-spacing:-.02em;}
-.archive-subtitle{font-size:13px;color:var(--text2);}
-.archive-meta{display:flex;align-items:center;gap:12px;margin-top:12px;}
-.archive-stat{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);}
-.archive-stat-num{font-size:18px;font-weight:900;color:var(--text1);}
-.archive-stat-sep{width:0.5px;height:20px;background:var(--border-md);}
-
-/* Archive guest prompt */
-.archive-guest{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:40px 20px;max-width:340px;margin:0 auto;}
-.archive-guest-icon{width:60px;height:60px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;}
-.archive-guest-title{font-size:17px;font-weight:800;color:var(--text1);}
-.archive-guest-desc{font-size:13px;color:var(--text2);line-height:1.7;}
-.archive-login-btn{height:46px;padding:0 24px;background:var(--text1);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity .15s;}
-.archive-login-btn:hover{opacity:.85;}
-.archive-login-btn-outline{height:40px;padding:0 20px;background:transparent;border:0.5px solid var(--border-md);border-radius:12px;color:var(--text2);font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;}
-.archive-login-btn-outline:hover{border-color:var(--accent);color:var(--accent);}
-
-/* Archive card — archived state visual accent */
-.pcard.is-archived{border-color:rgba(242,102,75,.3);}
-.pcard.is-archived .pcard-img-wrap::after{content:'';position:absolute;inset:0;background:rgba(242,102,75,.06);}
-
-/* Fly animation when archiving */
-@keyframes flyIn{
-  0%{transform:scale(1);opacity:1;}
-  40%{transform:scale(1.08);}
-  100%{transform:scale(1);opacity:1;}
-}
-.archive-pop{animation:flyIn .35s ease;}
-
-/* Toast */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;font-size:12px;font-weight:600;font-family:var(--font);padding:10px 18px;border-radius:50px;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;display:flex;align-items:center;gap:8px;white-space:nowrap;}
-.toast.show{opacity:1;}
-.toast-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-
-/* ── RESPONSIVE ── */
-@media(max-width:1100px){.card-grid,.skeleton-grid{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));}}
-@media(max-width:900px){:root{--sb-w:200px;}}
-@media(max-width:700px){
-  .sb{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.08);}
-  .sb.open{transform:translateX(0);}
-  .mob-header{display:flex;}
-  .hd{padding:13px 16px 11px;}
-  .toolbar{padding:9px 16px;}
-  .content{padding:14px 16px 22px;}
-  .main-tabs{padding:0 16px;}
-  .archive-header{padding:18px 16px 14px;}
-  .filter-sep,.result-count{display:none;}
-  .card-grid,.skeleton-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
-  .lcard-right{padding:0 10px;gap:6px;}
-  .lcard-img{width:76px;height:68px;}
-  .status-bar{padding:7px 16px;}
-}
-@media(max-width:480px){
-  .card-grid,.skeleton-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
-  .pcard-body{padding:9px;}
-  .pc-date{font-size:11px;}
-  .cal-btn,.lcal-btn{font-size:10px;padding:0 8px;height:27px;}
-}
-</style>
-</head>
-<body>
-
-<!-- ── GOOGLE LOGIN MODAL ── -->
-<div class="modal-bg" id="loginModalBg">
-  <div class="modal login-modal">
-    <div class="login-header">
-      <div class="login-logo-mark">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="white" stroke-width="1.5"/><circle cx="11" cy="11" r="3.5" fill="white"/><line x1="11" y1="2" x2="11" y2="4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="18" x2="11" y2="20" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="11" x2="18" y2="11" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="2" y2="11" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </div>
-      <div class="modal-title" style="text-align:center">COMING SOON.에 오신 걸 환영해요</div>
-      <div class="modal-desc" style="text-align:center;margin-bottom:0">로그인하면 나만의 릴리즈 아카이브를<br>어디서든 이어볼 수 있어요.</div>
-    </div>
-    <button class="google-btn" onclick="googleLogin()">
-      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
-      Google로 계속하기
-    </button>
-    <div class="login-divider"><span>또는</span></div>
-    <button class="guest-btn" onclick="continueAsGuest()">로그인 없이 둘러보기</button>
-    <div class="login-terms">계속하면 서비스 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.</div>
-  </div>
-</div>
-
-<!-- ── TOAST ── -->
-<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
-
-<div class="layout">
-<div class="sb-overlay" id="overlay"></div>
-
-<!-- ── SIDEBAR ── -->
-<aside class="sb" id="sidebar">
-  <div class="sb-logo">
-    <div class="logo-row"><span class="logo-txt">Coming Soon</span><span class="logo-dot"></span></div>
-    <div class="logo-sub">Release Tracker</div>
-  </div>
-
-  <div class="sb-search-wrap">
-    <div class="sb-search-bar">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="color:var(--text3);flex-shrink:0"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      <input id="sbSearch" type="text" placeholder="저장한 키워드 검색..."/>
-    </div>
-  </div>
-
-  <div class="sb-sec-lbl">Navigation</div>
-  <div class="nav-list" style="margin-bottom:8px;">
-    <div class="nav-item active" id="navRadar" onclick="switchTab('radar')">
-      <div class="ni-left">
-        <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="0.8" fill="currentColor"/></svg>
-        <span class="ni-label">Release Radar</span>
-      </div>
-      <span class="ni-count" id="totalCnt">0</span>
-    </div>
-    <div class="nav-item" id="navArchive" onclick="switchTab('archive')">
-      <div class="ni-left">
-        <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        <span class="ni-label">My Archive</span>
-      </div>
-      <span class="ni-count" id="archiveCnt" style="display:none">0</span>
-    </div>
-  </div>
-
-  <div class="sb-div"></div>
-  <div class="sb-sec-lbl">Focus Groups</div>
-  <div class="nav-list" id="navList">
-    <div class="nav-item" data-filter="all" id="allFilter" onclick="setFilter('all');closeSidebar();">
-      <div class="ni-left"><div class="ni-dot"></div><span class="ni-label">전체</span></div>
-      <span class="ni-count" id="allFilterCnt">0</span>
-    </div>
-  </div>
-
-  <div class="sb-footer">
-    <!-- USER AREA -->
-    <div class="user-area" id="userArea">
-      <div class="av" id="userAv">?</div>
-      <div class="av-info">
-        <div class="av-name" id="userName">로그인이 필요해요</div>
-        <div class="av-role" id="userRole">게스트</div>
-      </div>
-      <button class="login-btn-small" id="loginBtnSb" onclick="openModal('loginModalBg')">로그인</button>
-    </div>
-  </div>
-</aside>
-
-<!-- ── MAIN ── -->
-<div class="main">
-  <div class="mob-header">
-    <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
-    <button class="mob-toggle" id="mobToggle">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><line x1="2" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="2" y1="7.5" x2="13" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="2" y1="11" x2="13" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </button>
-  </div>
-
-  <!-- ── RADAR TAB ── -->
-  <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-    <div class="hd">
-      <div class="search-bar">
-        <div class="s-icon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
-        <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
-        <button class="hunt-btn" id="huntBtn" onclick="startHunt()">
-          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg>
-          발견하기
-        </button>
-        <button class="save-kw-btn" id="saveKwBtn" onclick="saveCurrentKeyword()" title="이 키워드를 Focus Group에 저장">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L7.8 4.5H11.5L8.6 6.6L9.6 9.8L6.5 7.9L3.4 9.8L4.4 6.6L1.5 4.5H5.2L6.5 1.5Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusMsg">AI 엔진 가동 중...</span></div>
-    <div class="toolbar">
-      <div class="view-sw">
-        <button class="vs-btn on" id="btnGrid">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/></svg>
-        </button>
-        <button class="vs-btn" id="btnList">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="3" x2="11" y2="3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><line x1="1" y1="9" x2="11" y2="9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-      <div class="filter-sep"></div>
-      <div class="sort-group">
-        <button class="sort-btn on" data-sort="imminent">날짜 임박한순</button>
-        <button class="sort-btn" data-sort="recent">최근 발표된순</button>
-      </div>
-      <div class="result-count" id="resultCount">0개 시그널</div>
-    </div>
-    <div class="content" id="content">
-      <div class="empty-state">
-        <div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#BDBDBD" stroke-width="1.4"/><circle cx="10" cy="10" r="3.5" stroke="#BDBDBD" stroke-width="1.4"/><line x1="10" y1="2" x2="10" y2="4" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="18" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="18" y1="10" x2="16" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="4" y1="10" x2="2" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-        <div class="empty-title">레이더 대기 중</div>
-        <div class="empty-desc">키워드를 입력하고 <strong>발견하기</strong>를 눌러주세요.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ARCHIVE TAB ── -->
-  <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
-    <div class="archive-header">
-      <div class="archive-title-row">
-        <div>
-          <div class="archive-title">My Archive</div>
-          <div class="archive-subtitle">Visualizing Personal Archive</div>
-        </div>
-        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5 A5.5 5.5 0 1 1 7 12.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><path d="M4 5L7 7.5L10 5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Google 로그인
-        </button>
-      </div>
-      <div class="archive-meta" id="archiveMeta" style="display:none;">
-        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatCount">0</span>개 수집됨</div>
-        <div class="archive-stat-sep"></div>
-        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatBrands">0</span>개 브랜드</div>
-        <div class="archive-stat-sep"></div>
-        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatUpcoming">0</span>개 임박</div>
-      </div>
-    </div>
-    <div class="content" id="archiveContent">
-      <!-- rendered by renderArchive() -->
-    </div>
-  </div>
-</div>
-</div>
-
-<script>
-var TODAY = new Date().toISOString().split('T')[0];
-var CY = new Date().getFullYear();
-var FALLBACK = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
-
-/* ── USER STATE ── */
-var currentUser = null; // null = guest, {name, email, photo} = logged in
-
-/* ── DATA STATE ── */
-var allItems = [];
-var currentFilter = 'all';
-var viewMode = 'grid';
-var currentSort = 'imminent';
-var currentTab = 'radar';
-var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
-var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
-function saveArchived(){ localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds))); }
-function saveBrands(){ localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands))); }
-
-/* ── MODAL ── */
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-bg').forEach(function(el){
-  el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-});
-
-function continueAsGuest(){
-  closeModal('loginModalBg');
-  showToast('게스트로 계속합니다. 아카이브는 로그인 후 저장됩니다.');
-}
-function updateUserUI(){
-  var av=document.getElementById('userAv');
-  var uname=document.getElementById('userName');
-  var urole=document.getElementById('userRole');
-  var loginBtn=document.getElementById('loginBtnSb');
-  if(currentUser){
-    av.innerHTML=currentUser.name.charAt(0);
-    uname.textContent=currentUser.name;
-    urole.textContent=currentUser.email;
-    loginBtn.textContent='로그아웃'; loginBtn.onclick=function(){ googleLogout(); };
-    document.getElementById('archiveLoginBtn').style.display='none';
-    document.getElementById('archiveMeta').style.display='flex';
-  } else {
-    av.innerHTML='?';
-    uname.textContent='로그인이 필요해요';
-    urole.textContent='게스트';
-    loginBtn.textContent='로그인';
-    loginBtn.onclick=function(){openModal('loginModalBg');};
-    document.getElementById('archiveLoginBtn').style.display='flex';
-    document.getElementById('archiveMeta').style.display='none';
-  }
-}
-
-/* ── TOAST ── */
-var toastTimer;
-function showToast(msg){
-  var t=document.getElementById('toast');
-  document.getElementById('toastMsg').textContent=msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(function(){t.classList.remove('show');},2600);
-}
-
-/* ── TABS ── */
-function switchTab(tab){
-  currentTab=tab;
-  document.getElementById('radarPanel').style.display=tab==='radar'?'flex':'none';
-  document.getElementById('archivePanel').style.display=tab==='archive'?'flex':'none';
-  document.getElementById('navRadar').classList.toggle('active',tab==='radar');
-  document.getElementById('navArchive').classList.toggle('active',tab==='archive');
-  if(tab==='archive') renderArchive();
-}
-
-/* ── ARCHIVE KEY ── */
-function archiveKey(p){return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.release_date||'');}
-
-/* ── ARCHIVE TOGGLE ── */
-function toggleArchive(p, el){
-  var key=archiveKey(p);
-  if(archivedIds.has(key)){
-    archivedIds.delete(key);
-    el.classList.remove('archived');
-    showToast('아카이브에서 제거되었습니다.');
-  } else {
-    if(!currentUser){
-      showToast('아카이브 저장은 로그인 후 이용 가능합니다.');
-      openModal('loginModalBg');
-      return;
-    }
-    archivedIds.add(key);
-    el.classList.add('archived');
-    el.classList.add('archive-pop');
-    setTimeout(function(){el.classList.remove('archive-pop');},400);
-    showToast('"'+p.item_name+'" 아카이브에 추가됐어요 ✓');
-  }
-  saveArchived();
-  updateArchiveCnt();
-  if(currentTab==='archive') renderArchive();
-  renderItems();
-}
-
-function updateArchiveCnt(){
-  var cnt=archivedIds.size;
-  var el=document.getElementById('archiveCnt');
-  el.textContent=cnt;
-  el.style.display=cnt>0?'':'none';
-  document.getElementById('archiveStatCount').textContent=cnt;
-  var brands=new Set();
-  allItems.filter(function(p){return archivedIds.has(archiveKey(p));}).forEach(function(p){brands.add(p.brand);});
-  document.getElementById('archiveStatBrands').textContent=brands.size;
-  var upcoming=allItems.filter(function(p){return archivedIds.has(archiveKey(p))&&isUrgent(p.release_date);}).length;
-  document.getElementById('archiveStatUpcoming').textContent=upcoming;
-}
-
-/* ── ARCHIVE RENDER ── */
-function renderArchive(){
-  var ac=document.getElementById('archiveContent');
-  var archived=allItems.filter(function(p){return archivedIds.has(archiveKey(p));});
-  if(!currentUser){
-    ac.innerHTML='<div style="display:flex;justify-content:center;padding-top:60px;"><div class="archive-guest"><div class="archive-guest-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="9" r="5" stroke="#BDBDBD" stroke-width="1.5"/><path d="M4 22c0-5 4-8 9-8s9 3 9 8" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="archive-guest-title">아카이브를 시작해볼까요?</div><div class="archive-guest-desc">로그인하면 발견한 릴리즈 정보를 내 아카이브에 저장하고, 어디서든 꺼내볼 수 있어요.</div><button class="archive-login-btn" onclick="openModal(\'loginModalBg\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2 A8 8 0 1 1 10 18" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Google로 로그인하기</button><button class="archive-login-btn-outline" onclick="continueAsGuest()">나중에 할게요</button></div></div>';
-    return;
-  }
-  if(!archived.length){
-    ac.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="13" rx="2" stroke="#BDBDBD" stroke-width="1.4"/><path d="M2 9h16" stroke="#BDBDBD" stroke-width="1.4"/><path d="M7 13h6" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/></svg></div><div class="empty-title">아카이브가 비어있어요</div><div class="empty-desc">릴리즈 카드의 <strong>🔖</strong> 버튼을 눌러<br>내 컬렉션에 담아보세요.</div></div>';
-    return;
-  }
-  var html='<div class="card-grid">';
-  archived.forEach(function(p){html+=mkGrid(p);});
-  ac.innerHTML=html+'</div>';
-  bindCardEvents(ac);
-}
-
-/* ── NAV ── */
-function rebuildNav(){
-  var navList=document.getElementById('navList');
-  var allRow=document.getElementById('allFilter');
-  navList.innerHTML='';
-  navList.appendChild(allRow);
-  document.getElementById('allFilterCnt').textContent=allItems.length;
-  document.getElementById('totalCnt').textContent=allItems.length;
-  savedBrands.forEach(function(brand){
-    var cnt=allItems.filter(function(p){return p.brand===brand;}).length;
-    var row=document.createElement('div');
-    row.className='nav-item'+(currentFilter===brand?' active':'');
-    row.dataset.filter=brand;
-    row.innerHTML='<div class="ni-left"><div class="ni-dot"></div><span class="ni-label"># '+brand+'</span></div><span class="ni-count">'+cnt+'</span>';
-    row.onclick=function(){setFilter(brand);closeSidebar();};
-    navList.appendChild(row);
-  });
-  allRow.classList.toggle('active',currentFilter==='all');
-}
-function setFilter(f){
-  currentFilter=f;
-  document.querySelectorAll('#navList .nav-item[data-filter]').forEach(function(el){el.classList.toggle('active',el.dataset.filter===f);});
-  renderItems();
-}
-function saveCurrentKeyword(){
-  var kw=document.getElementById('mainSearch').value.trim().toUpperCase();
-  if(!kw)return;
-  if(!currentUser){
-    showToast('Focus Group 저장은 로그인 후 이용 가능합니다.');
-    openModal('loginModalBg');
-    return;
-  }
-  if(savedBrands.has(kw))savedBrands.delete(kw); else savedBrands.add(kw);
-  saveBrands();
-  updateSaveKwBtn(); rebuildNav();
-  showToast(savedBrands.has(kw)?'"'+kw+'" Focus Group에 추가됐어요 ✓':'"'+kw+'" Focus Group에서 제거됐어요.');
-}
-function updateSaveKwBtn(){
-  var kw=document.getElementById('mainSearch').value.trim().toUpperCase();
-  document.getElementById('saveKwBtn').classList.toggle('saved',savedBrands.has(kw));
-}
-
-/* ── HELPERS ── */
-function isUrgent(d){return d&&(new Date(d)-new Date(TODAY))/86400000<=30;}
-function dBadge(d){if(!d)return'';var diff=Math.ceil((new Date(d)-new Date(TODAY))/86400000);return diff>=0?'D-'+diff:'종료';}
-function calURL(item){
-  var t=encodeURIComponent('[COMING SOON] '+(item.brand||'')+' — '+(item.item_name||''));
-  var d=(item.release_date||'').replace(/[^0-9]/g,'');
-  var det=encodeURIComponent((item.description||'')+(item.link?'\n\n🔗 '+item.link:''));
-  return'https://www.google.com/calendar/render?action=TEMPLATE&text='+t+'&dates='+d+'/'+d+'&details='+det;
-}
-function safeImg(url){return url&&url.startsWith('http')?url:FALLBACK;}
-
-/* ── RENDER ── */
-function getFiltered(){
-  var list=currentFilter==='all'?allItems.slice():allItems.filter(function(p){return p.brand===currentFilter;});
-  if(currentSort==='imminent')list.sort(function(a,b){return a.release_date<b.release_date?-1:1;});
-  else list.sort(function(a,b){return a.release_date>b.release_date?-1:1;});
-  return list;
-}
-function renderItems(){
-  var list=getFiltered();
-  document.getElementById('resultCount').textContent=list.length+'개 시그널';
-  if(!list.length&&!allItems.length)return;
-  if(!list.length){document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">결과 없음</div></div>';return;}
-  var wrap=viewMode==='grid'?'card-grid':'card-list';
-  var html='<div class="'+wrap+'">';
-  list.forEach(function(p){html+=viewMode==='grid'?mkGrid(p):mkList(p);});
-  var el=document.getElementById('content');
-  el.innerHTML=html+'</div>';
-  bindCardEvents(el);
-}
-
-/* ── ARCHIVE ICON SVG ── */
-var ARC_ICON='<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M1 5.5h11" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 8h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>';
-
-function mkGrid(p){
-  var urg=isUrgent(p.release_date);
-  var key=archiveKey(p);
-  var isArc=archivedIds.has(key);
-  return '<div class="pcard'+(isArc?' is-archived':'')+'" onclick="window.open(\''+(p.link||'#')+'\',\'_blank\')">'
-    +'<div class="pcard-img-wrap">'
-    +'<img class="pcard-img" src="'+safeImg(p.image_url)+'" loading="lazy" onerror="this.src=\''+FALLBACK+'\'">'
-    +'<span class="pbadge '+(urg?'pb-hot':'pb-up')+'">'+dBadge(p.release_date)+'</span>'
-    +'<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+key+'" title="'+(isArc?'아카이브에서 제거':'내 아카이브에 저장')+'" onclick="event.stopPropagation()">'+ARC_ICON+'</button>'
-    +'</div>'
-    +'<div class="pcard-body">'
-    +'<div class="pc-brand">'+(p.brand||'—')+'</div>'
-    +'<div class="pc-name">'+(p.item_name||'')+'</div>'
-    +'<div class="pc-foot">'
-    +'<div><div class="pc-date-lbl">Coming Up</div><div class="pc-date'+(urg?' urg':'')+'">'+( p.release_date||'—')+'</div></div>'
-    +'<a href="'+calURL(p)+'" target="_blank" onclick="event.stopPropagation()"><button class="cal-btn">Calendar +</button></a>'
-    +'</div></div></div>';
-}
-function mkList(p){
-  var urg=isUrgent(p.release_date);
-  var key=archiveKey(p);
-  var isArc=archivedIds.has(key);
-  return '<div class="lcard" onclick="window.open(\''+(p.link||'#')+'\',\'_blank\')">'
-    +'<img class="lcard-img" src="'+safeImg(p.image_url)+'" loading="lazy" onerror="this.src=\''+FALLBACK+'\'">'
-    +'<div class="lcard-body"><div class="lc-brand">'+(p.brand||'—')+'</div>'
-    +'<div class="lc-name">'+(p.item_name||'')+'</div>'
-    +'<div class="lc-desc">'+(p.description||'')+'</div></div>'
-    +'<div class="lcard-right">'
-    +'<div><div class="lc-date-lbl">Coming Up</div><div class="lc-date'+(urg?' urg':'')+'">'+( p.release_date||'—')+'</div></div>'
-    +'<a href="'+calURL(p)+'" target="_blank" onclick="event.stopPropagation()"><button class="lcal-btn">Calendar +</button></a>'
-    +'<button class="larchive-btn'+(isArc?' archived':'')+'" data-key="'+key+'" onclick="event.stopPropagation()">'+ARC_ICON+'</button>'
-    +'</div></div>';
-}
-
-function bindCardEvents(container){
-  // Calendar buttons
-  container.querySelectorAll('.cal-btn,.lcal-btn').forEach(function(btn){
-    btn.addEventListener('click',function(e){
-      e.stopPropagation();
-      if(!currentUser){
-        showToast('캘린더 추가는 로그인 후 이용 가능합니다.');
-        openModal('loginModalBg');
-        return;
-      }
-      var prev=btn.innerHTML;
-      btn.classList.add('added');btn.textContent='✓ 추가됨';
-      setTimeout(function(){btn.classList.remove('added');btn.innerHTML=prev;},2000);
+    // 1. Serper 검색 — snippet + title + date 포함
+    const sr = await fetch('https://google.serper.dev/search', {
+      method:  'POST',
+      headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q  : `${keyword} release date ${CY} ${CY + 1}`,
+        gl : 'us', hl: 'en', num: 10
+      }),
     });
-  });
-  // Archive buttons — look up item by key
-  container.querySelectorAll('.archive-btn,.larchive-btn').forEach(function(btn){
-    btn.addEventListener('click',function(e){
-      e.stopPropagation();
-      var key=btn.dataset.key;
-      var p=allItems.find(function(x){return archiveKey(x)===key;});
-      if(p) toggleArchive(p,btn);
-    });
-  });
-}
+    const sd = await sr.json();
+    if (!sd.organic) throw new Error('Serper API 오류');
 
-function showSkeleton(){
-  var html='<div class="skeleton-grid">';
-  for(var i=0;i<6;i++) html+='<div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line s"></div><div class="sk-line m"></div><div class="sk-line"></div></div></div>';
-  document.getElementById('content').innerHTML=html+'</div>';
-}
-function setStatus(msg,on){
-  document.getElementById('statusMsg').textContent=msg;
-  document.getElementById('statusBar').classList.toggle('on',!!on);
-}
+    // Serper 결과에서 컨텍스트 조합 (Jina 없이)
+    const context = sd.organic.map((o, i) =>
+      `[${i+1}] ${o.title}\n${o.snippet || ''}\nURL: ${o.link}\n${o.date ? 'Date: '+o.date : ''}`
+    ).join('\n\n');
 
-/* ── HUNT — 서버 /api/hunt 경유 ── */
-async function startHunt(){
-  var kw=document.getElementById('mainSearch').value.trim();
-  if(!kw){document.getElementById('mainSearch').focus();return;}
-  var btn=document.getElementById('huntBtn');
-  btn.disabled=true;btn.textContent='탐색 중...';
-  allItems=[];rebuildNav();showSkeleton();
-  setStatus("'"+kw+"' 수색 중...",true);
-  try{
-    var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
-    if(!res.ok){var e=await res.json();throw new Error(e.error||'서버 오류 '+res.status);}
-    var reader=res.body.getReader();
-    var decoder=new TextDecoder();
-    var buf='';
-    while(true){
-      var chunk=await reader.read();
-      if(chunk.done)break;
-      buf+=decoder.decode(chunk.value,{stream:true});
-      var parts=buf.split('\n\n');buf=parts.pop();
+    send({ type: 'status', message: 'AI 분석 중...' });
 
-      for(var i=0;i<parts.length;i++){
-        var line=parts[i];
-        if(!line.startsWith('data: '))continue;
-        try{
-          var ev=JSON.parse(line.slice(6));
-          if(ev.type==='status')setStatus(ev.message,true);
-          else if(ev.type==='item'){allItems.push(ev.data);rebuildNav();renderItems();}
-          else if(ev.type==='done')setStatus('탐색 완료! '+ev.total+'개 시그널 확보.',false);
-          else if(ev.type==='error')throw new Error(ev.message);
-        }catch(e){if(e.message&&!e.message.includes('JSON'))throw e;}
+    // 2. Gemini 한 번만 호출
+    const gr = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text:
+            `Extract ALL upcoming release/event dates for "${keyword}" from the search results below.\n` +
+            `Today is ${TODAY}. Only include dates >= ${TODAY}.\n` +
+            `If date is vague (season/month), estimate a specific date.\n` +
+            `Return ONLY a raw JSON array, no markdown.\n\n` +
+            `Format: [{"brand":"Name","item_name":"Product","release_date":"YYYY-MM-DD","description":"한 줄 설명","image_url":"","link":"URL"}]\n\n` +
+            `Search results:\n${context}`
+          }] }],
+          generationConfig: { temperature: 0.1 },
+          safetySettings: [{ category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' }],
+        }),
       }
-    }
-    if(!allItems.length)document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">결과를 찾지 못했습니다</div><div class="empty-desc">다른 키워드로 시도해보세요.</div></div>';
-  }catch(err){
-    setStatus('',false);
-    document.getElementById('content').innerHTML='<div class="empty-state"><div class="empty-title">오류 발생</div><div class="empty-desc">'+err.message+'</div></div>';
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg> 발견하기';
+    );
+    const gd = await gr.json();
+    if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
+
+    const txt   = gd.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const start = txt.indexOf('['), end = txt.lastIndexOf(']') + 1;
+    if (start === -1 || end === 0) throw new Error('결과를 파싱할 수 없습니다.');
+
+    const items = JSON.parse(txt.slice(start, end));
+    const valid = items.filter(item => {
+      if (!item.release_date || item.release_date < TODAY) return false;
+      if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
+      const key = `${item.item_name}||${item.release_date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    send({ type: 'status', message: `이미지 검색 중... (${valid.length}개)` });
+
+    // 3. 이미지 검색 병렬
+    await Promise.allSettled(
+      valid.map(async item => {
+        try {
+          const ir  = await fetch('https://google.serper.dev/images', {
+            method:  'POST',
+            headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ q: `${item.brand} ${item.item_name}`, num: 1 }),
+          });
+          const id_ = await ir.json();
+          if (id_.images?.[0]) item.image_url = id_.images[0].imageUrl;
+        } catch {}
+      })
+    );
+
+    // 날짜순 정렬 후 전송
+    valid
+      .sort((a, b) => a.release_date.localeCompare(b.release_date))
+      .forEach(item => send({ type: 'item', data: item }));
+
+    send({ type: 'done', total: valid.length });
+
+  } catch (err) {
+    send({ type: 'error', message: err.message });
+  } finally {
+    res.end();
   }
 }
-
-/* ── CONTROLS ── */
-document.getElementById('mainSearch').addEventListener('keydown',function(e){if(e.key==='Enter')startHunt();});
-document.getElementById('mainSearch').addEventListener('input',updateSaveKwBtn);
-document.getElementById('btnGrid').addEventListener('click',function(){viewMode='grid';this.classList.add('on');document.getElementById('btnList').classList.remove('on');renderItems();});
-document.getElementById('btnList').addEventListener('click',function(){viewMode='list';this.classList.add('on');document.getElementById('btnGrid').classList.remove('on');renderItems();});
-document.querySelectorAll('[data-sort]').forEach(function(b){b.addEventListener('click',function(){currentSort=b.dataset.sort;document.querySelectorAll('[data-sort]').forEach(function(x){x.classList.remove('on');});b.classList.add('on');renderItems();});});
-document.getElementById('sbSearch').addEventListener('input',function(){
-  var q=this.value.toLowerCase().trim();
-  document.querySelectorAll('#navList .nav-item[data-filter]').forEach(function(el){el.style.display=(!q||el.querySelector('.ni-label').textContent.toLowerCase().includes(q))?'':'none';});
-});
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
-document.getElementById('mobToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');});
-document.getElementById('overlay').addEventListener('click',closeSidebar);
-
-/* ── INIT ── */
-
-updateUserUI();
-renderArchive();
-
-</script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
-  authDomain:"commingsoon-859cb.firebaseapp.com",
-  projectId:"commingsoon-859cb",
-  storageBucket:"commingsoon-859cb.firebasestorage.app",
-  messagingSenderId:"937539044603",
-  appId:"1:937539044603:web:1bb76b906028ad337f1c5e"
-});
-var fbAuth = firebase.auth();
-var fbProvider = new firebase.auth.GoogleAuthProvider();
-
-function googleLogin() {
-  fbAuth.signInWithPopup(fbProvider).then(function(r) {
-    var u = r.user;
-    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL };
-    updateUserUI();
-    closeModal('loginModalBg');
-    showToast(u.displayName + '님, 환영해요 ✓');
-    renderArchive();
-  }).catch(function(e) {
-    if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
-  });
-}
-
-function googleLogout() {
-  fbAuth.signOut().then(function() {
-    currentUser = null;
-    updateUserUI();
-    showToast('로그아웃됐어요.');
-    renderArchive();
-  });
-}
-
-fbAuth.onAuthStateChanged(function(u) {
-  currentUser = u ? { name: u.displayName, email: u.email, photo: u.photoURL } : null;
-  if (typeof updateUserUI === 'function') { updateUserUI(); renderArchive(); }
-});
-</script>
-</body>
-</html>
