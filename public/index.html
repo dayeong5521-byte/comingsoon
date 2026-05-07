@@ -55,6 +55,13 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 
 /* Footer */
 .sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
+
+
+
+
+
+
+
 /* ── USER PROFILE SECTION ── */
 .user-area{display:flex;align-items:center;gap:10px;}
 .av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;}
@@ -273,6 +280,52 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   .cal-btn,.lcal-btn{font-size:10px;padding:0 8px;height:27px;}
 }
 </style>
+<!-- Firebase Google Auth -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBPqQtCUtYCIvwqi0qbifc2n-NFIlCteos",
+  authDomain: "commingsoon-859cb.firebaseapp.com",
+  projectId: "commingsoon-859cb",
+  storageBucket: "commingsoon-859cb.firebasestorage.app",
+  messagingSenderId: "937539044603",
+  appId: "1:937539044603:web:1bb76b906028ad337f1c5e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+window.googleLogin = async function() {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const u = result.user;
+    currentUser = { name: u.displayName, email: u.email, photo: u.photoURL };
+    updateUserUI();
+    closeModal('loginModalBg');
+    showToast(u.displayName + '님, 환영해요 ✓');
+    renderArchive();
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') showToast('로그인 실패: ' + e.message);
+  }
+};
+
+window.googleLogout = async function() {
+  await signOut(auth);
+  currentUser = null;
+  updateUserUI();
+  showToast('로그아웃됐어요.');
+  renderArchive();
+};
+
+onAuthStateChanged(auth, function(u) {
+  currentUser = u ? { name: u.displayName, email: u.email, photo: u.photoURL } : null;
+  if (typeof updateUserUI === 'function') { updateUserUI(); renderArchive(); }
+});
+</script>
 </head>
 <body>
 
@@ -286,7 +339,7 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       <div class="modal-title" style="text-align:center">COMING SOON.에 오신 걸 환영해요</div>
       <div class="modal-desc" style="text-align:center;margin-bottom:0">로그인하면 나만의 릴리즈 아카이브를<br>어디서든 이어볼 수 있어요.</div>
     </div>
-    <button class="google-btn" onclick="mockGoogleLogin()">
+    <button class="google-btn" onclick="googleLogin()">
       <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
       Google로 계속하기
     </button>
@@ -449,22 +502,12 @@ var currentFilter = 'all';
 var viewMode = 'grid';
 var currentSort = 'imminent';
 var currentTab = 'radar';
-
-// localStorage에서 불러오기
-var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived') || '[]'));
-var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands') || '[]'));
-
-// 저장 함수
-function saveArchived() {
-  localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds)));
-}
-function saveBrands() {
-  localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands)));
-}
+var archivedIds = new Set(JSON.parse(localStorage.getItem('cs_archived')||'[]'));
+var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
+function saveArchived(){ localStorage.setItem('cs_archived', JSON.stringify(Array.from(archivedIds))); }
+function saveBrands(){ localStorage.setItem('cs_savedBrands', JSON.stringify(Array.from(savedBrands))); }
 
 /* ── KEYS ── */
-
-
 
 
 /* ── MODAL ── */
@@ -475,8 +518,7 @@ document.querySelectorAll('.modal-bg').forEach(function(el){
 });
 
 /* ── GOOGLE LOGIN (mock) ── */
-function mockGoogleLogin(){
-  currentUser={name:'Jiwon Kim',email:'jiwon@example.com',photo:''};
+;
   closeModal('loginModalBg');
   updateUserUI();
   showToast('Google 계정으로 로그인되었습니다 ✓');
@@ -495,8 +537,7 @@ function updateUserUI(){
     av.innerHTML=currentUser.name.charAt(0);
     uname.textContent=currentUser.name;
     urole.textContent=currentUser.email;
-    loginBtn.textContent='로그아웃';
-    loginBtn.onclick=function(){currentUser=null;updateUserUI();showToast('로그아웃되었습니다.');renderArchive();};
+    loginBtn.textContent='로그아웃'; loginBtn.onclick=function(){ window.googleLogout(); };
     document.getElementById('archiveLoginBtn').style.display='none';
     document.getElementById('archiveMeta').style.display='flex';
   } else {
@@ -735,7 +776,7 @@ function setStatus(msg,on){
   document.getElementById('statusBar').classList.toggle('on',!!on);
 }
 
-/* ── HUNT — 서버 /api/hunt 경유 (API 키 숨김) ── */
+/* ── HUNT — 서버 /api/hunt 경유 ── */
 async function startHunt(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){document.getElementById('mainSearch').focus();return;}
@@ -753,7 +794,9 @@ async function startHunt(){
       var chunk=await reader.read();
       if(chunk.done)break;
       buf+=decoder.decode(chunk.value,{stream:true});
-      var parts=buf.split('\n\n');buf=parts.pop();
+      var parts=buf.split('
+
+');buf=parts.pop();
       for(var i=0;i<parts.length;i++){
         var line=parts[i];
         if(!line.startsWith('data: '))continue;
