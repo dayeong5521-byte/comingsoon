@@ -1,13 +1,23 @@
 {
-  "functions": {
-    "api/hunt.js": {
-      "maxDuration": 60
+  "version": 2,
+  "builds": [
+    {
+      "src": "public/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/hunt.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
+      "src": "/api/hunt",
+      "dest": "/api/hunt.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/public/index.html"
     }
   ]
 }
