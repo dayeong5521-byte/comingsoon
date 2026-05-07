@@ -3,5 +3,11 @@
     "api/hunt.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
 }
