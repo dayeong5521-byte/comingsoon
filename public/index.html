@@ -55,13 +55,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 
 /* Footer */
 .sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
-.api-status-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:9px;border:0.5px solid var(--border-md);background:var(--white);cursor:pointer;transition:all .15s;margin-bottom:10px;font-family:var(--font);}
-.api-status-btn:hover{border-color:rgba(242,102,75,.4);}
-.api-status-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;}
-.api-status-dot.ok{background:#22C55E;}
-.api-status-txt{font-size:11px;font-weight:600;color:var(--text2);flex:1;}
-.api-status-edit{font-size:10px;color:var(--text3);}
-
 /* ── USER PROFILE SECTION ── */
 .user-area{display:flex;align-items:center;gap:10px;}
 .av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;}
@@ -283,30 +276,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 </head>
 <body>
 
-<!-- ── API KEY MODAL ── -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <div class="modal-title">API Keys 설정</div>
-    <div class="modal-desc">릴리즈 탐색을 위해 두 가지 API 키가 필요합니다.<br>키는 이 브라우저에만 저장됩니다.</div>
-    <div class="modal-field">
-      <div class="modal-label">Gemini API Key</div>
-      <input class="modal-input" type="password" id="geminiKeyInput" placeholder="AIza..."/>
-    </div>
-    <div class="modal-field">
-      <div class="modal-label">Serper.dev API Key</div>
-      <input class="modal-input" type="password" id="serperKeyInput" placeholder="..."/>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal('modalBg')">취소</button>
-      <button class="modal-save" onclick="saveKeys()">저장하고 시작하기</button>
-    </div>
-    <div class="modal-links">
-      <a class="modal-link" href="https://aistudio.google.com/app/apikey" target="_blank">↗ Gemini 키 발급</a>
-      <a class="modal-link" href="https://serper.dev" target="_blank">↗ Serper 키 발급</a>
-    </div>
-  </div>
-</div>
-
 <!-- ── GOOGLE LOGIN MODAL ── -->
 <div class="modal-bg" id="loginModalBg">
   <div class="modal login-modal">
@@ -375,11 +344,6 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   </div>
 
   <div class="sb-footer">
-    <button class="api-status-btn" onclick="openModal('modalBg')">
-      <span class="api-status-dot" id="apiDot"></span>
-      <span class="api-status-txt" id="apiStatusTxt">API Keys 설정 필요</span>
-      <span class="api-status-edit">설정 →</span>
-    </button>
     <!-- USER AREA -->
     <div class="user-area" id="userArea">
       <div class="av" id="userAv">?</div>
@@ -437,7 +401,7 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
       <div class="empty-state">
         <div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#BDBDBD" stroke-width="1.4"/><circle cx="10" cy="10" r="3.5" stroke="#BDBDBD" stroke-width="1.4"/><line x1="10" y1="2" x2="10" y2="4" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="18" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="18" y1="10" x2="16" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/><line x1="4" y1="10" x2="2" y2="10" stroke="#BDBDBD" stroke-width="1.4" stroke-linecap="round"/></svg></div>
         <div class="empty-title">레이더 대기 중</div>
-        <div class="empty-desc">API Keys를 설정한 뒤<br>키워드를 입력하고 <strong>발견하기</strong>를 눌러주세요.</div>
+        <div class="empty-desc">키워드를 입력하고 <strong>발견하기</strong>를 눌러주세요.</div>
       </div>
     </div>
   </div>
@@ -474,7 +438,7 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
 var TODAY = new Date().toISOString().split('T')[0];
 var CY = new Date().getFullYear();
 var FALLBACK = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
-var GEMINI_KEY = '', SERPER_KEY = '';
+
 
 /* ── USER STATE ── */
 var currentUser = null; // null = guest, {name, email, photo} = logged in
@@ -489,24 +453,9 @@ var currentSort = 'imminent';
 var currentTab = 'radar';
 
 /* ── KEYS ── */
-function loadKeys(){
-  GEMINI_KEY = localStorage.getItem('cs_gemini')||'';
-  SERPER_KEY = localStorage.getItem('cs_serper')||'';
-  updateApiStatus();
-}
-function saveKeys(){
-  var gk=document.getElementById('geminiKeyInput').value.trim();
-  var sk=document.getElementById('serperKeyInput').value.trim();
-  if(!gk||!sk){alert('두 키를 모두 입력해주세요.');return;}
-  GEMINI_KEY=gk; SERPER_KEY=sk;
-  localStorage.setItem('cs_gemini',gk); localStorage.setItem('cs_serper',sk);
-  updateApiStatus(); closeModal('modalBg');
-}
-function updateApiStatus(){
-  var ok=GEMINI_KEY&&SERPER_KEY;
-  document.getElementById('apiDot').classList.toggle('ok',ok);
-  document.getElementById('apiStatusTxt').textContent=ok?'API Keys 설정됨':'API Keys 설정 필요';
-}
+
+
+
 
 /* ── MODAL ── */
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -774,7 +723,7 @@ function setStatus(msg,on){
   document.getElementById('statusBar').classList.toggle('on',!!on);
 }
 
-/* ── HUNT — /api/hunt 서버 경유 ── */
+/* ── HUNT — 서버 /api/hunt 경유 (API 키 숨김) ── */
 async function startHunt(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){document.getElementById('mainSearch').focus();return;}
@@ -830,7 +779,7 @@ document.getElementById('mobToggle').addEventListener('click',function(){documen
 document.getElementById('overlay').addEventListener('click',closeSidebar);
 
 /* ── INIT ── */
-loadKeys();
+
 updateUserUI();
 renderArchive();
 
