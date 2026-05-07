@@ -1,4 +1,3 @@
-// ── 기존 코드에서 이 부분만 교체 ──────────────────────────────
 async function startHunt() {
   var kw = document.getElementById('mainSearch').value.trim();
   if (!kw) { document.getElementById('mainSearch').focus(); return; }
@@ -9,7 +8,6 @@ async function startHunt() {
   setStatus("'" + kw + "' 수색 중...", true);
 
   try {
-    // ✅ 변경점: 외부 API 직접 호출 → /api/hunt 로 변경
     var res = await fetch('/api/hunt', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
