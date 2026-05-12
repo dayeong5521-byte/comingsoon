@@ -19,8 +19,8 @@ var currentUser = null;
 var currentView = 'radar';
 var viewMode = 'grid';
 var sortMode = 'imminent';
-var currentSearchItems = [];                                          // ★ 현재 검색 결과만
-var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]'); // ★ 누적 전체
+var currentSearchItems = [];                                           // 현재 검색 결과만
+var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]'); // 누적 전체
 var archivedItems = JSON.parse(localStorage.getItem('cs_archivedItems')||'[]');
 var archivedIds = new Set(archivedItems.map(function(item){ return archiveKey(item); }));
 var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
@@ -28,18 +28,28 @@ var newBadgeCounts = {};
 
 /* ── 유틸 ── */
 function archiveKey(p){ return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.release_date||''); }
+
 function escapeHtml(str){
   return (str||'').toString()
     .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
 function daysUntil(dateStr){
-  var diff = new Date(dateStr) - new Date(TODAY);
-  return Math.ceil(diff / 86400000);
+  return Math.ceil((new Date(dateStr) - new Date(TODAY)) / 86400000);
 }
+
 function formatDate(dateStr){
   if(!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+}
+
+function makeCalUrl(p){
+  var d = p.release_date.replace(/-/g,'');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent('[출시] '+p.brand+' '+p.item_name)
+    +'&dates='+d+'/'+d
+    +'&details='+encodeURIComponent(p.description||'');
 }
 
 /* ── 토스트 ── */
@@ -112,22 +122,25 @@ function switchView(viewType){
   currentView=viewType;
   document.getElementById('radarPanel').style.display  =(viewType==='archive')?'none':'flex';
   document.getElementById('archivePanel').style.display=(viewType==='archive')?'flex':'none';
-
   if(viewType==='radar'){
-    // ★ Release Radar: 현재 검색 결과만
     renderItems(getSortedItems(currentSearchItems));
   } else if(viewType==='all'){
-    // ★ 전체: 누적된 모든 아이템
     renderItems(getSortedItems(allItems));
   } else if(viewType==='archive'){
     renderArchive();
   } else {
-    // 포커스 그룹 (브랜드별)
     var brandData=allItems.filter(function(item){ return item.brand===viewType; });
     renderItems(getSortedItems(brandData));
     newBadgeCounts[viewType]=0;
   }
   rebuildNav(); closeSidebar();
+}
+
+function getDisplayList(){
+  if(currentView==='radar')   return currentSearchItems;
+  if(currentView==='all')     return allItems;
+  if(currentView==='archive') return archivedItems;
+  return allItems.filter(function(p){ return p.brand===currentView; });
 }
 
 /* ── 정렬 ── */
@@ -159,7 +172,9 @@ async function runSilentAutoHunt(){
           if(ev.type==='item'){
             var key=archiveKey(ev.data);
             if(!allItems.some(function(x){ return archiveKey(x)===key; })){
-              allItems.push(ev.data); newBadgeCounts[brand]=(newBadgeCounts[brand]||0)+1; totalNew++;
+              allItems.push(ev.data);
+              newBadgeCounts[brand]=(newBadgeCounts[brand]||0)+1;
+              totalNew++;
             }
           }
         }
@@ -194,12 +209,9 @@ function rebuildNav(){
     navList.appendChild(row);
   });
 
-  // ★ 전체 카운트는 allItems 기준
   document.getElementById('allFilterCnt').textContent=allItems.length;
-  // ★ Release Radar 카운트는 currentSearchItems 기준
   document.getElementById('totalCnt').textContent=currentSearchItems.length;
-
-  document.getElementById('navRadar').classList.toggle('active', currentView==='radar');
+  document.getElementById('navRadar').classList.toggle('active',  currentView==='radar');
   document.getElementById('navArchive').classList.toggle('active',currentView==='archive');
   document.getElementById('allFilter').classList.toggle('active', currentView==='all');
 
@@ -215,11 +227,11 @@ function rebuildNav(){
 /* ── 클라우드 동기화 ── */
 function syncToCloud(){
   localStorage.setItem('cs_archivedItems',JSON.stringify(archivedItems));
-  localStorage.setItem('cs_savedBrands',JSON.stringify(Array.from(savedBrands)));
-  localStorage.setItem('cs_allItems',JSON.stringify(allItems));
+  localStorage.setItem('cs_savedBrands',  JSON.stringify(Array.from(savedBrands)));
+  localStorage.setItem('cs_allItems',     JSON.stringify(allItems));
   if(currentUser){
     db.collection('users').doc(currentUser.uid).set({
-      archivedItems:archivedItems,savedBrands:Array.from(savedBrands),allItems:allItems,
+      archivedItems:archivedItems, savedBrands:Array.from(savedBrands), allItems:allItems,
       lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }
@@ -242,14 +254,21 @@ async function startHunt(){
   btn.disabled=true; btn.textContent='탐색 중...';
   setStatus("'"+kw+"' 수색 중...",true);
 
-  // ★ 검색할 때마다 레이더 초기화
+  // Release Radar는 매 검색마다 초기화
   currentSearchItems=[];
   renderItems([]);
 
   try{
-    var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
-    if(!res.ok){ var err=await res.json().catch(function(){return{};}); throw new Error(err.error||'API 오류 ('+res.status+')'); }
-    var reader=res.body.getReader(),decoder=new TextDecoder(),buf='';
+    var res=await fetch('/api/hunt',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({keyword:kw})
+    });
+    if(!res.ok){
+      var err=await res.json().catch(function(){return{};});
+      throw new Error(err.error||'API 오류 ('+res.status+')');
+    }
+    var reader=res.body.getReader(), decoder=new TextDecoder(), buf='';
     while(true){
       var chunk=await reader.read(); if(chunk.done) break;
       buf+=decoder.decode(chunk.value,{stream:true});
@@ -259,26 +278,27 @@ async function startHunt(){
         var ev=JSON.parse(line.slice(6));
         if(ev.type==='status') setStatus(ev.message,true);
         if(ev.type==='item'){
-          // ★ currentSearchItems: 이번 검색 결과
+          // 현재 검색 결과 (Radar용)
           if(!currentSearchItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })){
             currentSearchItems.push(ev.data);
           }
-          // ★ allItems: 누적 전체 저장
+          // 누적 전체 (전체용)
           if(!allItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })){
             allItems.push(ev.data);
           }
-          // ★ Release Radar에는 현재 검색 결과만 표시
           renderItems(getSortedItems(currentSearchItems));
           rebuildNav();
         }
         if(ev.type==='error') showToast('오류: '+ev.message);
       }
     }
-  } catch(e){ showToast('오류: '+e.message); }
-  finally{
+  } catch(e){
+    showToast('오류: '+e.message);
+  } finally{
     btn.disabled=false;
     btn.innerHTML='<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg> 발견하기';
-    setStatus('',false); syncToCloud();
+    setStatus('',false);
+    syncToCloud();
   }
 }
 
@@ -290,12 +310,19 @@ var ICON_CHECK='<svg viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5l3 3 5-5" 
 function mkGrid(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
-  var badge=days<=7?'<span class="pbadge pb-hot">D-'+days+'</span>':'<span class="pbadge pb-up">D-'+days+'</span>';
+  var badge=days<=7
+    ?'<span class="pbadge pb-hot">D-'+days+'</span>'
+    :'<span class="pbadge pb-up">D-'+days+'</span>';
+  var calUrl=makeCalUrl(p);
+  var imgClick=p.link
+    ?'onclick="window.open(\''+escapeHtml(p.link)+'\',\'_blank\')" style="cursor:pointer;"'
+    :'';
+
   return '<div class="pcard'+(isArc?' is-archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'">'+
-    '<div class="pcard-img-wrap">'+
+    '<div class="pcard-img-wrap" '+imgClick+'>'+
       '<img class="pcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
       badge+
-      '<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'">'+
+      '<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'" onclick="event.stopPropagation()">'+
         (isArc?ICON_CHECK:ICON_ARCHIVE)+
       '</button>'+
     '</div>'+
@@ -307,7 +334,7 @@ function mkGrid(p){
           '<div class="pc-date-lbl">출시일</div>'+
           '<div class="pc-date'+(days<=7?' urg':'')+'">'+formatDate(p.release_date)+'</div>'+
         '</div>'+
-        (p.link?'<a class="cal-btn" href="'+escapeHtml(p.link)+'" target="_blank" rel="noopener">링크 열기</a>':'')+
+        '<a class="cal-btn" href="'+calUrl+'" target="_blank" rel="noopener">📅 캘린더 추가</a>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -317,7 +344,12 @@ function mkGrid(p){
 function mkList(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
-  return '<div class="lcard" data-key="'+escapeHtml(archiveKey(p))+'">'+
+  var calUrl=makeCalUrl(p);
+  var rowClick=p.link
+    ?'onclick="window.open(\''+escapeHtml(p.link)+'\',\'_blank\')" style="cursor:pointer;"'
+    :'';
+
+  return '<div class="lcard" data-key="'+escapeHtml(archiveKey(p))+'" '+rowClick+'>'+
     '<img class="lcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
     '<div class="lcard-body">'+
       '<div class="lc-brand">'+escapeHtml(p.brand)+'</div>'+
@@ -329,8 +361,8 @@ function mkList(p){
         '<div class="lc-date-lbl">출시일</div>'+
         '<div class="lc-date'+(days<=7?' urg':'')+'">D-'+days+'</div>'+
       '</div>'+
-      (p.link?'<a class="lcal-btn" href="'+escapeHtml(p.link)+'" target="_blank" rel="noopener">링크</a>':'')+
-      '<button class="larchive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'">'+
+      '<a class="lcal-btn" href="'+calUrl+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">📅</a>'+
+      '<button class="larchive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'" onclick="event.stopPropagation()">'+
         (isArc?ICON_CHECK:ICON_ARCHIVE)+
       '</button>'+
     '</div>'+
@@ -353,14 +385,18 @@ function renderItems(list){
   bindCardEvents(el);
 }
 
+/* ── 카드 이벤트 ── */
 function bindCardEvents(container){
   container.querySelectorAll('.archive-btn,.larchive-btn').forEach(function(btn){
-    btn.onclick=function(e){ e.stopPropagation(); toggleArchive(this.getAttribute('data-key'),this); };
+    btn.onclick=function(e){
+      e.stopPropagation();
+      toggleArchive(this.getAttribute('data-key'),this);
+    };
   });
 }
 
+/* ── 아카이브 토글 ── */
 function toggleArchive(key,btn){
-  // allItems와 currentSearchItems 모두에서 찾기
   var item=allItems.find(function(p){ return archiveKey(p)===key; })
          ||currentSearchItems.find(function(p){ return archiveKey(p)===key; });
   if(!item) return;
@@ -368,13 +404,13 @@ function toggleArchive(key,btn){
     archivedIds.delete(key);
     archivedItems=archivedItems.filter(function(p){ return archiveKey(p)!==key; });
     if(btn){ btn.innerHTML=ICON_ARCHIVE; btn.classList.remove('archived'); }
-    var card=document.querySelector('[data-key="'+key+'"].pcard');
+    var card=document.querySelector('.pcard[data-key="'+key+'"]');
     if(card) card.classList.remove('is-archived');
     showToast('보관을 취소했어요.');
   } else {
     archivedIds.add(key); archivedItems.push(item);
     if(btn){ btn.innerHTML=ICON_CHECK; btn.classList.add('archived','archive-pop'); }
-    var card=document.querySelector('[data-key="'+key+'"].pcard');
+    var card=document.querySelector('.pcard[data-key="'+key+'"]');
     if(card) card.classList.add('is-archived');
     showToast('✅ 아카이브에 추가됐어요!');
   }
@@ -407,46 +443,44 @@ function updateArchiveStats(){
 
 /* ── DOMContentLoaded ── */
 document.addEventListener('DOMContentLoaded',function(){
+  // 모바일 사이드바
   var mobToggle=document.getElementById('mobToggle');
   var overlay=document.getElementById('overlay');
   if(mobToggle) mobToggle.onclick=openSidebar;
   if(overlay)   overlay.onclick=closeSidebar;
 
+  // 뷰 전환 (그리드/리스트)
   var btnGrid=document.getElementById('btnGrid');
   var btnList=document.getElementById('btnList');
   if(btnGrid) btnGrid.onclick=function(){
     viewMode='grid'; btnGrid.classList.add('on'); if(btnList) btnList.classList.remove('on');
-    var d=getDisplayList(); renderItems(getSortedItems(d));
+    renderItems(getSortedItems(getDisplayList()));
   };
   if(btnList) btnList.onclick=function(){
     viewMode='list'; btnList.classList.add('on'); if(btnGrid) btnGrid.classList.remove('on');
-    var d=getDisplayList(); renderItems(getSortedItems(d));
+    renderItems(getSortedItems(getDisplayList()));
   };
 
+  // 정렬
   document.querySelectorAll('.sort-btn').forEach(function(btn){
     btn.onclick=function(){
       sortMode=this.getAttribute('data-sort');
       document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('on'); });
       this.classList.add('on');
-      var d=getDisplayList(); renderItems(getSortedItems(d));
+      renderItems(getSortedItems(getDisplayList()));
     };
   });
 
+  // 엔터 검색
   var ms=document.getElementById('mainSearch');
   if(ms) ms.onkeydown=function(e){ if(e.key==='Enter') startHunt(); };
 
+  // 모달 배경 클릭 닫기
   var loginBg=document.getElementById('loginModalBg');
   if(loginBg) loginBg.onclick=function(e){ if(e.target===this) closeModal('loginModalBg'); };
 
   setStatus('',false);
 });
-
-function getDisplayList(){
-  if(currentView==='radar') return currentSearchItems;
-  if(currentView==='all')   return allItems;
-  if(currentView==='archive') return archivedItems;
-  return allItems.filter(function(p){ return p.brand===currentView; });
-}
 
 /* ── Firebase 인증 ── */
 fbAuth.onAuthStateChanged(function(u){
