@@ -19,7 +19,8 @@ var currentUser = null;
 var currentView = 'radar';
 var viewMode = 'grid';
 var sortMode = 'imminent';
-var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]');
+var currentSearchItems = [];                                          // ★ 현재 검색 결과만
+var allItems = JSON.parse(localStorage.getItem('cs_allItems')||'[]'); // ★ 누적 전체
 var archivedItems = JSON.parse(localStorage.getItem('cs_archivedItems')||'[]');
 var archivedIds = new Set(archivedItems.map(function(item){ return archiveKey(item); }));
 var savedBrands = new Set(JSON.parse(localStorage.getItem('cs_savedBrands')||'[]'));
@@ -37,9 +38,8 @@ function daysUntil(dateStr){
   return Math.ceil(diff / 86400000);
 }
 function formatDate(dateStr){
-  if (!dateStr) return '';
-  var d = new Date(dateStr);
-  return d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  if(!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
 }
 
 /* ── 토스트 ── */
@@ -112,11 +112,17 @@ function switchView(viewType){
   currentView=viewType;
   document.getElementById('radarPanel').style.display  =(viewType==='archive')?'none':'flex';
   document.getElementById('archivePanel').style.display=(viewType==='archive')?'flex':'none';
+
   if(viewType==='radar'){
+    // ★ Release Radar: 현재 검색 결과만
+    renderItems(getSortedItems(currentSearchItems));
+  } else if(viewType==='all'){
+    // ★ 전체: 누적된 모든 아이템
     renderItems(getSortedItems(allItems));
   } else if(viewType==='archive'){
     renderArchive();
   } else {
+    // 포커스 그룹 (브랜드별)
     var brandData=allItems.filter(function(item){ return item.brand===viewType; });
     renderItems(getSortedItems(brandData));
     newBadgeCounts[viewType]=0;
@@ -172,6 +178,7 @@ function rebuildNav(){
   var navList=document.getElementById('navList');
   var allRow=document.getElementById('allFilter');
   navList.innerHTML=''; navList.appendChild(allRow);
+
   savedBrands.forEach(function(brand){
     var cnt=allItems.filter(function(p){ return p.brand===brand; }).length;
     var newCnt=newBadgeCounts[brand]||0;
@@ -186,10 +193,16 @@ function rebuildNav(){
     row.onclick=function(){ switchView(brand); };
     navList.appendChild(row);
   });
+
+  // ★ 전체 카운트는 allItems 기준
   document.getElementById('allFilterCnt').textContent=allItems.length;
-  document.getElementById('totalCnt').textContent=allItems.length;
-  document.getElementById('navRadar').classList.toggle('active',currentView==='radar');
+  // ★ Release Radar 카운트는 currentSearchItems 기준
+  document.getElementById('totalCnt').textContent=currentSearchItems.length;
+
+  document.getElementById('navRadar').classList.toggle('active', currentView==='radar');
   document.getElementById('navArchive').classList.toggle('active',currentView==='archive');
+  document.getElementById('allFilter').classList.toggle('active', currentView==='all');
+
   var sbSearch=document.getElementById('sbSearch');
   if(sbSearch) sbSearch.oninput=function(){
     var q=this.value.toLowerCase();
@@ -228,6 +241,11 @@ async function startHunt(){
   var btn=document.getElementById('huntBtn');
   btn.disabled=true; btn.textContent='탐색 중...';
   setStatus("'"+kw+"' 수색 중...",true);
+
+  // ★ 검색할 때마다 레이더 초기화
+  currentSearchItems=[];
+  renderItems([]);
+
   try{
     var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
     if(!res.ok){ var err=await res.json().catch(function(){return{};}); throw new Error(err.error||'API 오류 ('+res.status+')'); }
@@ -241,9 +259,17 @@ async function startHunt(){
         var ev=JSON.parse(line.slice(6));
         if(ev.type==='status') setStatus(ev.message,true);
         if(ev.type==='item'){
-          if(!allItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })) allItems.push(ev.data);
-          var d=currentView==='radar'?allItems:allItems.filter(function(p){ return p.brand===currentView; });
-          renderItems(getSortedItems(d)); rebuildNav();
+          // ★ currentSearchItems: 이번 검색 결과
+          if(!currentSearchItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })){
+            currentSearchItems.push(ev.data);
+          }
+          // ★ allItems: 누적 전체 저장
+          if(!allItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })){
+            allItems.push(ev.data);
+          }
+          // ★ Release Radar에는 현재 검색 결과만 표시
+          renderItems(getSortedItems(currentSearchItems));
+          rebuildNav();
         }
         if(ev.type==='error') showToast('오류: '+ev.message);
       }
@@ -256,17 +282,15 @@ async function startHunt(){
   }
 }
 
-/* ── 아이콘 SVG ── */
+/* ── 아이콘 ── */
 var ICON_ARCHIVE='<svg viewBox="0 0 13 13" fill="none"><path d="M2 4.5h9M3 4.5V10a1 1 0 001 1h5a1 1 0 001-1V4.5M5 4.5V3a1 1 0 011-1h1a1 1 0 011 1v1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var ICON_CHECK='<svg viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5l3 3 5-5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-/* ── 그리드 카드 (CSS: .pcard) ── */
+/* ── 그리드 카드 ── */
 function mkGrid(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
-  var badge=days<=7
-    ? '<span class="pbadge pb-hot">D-'+days+'</span>'
-    : '<span class="pbadge pb-up">D-'+days+'</span>';
+  var badge=days<=7?'<span class="pbadge pb-hot">D-'+days+'</span>':'<span class="pbadge pb-up">D-'+days+'</span>';
   return '<div class="pcard'+(isArc?' is-archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'">'+
     '<div class="pcard-img-wrap">'+
       '<img class="pcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
@@ -289,7 +313,7 @@ function mkGrid(p){
   '</div>';
 }
 
-/* ── 리스트 카드 (CSS: .lcard) ── */
+/* ── 리스트 카드 ── */
 function mkList(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
@@ -336,7 +360,9 @@ function bindCardEvents(container){
 }
 
 function toggleArchive(key,btn){
-  var item=allItems.find(function(p){ return archiveKey(p)===key; });
+  // allItems와 currentSearchItems 모두에서 찾기
+  var item=allItems.find(function(p){ return archiveKey(p)===key; })
+         ||currentSearchItems.find(function(p){ return archiveKey(p)===key; });
   if(!item) return;
   if(archivedIds.has(key)){
     archivedIds.delete(key);
@@ -390,13 +416,11 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnList=document.getElementById('btnList');
   if(btnGrid) btnGrid.onclick=function(){
     viewMode='grid'; btnGrid.classList.add('on'); if(btnList) btnList.classList.remove('on');
-    var d=currentView==='radar'?allItems:allItems.filter(function(p){ return p.brand===currentView; });
-    renderItems(getSortedItems(d));
+    var d=getDisplayList(); renderItems(getSortedItems(d));
   };
   if(btnList) btnList.onclick=function(){
     viewMode='list'; btnList.classList.add('on'); if(btnGrid) btnGrid.classList.remove('on');
-    var d=currentView==='radar'?allItems:allItems.filter(function(p){ return p.brand===currentView; });
-    renderItems(getSortedItems(d));
+    var d=getDisplayList(); renderItems(getSortedItems(d));
   };
 
   document.querySelectorAll('.sort-btn').forEach(function(btn){
@@ -404,8 +428,7 @@ document.addEventListener('DOMContentLoaded',function(){
       sortMode=this.getAttribute('data-sort');
       document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('on'); });
       this.classList.add('on');
-      var d=currentView==='radar'?allItems:allItems.filter(function(p){ return p.brand===currentView; });
-      renderItems(getSortedItems(d));
+      var d=getDisplayList(); renderItems(getSortedItems(d));
     };
   });
 
@@ -417,6 +440,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
   setStatus('',false);
 });
+
+function getDisplayList(){
+  if(currentView==='radar') return currentSearchItems;
+  if(currentView==='all')   return allItems;
+  if(currentView==='archive') return archivedItems;
+  return allItems.filter(function(p){ return p.brand===currentView; });
+}
 
 /* ── Firebase 인증 ── */
 fbAuth.onAuthStateChanged(function(u){
