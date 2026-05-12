@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     // ── 2. Gemini 호출 ──
     // ✅ 모델명 수정: gemini-2.5-flash → gemini-1.5-flash (안정 버전)
     const gr = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
