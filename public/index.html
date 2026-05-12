@@ -6,17 +6,17 @@
 <title>COMING SOON. — Release Tracker</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
 <link rel="stylesheet" href="style.css" />
-
 <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "wnf1ptnwa0");
+  (function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", "wnf1ptnwa0");
 </script>
 </head>
 <body>
 
+<!-- 로그인 모달 -->
 <div class="modal-bg" id="loginModalBg">
   <div class="modal login-modal">
     <div class="login-header">
@@ -41,6 +41,7 @@
 <div class="layout">
 <div class="sb-overlay" id="overlay"></div>
 
+<!-- 사이드바 -->
 <aside class="sb" id="sidebar">
   <div class="sb-logo">
     <div class="logo-row"><span class="logo-txt">Coming Soon</span><span class="logo-dot"></span></div>
@@ -49,35 +50,42 @@
 
   <div class="sb-search-wrap">
     <div class="sb-search-bar">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="color:var(--text3);flex-shrink:0"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="color:var(--text3);flex-shrink:0"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       <input id="sbSearch" type="text" placeholder="저장한 키워드 검색..."/>
     </div>
   </div>
 
   <div class="sb-sec-lbl">Navigation</div>
   <div class="nav-list" style="margin-bottom:8px;">
+    <!-- Release Radar — 카운트 없음 -->
     <div class="nav-item active" id="navRadar" onclick="switchView('radar')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="0.8" fill="currentColor"/></svg>
         <span class="ni-label">Release Radar</span>
       </div>
-      <span class="ni-count" id="totalCnt">0</span>
     </div>
+    <!-- My Archive — 카운트 없음 -->
     <div class="nav-item" id="navArchive" onclick="switchView('archive')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         <span class="ni-label">My Archive</span>
       </div>
-      <span class="ni-count" id="archiveCnt" style="display:none">0</span>
+      <!-- archiveCnt는 JS에서 updateArchiveStats용으로만 사용 (hidden) -->
+      <span id="archiveCnt" style="display:none">0</span>
     </div>
   </div>
 
   <div class="sb-div"></div>
   <div class="sb-sec-lbl">Focus Groups</div>
   <div class="nav-list" id="navList">
-   <div class="nav-item" id="allFilter" onclick="switchView('all')">
-    <div class="ni-left"><div class="ni-dot"></div><span class="ni-label">전체</span></div>
-      <span class="ni-count" id="allFilterCnt">0</span>
+    <!-- 전체 — 카운트 없음 -->
+    <div class="nav-item" id="allFilter" onclick="switchView('all')">
+      <div class="ni-left">
+        <div class="ni-dot"></div>
+        <span class="ni-label">전체</span>
+      </div>
+      <!-- allFilterCnt hidden, JS 참조용 -->
+      <span id="allFilterCnt" style="display:none">0</span>
     </div>
   </div>
 
@@ -93,6 +101,7 @@
   </div>
 </aside>
 
+<!-- 메인 -->
 <div class="main">
   <div class="mob-header">
     <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
@@ -101,23 +110,37 @@
     </button>
   </div>
 
+  <!-- Radar 패널 -->
   <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+
+    <!-- 검색바 -->
     <div class="hd">
-      <div class="search-bar">
-        <div class="s-icon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
-        <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
+      <div class="search-row">
+        <div class="search-bar">
+          <div class="s-icon">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </div>
+          <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
+        </div>
         <button class="hunt-btn" id="huntBtn" onclick="startHunt()">
-          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="white" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="white"/></svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="white" stroke-width="1.3"/><circle cx="6" cy="6" r="2" fill="white"/></svg>
           발견하기
         </button>
-        <button class="save-kw-btn" id="saveKwBtn" onclick="saveCurrentKeyword()" title="이 키워드를 Focus Group에 저장">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L7.8 4.5H11.5L8.6 6.6L9.6 9.8L6.5 7.9L3.4 9.8L4.4 6.6L1.5 4.5H5.2L6.5 1.5Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
+        <button class="save-kw-btn" id="saveKwBtn" onclick="saveCurrentKeyword()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L8.5 5H12.5L9.5 7.2L10.5 11L7 8.8L3.5 11L4.5 7.2L1.5 5H5.5L7 1.5Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
+          <span>저장</span>
         </button>
       </div>
     </div>
-    
+
+    <!-- 포커스 그룹 헤더 -->
+    <div class="focus-group-header" id="focusGroupHeader">
+      <div class="fg-label">Focus Groups</div>
+      <div class="fg-title" id="focusGroupTitle"># Brand</div>
+    </div>
+
     <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusMsg">AI 엔진 가동 중...</span></div>
-    
+
     <div class="toolbar">
       <div class="view-sw">
         <button class="vs-btn on" id="btnGrid">
@@ -134,11 +157,11 @@
       </div>
       <div class="result-count" id="resultCount">0개 시그널</div>
     </div>
-    
-    <div class="content" id="content">
-      </div>
+
+    <div class="content" id="content"></div>
   </div>
 
+  <!-- Archive 패널 -->
   <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="archive-header">
       <div class="archive-title-row">
@@ -146,8 +169,7 @@
           <div class="archive-title">My Archive</div>
           <div class="archive-subtitle">Visualizing Personal Archive</div>
         </div>
-        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5 A5.5 5.5 0 1 1 7 12.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><path d="M4 5L7 7.5L10 5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;align-items:center;gap:6px;">
           Google 로그인
         </button>
       </div>
@@ -159,8 +181,7 @@
         <div class="archive-stat"><span class="archive-stat-num" id="archiveStatUpcoming">0</span>개 임박</div>
       </div>
     </div>
-    <div class="content" id="archiveContent">
-      </div>
+    <div class="content" id="archiveContent"></div>
   </div>
 </div>
 </div>
@@ -168,8 +189,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <script src="app.js"></script>
-
 </body>
 </html>
