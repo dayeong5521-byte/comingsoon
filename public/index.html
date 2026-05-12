@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>COMING SOON. — Release Tracker</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css"/>
 <script type="text/javascript">
   (function(c,l,a,r,i,t,y){
     c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -16,7 +16,6 @@
 </head>
 <body>
 
-<!-- 로그인 모달 -->
 <div class="modal-bg" id="loginModalBg">
   <div class="modal login-modal">
     <div class="login-header">
@@ -41,7 +40,6 @@
 <div class="layout">
 <div class="sb-overlay" id="overlay"></div>
 
-<!-- 사이드바 -->
 <aside class="sb" id="sidebar">
   <div class="sb-logo">
     <div class="logo-row"><span class="logo-txt">Coming Soon</span><span class="logo-dot"></span></div>
@@ -57,20 +55,17 @@
 
   <div class="sb-sec-lbl">Navigation</div>
   <div class="nav-list" style="margin-bottom:8px;">
-    <!-- Release Radar — 카운트 없음 -->
     <div class="nav-item active" id="navRadar" onclick="switchView('radar')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="0.8" fill="currentColor"/></svg>
         <span class="ni-label">Release Radar</span>
       </div>
     </div>
-    <!-- My Archive — 카운트 없음 -->
     <div class="nav-item" id="navArchive" onclick="switchView('archive')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         <span class="ni-label">My Archive</span>
       </div>
-      <!-- archiveCnt는 JS에서 updateArchiveStats용으로만 사용 (hidden) -->
       <span id="archiveCnt" style="display:none">0</span>
     </div>
   </div>
@@ -78,13 +73,11 @@
   <div class="sb-div"></div>
   <div class="sb-sec-lbl">Focus Groups</div>
   <div class="nav-list" id="navList">
-    <!-- 전체 — 카운트 없음 -->
     <div class="nav-item" id="allFilter" onclick="switchView('all')">
       <div class="ni-left">
         <div class="ni-dot"></div>
         <span class="ni-label">전체</span>
       </div>
-      <!-- allFilterCnt hidden, JS 참조용 -->
       <span id="allFilterCnt" style="display:none">0</span>
     </div>
   </div>
@@ -101,7 +94,6 @@
   </div>
 </aside>
 
-<!-- 메인 -->
 <div class="main">
   <div class="mob-header">
     <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
@@ -110,10 +102,7 @@
     </button>
   </div>
 
-  <!-- Radar 패널 -->
   <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-
-    <!-- 검색바 -->
     <div class="hd">
       <div class="search-row">
         <div class="search-bar">
@@ -133,13 +122,13 @@
       </div>
     </div>
 
-    <!-- 포커스 그룹 헤더 -->
+    <!-- 포커스 그룹 헤더: 브랜드 클릭 시에만 표시 -->
     <div class="focus-group-header" id="focusGroupHeader">
       <div class="fg-label">Focus Groups</div>
-      <div class="fg-title" id="focusGroupTitle"># Brand</div>
+      <div class="fg-title" id="focusGroupTitle"></div>
     </div>
 
-    <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusMsg">AI 엔진 가동 중...</span></div>
+    <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusMsg"></span></div>
 
     <div class="toolbar">
       <div class="view-sw">
@@ -161,7 +150,6 @@
     <div class="content" id="content"></div>
   </div>
 
-  <!-- Archive 패널 -->
   <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="archive-header">
       <div class="archive-title-row">
@@ -169,9 +157,7 @@
           <div class="archive-title">My Archive</div>
           <div class="archive-subtitle">Visualizing Personal Archive</div>
         </div>
-        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;align-items:center;gap:6px;">
-          Google 로그인
-        </button>
+        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;align-items:center;gap:6px;">Google 로그인</button>
       </div>
       <div class="archive-meta" id="archiveMeta" style="display:none;">
         <div class="archive-stat"><span class="archive-stat-num" id="archiveStatCount">0</span>개 수집됨</div>
