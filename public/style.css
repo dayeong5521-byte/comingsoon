@@ -243,3 +243,23 @@ body{font-family:var(--font);letter-spacing:var(--ls);color:var(--text1);}
   .pc-date{font-size:11px;}
   .cal-btn,.lcal-btn{font-size:10px;padding:0 8px;height:27px;}
 }
+/* ── NEW BADGE ANIMATION ── */
+.badge-new {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 800;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px rgba(242, 102, 75, 0.4);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.9; }
+    100% { transform: scale(1); opacity: 1; }
+}
