@@ -130,6 +130,21 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing:-0.01em;
 }
 
+/* 키워드 삭제 버튼 */
+.ni-delete{
+  width:18px;height:18px;
+  border:none;background:transparent;
+  color:var(--text3);cursor:pointer;
+  display:none;
+  align-items:center;justify-content:center;
+  border-radius:4px;
+  padding:0;flex-shrink:0;
+  transition:color .15s;
+}
+.ni-delete svg{width:10px;height:10px;}
+.ni-delete:hover{color:var(--accent);}
+.nav-item:hover .ni-delete{display:flex;}
+
 /* Focus Groups 안 검색 — Figma 9:58: h-36px, rounded-20px, border 0.5px */
 .fg-search-bar{
   display:flex;
