@@ -281,8 +281,7 @@ function rebuildNav(){
   navList.innerHTML=''; navList.appendChild(allRow);
 
   savedBrands.forEach(function(brand){
-    var cnt=(keywordData[brand]||[]).length;
-    var newCnt=newBadgeCounts[brand]||0;
+    var newCnt=newBadgeCounts[brand]||0;  // ★ 새 소식만
     var row=document.createElement('div');
     row.className='nav-item nav-item-brand'+(currentView===brand?' active':'');
     row.innerHTML=
@@ -291,7 +290,8 @@ function rebuildNav(){
         '<span class="ni-label"># '+escapeHtml(brand)+'</span>'+
       '</div>'+
       '<div class="ni-right">'+
-        (cnt>0?'<span class="ni-badge">'+(newCnt>0?newCnt:cnt)+'</span>':'')+
+        // ★ 새 소식 있을 때만 뱃지 표시 (총 갯수 아님)
+        (newCnt>0?'<span class="ni-badge">'+newCnt+'</span>':'')+
         '<button class="ni-delete" onclick="deleteKeyword(\''+escapeHtml(brand)+'\',event)" title="삭제">'+
           '<svg viewBox="0 0 10 10" fill="none"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'+
         '</button>'+
@@ -300,13 +300,13 @@ function rebuildNav(){
     navList.appendChild(row);
   });
 
-  /* 전체 뱃지 */
+  /* 전체 뱃지 — 새 소식 합산만 표시 */
   var oldBadge=allRow.querySelector('.ni-badge');
   if(oldBadge) oldBadge.remove();
   allRow.className='nav-item nav-item-brand'+(currentView==='all'?' active':'');
-  var allCount=getAllItems().length;
-  if(allCount>0){
-    var b=document.createElement('span'); b.className='ni-badge'; b.textContent=allCount;
+  var totalNew=Object.values(newBadgeCounts).reduce(function(s,v){ return s+v; },0);
+  if(totalNew>0){
+    var b=document.createElement('span'); b.className='ni-badge'; b.textContent=totalNew;
     allRow.appendChild(b);
   }
 
