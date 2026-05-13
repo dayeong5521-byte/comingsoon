@@ -1,75 +1,245 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026_Graduation_Project</title>
-    <link rel="stylesheet" href="style.css">
-    <script defer src="/_vercel/insights/script.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>COMING SOON. — Release Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+<script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","wnf1ptnwa0");</script>
+<!-- 1. Vercel Speed Insights -->
+<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-    <div class="container">
-        <nav class="sidebar">
-            <div class="profile-summary">
-                <div class="profile-pic"></div>
-                <div class="profile-info">
-                    <span class="name">코다영의 프로젝트</span>
-                    <span class="tag">취미</span>
-                </div>
-            </div>
-            <div class="search-nav">
-                <input type="text" placeholder="찾다...">
-            </div>
-            <ul class="nav-links">
-                <li onclick="showPage('main')">개요</li>
-                <li onclick="showPage('hunt')">배포</li>
-                <li onclick="showPage('focus-group')">로그</li>
-                <li onclick="showPage('analysis')">해석학</li>
-                <li onclick="showPage('dashboard')" class="active">속도 인사이트</li>
-            </ul>
-        </nav>
 
-        <main class="content">
-            <section id="main" class="page">
-                <div class="header-container">
-                    <h2 class="page-title">시작하기</h2>
-                    <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="키워드를 검색하세요...">
-                        <button onclick="searchKeywords()">검색</button>
-                    </div>
-                </div>
-                <div class="main-placeholder">
-                    <p>성과 지표 수집을 시작하려면 검색을 진행하세요.</p>
-                </div>
-            </section>
+<!-- 로그인 모달 -->
+<div class="modal-bg" id="loginModalBg">
+  <div class="modal login-modal">
+    <div class="login-header">
+      <div class="login-logo-mark">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="white" stroke-width="1.5"/><circle cx="11" cy="11" r="3.5" fill="white"/><line x1="11" y1="2" x2="11" y2="4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="18" x2="11" y2="20" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="11" x2="18" y2="11" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="2" y2="11" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="modal-title" style="text-align:center">COMING SOON.에 오신 걸 환영해요</div>
+      <div class="modal-desc" style="text-align:center;margin-bottom:0">로그인하면 나만의 릴리즈 아카이브를<br>어디서든 이어볼 수 있어요.</div>
+    </div>
+    <button class="google-btn" onclick="googleLogin()">
+      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.2-5.2l-6.1-5.2C29.1 35.5 26.6 36 24 36c-5.1 0-9.5-3.3-11.2-7.9l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.4 4.3-4.4 5.7l6.1 5.2C42.5 35 44 30 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+      Google로 계속하기
+    </button>
+    <div class="login-divider"><span>또는</span></div>
+    <button class="guest-btn" onclick="continueAsGuest()">로그인 없이 둘러보기</button>
+    <div class="login-terms">계속하면 서비스 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.</div>
+  </div>
+</div>
 
-            <section id="hunt" class="page">
-                <div class="header-container">
-                    <h2 class="page-title">배포 기록</h2>
-                    <button class="save-btn" onclick="saveKeyword()">현재 키워드 저장</button>
-                </div>
-                <div id="search-results" class="results-grid"></div>
-            </section>
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
 
-            <section id="focus-group" class="page">
-                <div class="header-container">
-                    <h2 class="page-title">포커스 그룹</h2>
-                </div>
-                <div class="group-list">
-                    <p>저장된 포커스 그룹 리스트가 여기에 표시됩니다.</p>
-                </div>
-            </section>
+<div class="layout">
+<div class="sb-overlay" id="overlay"></div>
 
-            <section id="dashboard" class="page active">
-                <div class="header-container">
-                    <h2 class="page-title">저장된 키워드 대시보드</h2>
-                </div>
-                <div id="dashboard-container" class="dashboard-grid"></div>
-            </section>
-        </main>
+<!-- ════════════════════════════
+     SIDEBAR — Figma 1:1501 구조 정확 반영
+     Logo → [gap] → Navigation label → nav items → divider →
+     Focus Groups label → 검색 → brand items → [gap] → user
+════════════════════════════ -->
+<aside class="sb" id="sidebar">
+
+  <!-- 로고 — 16px Black uppercase + dot -->
+  <div class="sb-logo">
+    <div class="logo-row">
+      <span class="logo-txt">Coming Soon</span>
+      <span class="logo-dot"></span>
+    </div>
+    <div class="logo-sub">Release Tracker</div>
+  </div>
+
+  <!-- NAVIGATION 섹션 -->
+  <div class="sb-sec-lbl">Navigation</div>
+  <div class="nav-list" style="margin-bottom:16px;">
+    <!-- Release Radar — active: white bg, bold icon accent -->
+    <div class="nav-item nav-item-top" id="navRadar" onclick="switchView('radar')">
+      <div class="ni-left">
+        <svg class="ni-icon" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="7.5" cy="7.5" r="0.8" fill="currentColor"/>
+        </svg>
+        <span class="ni-label">Release Radar</span>
+      </div>
+    </div>
+    <!-- My Archive -->
+    <div class="nav-item nav-item-top" id="navArchive" onclick="switchView('archive')">
+      <div class="ni-left">
+        <svg class="ni-icon" viewBox="0 0 15 15" fill="none">
+          <rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-label">My Archive</span>
+      </div>
+      <span id="archiveCnt" style="display:none">0</span>
+    </div>
+  </div>
+
+  <!-- 구분선 -->
+  <div class="sb-div"></div>
+
+  <!-- FOCUS GROUPS 섹션 -->
+  <div class="sb-sec-lbl">Focus Groups</div>
+
+  <!-- 브랜드 아이템 목록 -->
+  <div class="nav-list" id="navList">
+    <!-- 전체 -->
+    <div class="nav-item nav-item-brand" id="allFilter" onclick="switchView('all')">
+      <div class="ni-left">
+        <div class="ni-dot"></div>
+        <span class="ni-label">전체</span>
+      </div>
+      <span id="allFilterCnt" style="display:none">0</span>
+    </div>
+  </div>
+
+  <!-- 유저 영역 -->
+  <div class="sb-footer">
+    <div class="user-area" id="userArea">
+      <div class="av" id="userAv">?</div>
+      <div class="av-info">
+        <div class="av-name" id="userName">로그인이 필요해요</div>
+        <div class="av-role" id="userRole">게스트</div>
+      </div>
+      <button class="login-btn-small" id="loginBtnSb" onclick="openModal('loginModalBg')">로그인</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════════════
+     MAIN
+════════════════════════════ -->
+<div class="main">
+  <div class="mob-header">
+    <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
+    <button class="mob-toggle" id="mobToggle">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <line x1="2" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="2" y1="7.5" x2="13" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="2" y1="11" x2="13" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Radar 패널 -->
+  <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+
+    <!-- ════════════════════════
+         검색 헤더
+         Figma: h-80px, padding 0 28px
+         [input: flex-1, h-46, rounded-20] [발견하기: 100x46]
+         ★ 별 아이콘은 input 내부 오른쪽
+    ════════════════════════ -->
+    <div class="hd" id="searchHeader">
+      <div class="search-row">
+
+        <!-- 검색 입력창 (별 아이콘 포함) -->
+        <div class="search-bar">
+          <!-- 왼쪽 검색 아이콘 — Figma: 39px 영역, 아이콘 15x15 -->
+          <div class="s-icon">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/>
+              <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- 텍스트 입력 -->
+          <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
+
+          <!-- ★ 별 아이콘 — Figma: 24x24, 입력창 내부 오른쪽 -->
+          <button class="save-kw-btn" id="saveKwBtn" onclick="saveCurrentKeyword()" title="포커스 그룹에 저장">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 발견하기 버튼 — Figma: 100x46px, rounded-20px, #f2664b -->
+        <button class="hunt-btn" id="huntBtn" onclick="startHunt()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" stroke="white" stroke-width="1.3"/>
+            <circle cx="6" cy="6" r="2" fill="white"/>
+          </svg>
+          발견하기
+        </button>
+      </div>
     </div>
 
-    <script src="hunt.js"></script>
-    <script src="app.js"></script>
+    <!-- 포커스 그룹 헤더 (브랜드 클릭 시) -->
+    <div class="focus-group-header" id="focusGroupHeader">
+      <div class="fg-label">Focus Groups</div>
+      <div class="fg-title" id="focusGroupTitle"></div>
+    </div>
+
+    <!-- 상태바 -->
+    <div class="status-bar" id="statusBar">
+      <div class="spinner"></div>
+      <span id="statusMsg"></span>
+    </div>
+
+    <!-- 툴바 — Figma: h-48.5px, 버튼 active = #111 -->
+    <div class="toolbar">
+      <div class="view-sw">
+        <button class="vs-btn on" id="btnGrid">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/>
+            <rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/>
+            <rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/>
+            <rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/>
+          </svg>
+        </button>
+        <button class="vs-btn" id="btnList">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <line x1="1" y1="3" x2="11" y2="3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            <line x1="1" y1="9" x2="11" y2="9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="filter-sep"></div>
+      <div class="sort-group">
+        <button class="sort-btn on" data-sort="imminent">날짜 임박한순</button>
+        <button class="sort-btn" data-sort="recent">최근 발표된순</button>
+      </div>
+      <div class="result-count" id="resultCount">0개 시그널</div>
+    </div>
+
+    <div class="content" id="content"></div>
+  </div>
+
+  <!-- Archive 패널 -->
+  <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div class="archive-header">
+      <div class="archive-title-row">
+        <div>
+          <div class="archive-title">My Archive</div>
+          <div class="archive-subtitle">Visualizing Personal Archive</div>
+        </div>
+        <button id="archiveLoginBtn" onclick="openModal('loginModalBg')" style="display:none;height:36px;padding:0 16px;background:var(--text1);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;align-items:center;gap:6px;">Google 로그인</button>
+      </div>
+      <div class="archive-meta" id="archiveMeta" style="display:none;">
+        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatCount">0</span>개 수집됨</div>
+        <div class="archive-stat-sep"></div>
+        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatBrands">0</span>개 브랜드</div>
+        <div class="archive-stat-sep"></div>
+        <div class="archive-stat"><span class="archive-stat-num" id="archiveStatUpcoming">0</span>개 임박</div>
+      </div>
+    </div>
+    <div class="content" id="archiveContent"></div>
+  </div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
