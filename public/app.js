@@ -113,8 +113,7 @@ function updateLayoutForView(viewType){
   var searchHdr=document.getElementById('searchHeader');
   var focusHdr=document.getElementById('focusGroupHeader');
   var focusTitle=document.getElementById('focusGroupTitle');
-  var isBrand=(viewType!=='radar'&&viewType!=='all'&&viewType!=='archive');
-  if(searchHdr) searchHdr.style.display=isBrand?'none':'flex';
+var isBrand=(viewType!=='radar'&&viewType!=='archive');  if(searchHdr) searchHdr.style.display=isBrand?'none':'flex';
   if(focusHdr){
     if(isBrand){ focusHdr.classList.add('show'); if(focusTitle) focusTitle.textContent='# '+viewType; }
     else { focusHdr.classList.remove('show'); }
