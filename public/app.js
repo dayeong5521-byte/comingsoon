@@ -31,7 +31,7 @@ function archiveKey(p){ return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.rele
 function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function daysUntil(d){ return Math.ceil((new Date(d)-new Date(TODAY))/86400000); }
 
-/* ★ Figma 날짜 형식: 2026.05.22 */
+/* 날짜 형식 — Figma: 2026.05.22 */
 function formatDateDot(dateStr){
   if(!dateStr) return '';
   var d=new Date(dateStr);
@@ -108,7 +108,7 @@ function updateUserUI(){
   if(am)  am.style.display=currentUser?'flex':'none';
 }
 
-/* ── 검색창/포커스헤더 표시 제어 ── */
+/* ── 검색창/포커스헤더 표시 ── */
 function updateLayoutForView(viewType){
   var searchHdr=document.getElementById('searchHeader');
   var focusHdr=document.getElementById('focusGroupHeader');
@@ -134,8 +134,8 @@ function switchView(viewType){
   } else if(viewType==='archive'){
     renderArchive();
   } else {
-    var brandData=allItems.filter(function(item){ return item.brand===viewType; });
-    renderItems(getSortedItems(brandData));
+    var bd=allItems.filter(function(item){ return item.brand===viewType; });
+    renderItems(getSortedItems(bd));
     newBadgeCounts[viewType]=0;
   }
   rebuildNav(); closeSidebar();
@@ -212,22 +212,22 @@ function rebuildNav(){
     navList.appendChild(row);
   });
 
-  // 전체 뱃지
-  var allRow2=document.getElementById('allFilter');
-  var oldBadge=allRow2.querySelector('.ni-badge');
+  // 전체 뱃지 업데이트
+  var oldBadge=allRow.querySelector('.ni-badge');
   if(oldBadge) oldBadge.remove();
-  allRow2.className='nav-item nav-item-brand'+(currentView==='all'?' active':'');
+  allRow.className='nav-item nav-item-brand'+(currentView==='all'?' active':'');
   if(allItems.length>0){
     var b=document.createElement('span'); b.className='ni-badge'; b.textContent=allItems.length;
-    allRow2.appendChild(b);
+    allRow.appendChild(b);
   }
 
+  // 상단 nav active 표시
   document.getElementById('navRadar').classList.toggle('active',  currentView==='radar');
   document.getElementById('navArchive').classList.toggle('active',currentView==='archive');
 
-  // 사이드바 검색
-  var fgSearch=document.getElementById('fgSearchInput');
-  if(fgSearch) fgSearch.oninput=function(){
+  // 사이드바 검색 필터
+  var sbSearch=document.getElementById('sbSearch');
+  if(sbSearch) sbSearch.oninput=function(){
     var q=this.value.toLowerCase();
     navList.querySelectorAll('.nav-item-brand:not(#allFilter)').forEach(function(r){
       r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
@@ -296,40 +296,48 @@ async function startHunt(){
 /* ── 아이콘 ── */
 var ICON_ARCHIVE='<svg viewBox="0 0 15 15" fill="none"><path d="M2 5.5h11M3 5.5V12a1 1 0 001 1h7a1 1 0 001-1V5.5M6 5.5V4a1.5 1.5 0 013 0v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var ICON_CHECK='<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* Calendar + 아이콘 */
 var ICON_PLUS='<svg viewBox="0 0 15 15" fill="none"><line x1="7.5" y1="3" x2="7.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="3" y1="7.5" x2="12" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
 
-/* ── 그리드 카드 — Figma 정확 반영 ── */
+/* ── 그리드 카드 — Figma 9:736 정확 반영 ── */
 function mkGrid(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
   var calUrl=makeCalUrl(p);
   var imgClick=p.link?'onclick="window.open(\''+escapeHtml(p.link)+'\',\'_blank\')" style="cursor:pointer;"':'';
 
-  // D-뱃지 (음수: 출시됨)
-  var badge;
-  if(days<0)      badge='<span class="pbadge pb-done">출시됨</span>';
-  else             badge='<span class="pbadge pb-up">D-'+days+'</span>';
+  // D-뱃지
+  var badgeText=days<0?'출시됨':'D-'+days;
 
   return '<div class="pcard" data-key="'+escapeHtml(archiveKey(p))+'">'+
+    /* 이미지 영역 — Figma: h-160px 고정 */
     '<div class="pcard-img-wrap" '+imgClick+'>'+
       '<img class="pcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
-      badge+
+      /* D-뱃지 — Figma: h-20px, top-9px, left-9.5px, rgba(255,255,255,0.9) */
+      '<span class="pbadge">'+escapeHtml(badgeText)+'</span>'+
+      /* 아카이브 버튼 — Figma: 28x28, top-9px, right-9px, rgba(255,255,255,0.9) */
       '<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'" onclick="event.stopPropagation()">'+
         (isArc?ICON_CHECK:ICON_ARCHIVE)+
       '</button>'+
     '</div>'+
+    /* 카드 바디 — Figma: padding 12px, gap-10px */
     '<div class="pcard-body">'+
-      // ★ Figma: brand = rounded pill, rgba(242,102,75,0.08) bg
-      '<span class="pc-brand">'+escapeHtml(p.brand)+'</span>'+
-      '<div class="pc-name">'+escapeHtml(p.item_name)+'</div>'+
+      /* 브랜드+타이틀 섹션 — gap-4px */
+      '<div class="pc-brand-title">'+
+        /* 브랜드 — Figma: h-17.5px, rounded pill, rgba(242,102,75,0.08), 9px ExtraBold */
+        '<span class="pc-brand">'+escapeHtml(p.brand)+'</span>'+
+        /* 타이틀 — ★ 고정 높이 35px, 13px Bold */
+        '<div class="pc-name">'+escapeHtml(p.item_name)+'</div>'+
+      '</div>'+
+      /* 푸터 — Figma: h-39.5px, border-top, justify-between */
       '<div class="pc-foot">'+
         '<div>'+
-          // ★ Figma: "Coming Up" 라벨, 8px Medium
+          /* "Coming Up" — Figma: 8px Medium, #bdbdbd */
           '<div class="pc-date-lbl">Coming Up</div>'+
-          // ★ Figma: 날짜 형식 2026.05.22
-          '<div class="pc-date">'+formatDateDot(p.release_date)+'</div>'+
+          /* 날짜 — Figma: 14px Black, #111, 형식 2026.05.22 */
+          '<div class="pc-date'+(days>=0&&days<=30?' urg':'')+'">'+formatDateDot(p.release_date)+'</div>'+
         '</div>'+
-        // ★ Figma: 아웃라인 버튼 (Calendar +)
+        /* Calendar 버튼 — Figma: h-30px, outlined (white bg + orange border) */
         '<a class="cal-btn" href="'+calUrl+'" target="_blank" rel="noopener">'+
           'Calendar '+ICON_PLUS+
         '</a>'+
@@ -370,7 +378,12 @@ function renderItems(list){
   if(!list.length){
     el.innerHTML=
       '<div class="empty-state">'+
-        '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="7.5" stroke="#BDBDBD" stroke-width="1.5"/><line x1="16" y1="16" x2="22" y2="22" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div>'+
+        '<div class="empty-icon">'+
+          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none">'+
+            '<circle cx="10.5" cy="10.5" r="7.5" stroke="#BDBDBD" stroke-width="1.5"/>'+
+            '<line x1="16" y1="16" x2="22" y2="22" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/>'+
+          '</svg>'+
+        '</div>'+
         '<div class="empty-title">데이터가 없습니다</div>'+
         '<div class="empty-desc">키워드를 검색해서 릴리즈 소식을 찾아보세요.</div>'+
       '</div>';
