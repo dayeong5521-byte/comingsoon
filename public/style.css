@@ -313,8 +313,17 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .hunt-btn:disabled{opacity:.5;cursor:not-allowed;}
 
 /* 포커스 그룹 헤더 (브랜드 선택 시) */
-.focus-group-header{padding:16px 28px 0;flex-shrink:0;display:none;}
-.focus-group-header.show{display:block;}
+/* 3. 포커스 그룹 헤더 — .hd와 동일한 80px */
+.focus-group-header{
+  height:80px;
+  padding:0 28px;
+  border-bottom:0.5px solid var(--border);
+  flex-shrink:0;
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+}
+.focus-group-header.show{display:flex;}
 .fg-label{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
 .fg-title{font-size:28px;font-weight:900;color:var(--text1);letter-spacing:-.03em;}
 
@@ -629,3 +638,4 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .card-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
   .hunt-btn{width:80px;font-size:13px;}
   .pcard-img-wrap{height:130px;}
+}
