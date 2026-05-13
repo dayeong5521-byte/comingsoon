@@ -259,6 +259,21 @@ async function runSilentAutoHunt(){
   if(totalNew>0) showToast('🔔 포커스 그룹에 새로운 소식이 도착했습니다.');
 }
 
+/* ── 키워드 삭제 ── */
+function deleteKeyword(brand, e){
+  e.stopPropagation();
+  if(!confirm('"'+brand+'" 키워드를 삭제할까요?\n저장된 데이터도 함께 삭제돼요.')) return;
+  savedBrands.delete(brand);
+  delete keywordData[brand];
+  // 해당 키워드 아카이브 항목도 정리
+  archivedItems=archivedItems.filter(function(p){ return p.brand!==brand; });
+  archivedIds=new Set(archivedItems.map(function(p){ return archiveKey(p); }));
+  syncToCloud();
+  if(currentView===brand) switchView('radar');
+  else rebuildNav();
+  showToast('"'+brand+'" 키워드가 삭제됐어요.');
+}
+
 /* ── NAV 재빌드 ── */
 function rebuildNav(){
   var navList=document.getElementById('navList');
@@ -275,7 +290,12 @@ function rebuildNav(){
         '<div class="ni-dot"></div>'+
         '<span class="ni-label"># '+escapeHtml(brand)+'</span>'+
       '</div>'+
-      (cnt>0?'<span class="ni-badge">'+(newCnt>0?newCnt:cnt)+'</span>':'');
+      '<div style="display:flex;align-items:center;gap:6px;">'+
+        (cnt>0?'<span class="ni-badge">'+(newCnt>0?newCnt:cnt)+'</span>':'')+
+        '<button class="ni-delete" onclick="deleteKeyword(\''+escapeHtml(brand)+'\',event)" title="키워드 삭제">'+
+          '<svg viewBox="0 0 12 12" fill="none"><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>'+
+        '</button>'+
+      '</div>';
     row.onclick=function(){ switchView(brand); };
     navList.appendChild(row);
   });
