@@ -115,7 +115,7 @@ function updateLayoutForView(viewType){
   var focusTitle=document.getElementById('focusGroupTitle');
 var isBrand=(viewType!=='radar'&&viewType!=='archive');  if(searchHdr) searchHdr.style.display=isBrand?'none':'flex';
   if(focusHdr){
-    if(isBrand){ focusHdr.classList.add('show'); if(focusTitle) focusTitle.textContent='# '+viewType; }
+    if(isBrand){ focusHdr.classList.add('show'); if(focusTitle) focusTitle.textContent = viewType==='all' ? '전체' : '# '+viewType;
     else { focusHdr.classList.remove('show'); }
   }
 }
