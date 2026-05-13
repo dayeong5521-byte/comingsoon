@@ -326,6 +326,7 @@ function saveCurrentKeyword(){
   syncToCloud(); rebuildNav();
   var cnt=keywordData[kw].length;
   showToast('✅ "'+kw+'" 저장됨'+(cnt>0?' ('+cnt+'개 항목)':''));
+  switchView(kw);
 }
 
 /* ── 검색 — currentSearchItems만 업데이트, keywordData에 저장 안 함 ── */
