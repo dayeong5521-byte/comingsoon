@@ -290,10 +290,10 @@ function rebuildNav(){
         '<div class="ni-dot"></div>'+
         '<span class="ni-label"># '+escapeHtml(brand)+'</span>'+
       '</div>'+
-      '<div style="display:flex;align-items:center;gap:6px;">'+
+      '<div class="ni-right">'+
         (cnt>0?'<span class="ni-badge">'+(newCnt>0?newCnt:cnt)+'</span>':'')+
-        '<button class="ni-delete" onclick="deleteKeyword(\''+escapeHtml(brand)+'\',event)" title="키워드 삭제">'+
-          '<svg viewBox="0 0 12 12" fill="none"><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>'+
+        '<button class="ni-delete" onclick="deleteKeyword(\''+escapeHtml(brand)+'\',event)" title="삭제">'+
+          '<svg viewBox="0 0 10 10" fill="none"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'+
         '</button>'+
       '</div>';
     row.onclick=function(){ switchView(brand); };
