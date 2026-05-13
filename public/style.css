@@ -1,632 +1,76 @@
-/* ── Figma 정확 반영 ── */
-*{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --accent:#F2664B;
-  --accent-bg:rgba(242,102,75,0.08);
-  --sidebar:#F4F4F2;
-  --white:#fff;
-  --text1:#111;
-  --text2:#666;
-  --text3:#BDBDBD;
-  --border:rgba(0,0,0,0.07);
-  --border-md:rgba(0,0,0,0.10);
-  --font:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
-  --sb-w:224px;
-}
-html,body{height:100%;background:var(--sidebar);}
-body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
-.layout{display:flex;height:100dvh;min-height:0;}
+/* style.css */
 
-/* ══════════════════════════
-   SIDEBAR — Figma 1:1501
-   w:224px, bg:#f4f4f2
-   border-right: 0.5px rgba(0,0,0,0.07)
-   left/right padding: 17.75px
-   top padding: 27.75px
-══════════════════════════ */
-.sb{
-  width:var(--sb-w);
-  min-width:var(--sb-w);
-  background:var(--sidebar);
-  border-right:0.5px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  padding:27px 18px 0;
-  overflow-y:auto;
-  flex-shrink:0;
-  transition:transform .25s;
+/* 전체 레이아웃 유지 */
+body {
+    margin: 0;
+    font-family: 'Pretendard', sans-serif;
+    background-color: #f9f9f9;
 }
 
-/* 로고 — 16px Black, tracking 0.01em, uppercase */
-.sb-logo{margin-bottom:24px;}
-.logo-row{display:flex;align-items:center;gap:7px;}
-.logo-txt{
-  font-size:16px;
-  font-weight:900;
-  color:var(--text1);
-  letter-spacing:0.01em;
-  text-transform:uppercase;
-  line-height:1;
-}
-.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-/* 11px Regular, #666, tracking -0.32px */
-.logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;letter-spacing:-0.02em;}
-
-/* 섹션 라벨 — Figma: 9px Bold, #bdbdbd, tracking 1.08px, uppercase */
-.sb-sec-lbl{
-  font-size:9px;
-  font-weight:700;
-  color:var(--text3);
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  margin-bottom:8px;
-  padding:0 4px;
+.container {
+    display: flex;
+    height: 100vh;
 }
 
-/* 네비 리스트 — gap 1.5px */
-.nav-list{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  margin-bottom:16px;
+/* 3. 전체 상단 높이 통일 (메인 화면 검색창 포함 영역 기준) */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 120px; /* 높이 통일 */
+    padding: 0 40px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    box-sizing: border-box;
 }
 
-/* nav-item — Figma: height 38px, rounded 9px, py 9px pl 12px */
-.nav-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:9px 12px;
-  border-radius:9px;
-  cursor:pointer;
-  transition:background .12s;
-  user-select:none;
-  min-height:38px;
-}
-.nav-item:hover{background:rgba(0,0,0,.04);}
-
-/* 상단 nav active (Release Radar, My Archive) → white bg */
-.nav-item-top.active{background:var(--white);}
-.nav-item-top.active .ni-label{
-  font-weight:700;
-  color:var(--text1);
-}
-.nav-item-top.active .ni-icon{color:var(--accent);}
-
-/* 브랜드 nav active → white bg */
-.nav-item-brand.active{background:var(--white);}
-.nav-item-brand.active .ni-dot{background:var(--accent);}
-.nav-item-brand.active .ni-label{font-weight:700;color:var(--text1);}
-
-.ni-left{display:flex;align-items:center;gap:9px;}
-
-/* 점 — Figma: 7px, #bdbdbd */
-.ni-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;}
-
-/* 아이콘 — Figma: 15x15px */
-.ni-icon{width:15px;height:15px;flex-shrink:0;color:var(--text3);}
-
-/* 라벨 — Figma: 13px SemiBold, #666, tracking -0.32px */
-.ni-label{
-  font-size:13px;
-  font-weight:600;
-  color:var(--text2);
-  letter-spacing:-0.02em;
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
 }
 
-/* 카운트 뱃지 — Figma: 18x18px circle, accent bg */
-.ni-badge{
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:var(--accent-bg);
-  color:var(--accent);
-  font-size:11px;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-  letter-spacing:-0.01em;
+/* 메인 검색창 스타일 */
+.search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
-/* Focus Groups 안 검색 — Figma 9:58: h-36px, rounded-20px, border 0.5px */
-.fg-search-bar{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  background:var(--white);
-  border:0.5px solid var(--border-md);
-  border-radius:20px;
-  padding:0 13px;
-  height:36px;
-  margin-bottom:8px;
-}
-.fg-search-bar:focus-within{border-color:rgba(242,102,75,.4);}
-.fg-search-bar input{
-  flex:1;border:none;outline:none;
-  font-size:12px;font-family:var(--font);
-  color:var(--text1);background:transparent;
-  letter-spacing:-0.02em;
-}
-.fg-search-bar input::placeholder{color:var(--text3);}
-
-/* 구분선 — Figma: rgba(0,0,0,0.07) */
-.sb-div{height:0.5px;background:var(--border);margin:8px 0 14px;}
-.sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
-
-.user-area{display:flex;align-items:center;gap:10px;}
-.av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
-.av-info{flex:1;min-width:0;}
-/* 12px Bold #111 */
-.av-name{font-size:12px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* 10px Regular #bdbdbd */
-.av-role{font-size:10px;color:var(--text3);}
-/* Login btn — h-28px, rounded-full, border 0.5px */
-.login-btn-small{
-  padding:5px 10px;
-  border:0.5px solid var(--border-md);
-  border-radius:50px;
-  font-size:11px;font-weight:600;font-family:var(--font);
-  color:var(--text2);background:transparent;cursor:pointer;
-  white-space:nowrap;transition:all .15s;
-  height:28px;
-  display:flex;align-items:center;
-}
-.login-btn-small:hover{border-color:var(--accent);color:var(--accent);}
-
-/* ══════════════════════════
-   MODAL
-══════════════════════════ */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
-.modal{background:var(--white);border-radius:20px;padding:32px;width:100%;max-width:420px;margin:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
-.login-modal{max-width:380px;}
-.login-header{text-align:center;margin-bottom:28px;}
-.login-logo-mark{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
-.modal-title{font-size:18px;font-weight:800;color:var(--text1);margin-bottom:4px;}
-.modal-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
-.google-btn{width:100%;height:48px;background:var(--white);border:1px solid var(--border-md);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;font-family:var(--font);color:var(--text1);cursor:pointer;transition:all .15s;margin-bottom:12px;}
-.google-btn:hover{background:#fafafa;}
-.google-icon{width:20px;height:20px;flex-shrink:0;}
-.login-divider{display:flex;align-items:center;gap:12px;margin:18px 0;}
-.login-divider span{font-size:11px;color:var(--text3);white-space:nowrap;}
-.login-divider::before,.login-divider::after{content:'';flex:1;height:0.5px;background:var(--border-md);}
-.guest-btn{width:100%;height:44px;background:transparent;border:0.5px solid var(--border-md);border-radius:12px;font-size:13px;font-weight:600;font-family:var(--font);color:var(--text2);cursor:pointer;}
-.login-terms{font-size:11px;color:var(--text3);text-align:center;margin-top:16px;line-height:1.6;}
-
-/* ══════════════════════════
-   MAIN
-══════════════════════════ */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--white);}
-.mob-header{display:none;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.mob-logo{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:5px;}
-.mob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
-.mob-toggle{width:34px;height:34px;border:0.5px solid var(--border-md);border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
-.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;}
-.sb-overlay.open{display:block;}
-
-/* ══════════════════════════
-   검색 헤더
-   Figma: height 80px, padding 0 28px
-   row: [input flex-1] [발견하기 btn 100px]
-   input: h-46px, rounded-20px, border 1px rgba(0,0,0,0.1)
-   ★ star icon은 input 내부 오른쪽에 위치
-══════════════════════════ */
-.hd{
-  height:80px;
-  padding:0 28px;
-  border-bottom:0.5px solid var(--border);
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-}
-.search-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  width:100%;
-  flex-wrap:nowrap;
+.search-bar input {
+    padding: 12px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 300px;
+    font-size: 14px;
 }
 
-/* Figma: flex-1, h-46px, rounded-20px, border 1px rgba(0,0,0,0.1) */
-.search-bar{
-  flex:1;
-  min-width:0;
-  height:46px;
-  display:flex;
-  align-items:center;
-  background:var(--white);
-  border:1px solid var(--border-md);
-  border-radius:20px;
-  overflow:hidden;
-  transition:border-color .15s;
-}
-.search-bar:focus-within{border-color:rgba(242,102,75,.5);}
-
-/* 검색 아이콘 영역 — Figma: w-39px, padding-x 12px */
-.s-icon{
-  width:39px;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-  color:var(--text3);
+.search-bar button, .save-btn {
+    padding: 12px 24px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
 }
 
-/* 텍스트 입력 — Figma: 14px Regular, #bdbdbd placeholder, tracking -0.32px */
-.s-input{
-  flex:1;
-  height:100%;
-  border:none;
-  outline:none;
-  font-size:14px;
-  font-family:var(--font);
-  letter-spacing:-0.02em;
-  color:var(--text1);
-  background:transparent;
-  min-width:0;
-}
-.s-input::placeholder{color:var(--text3);}
+/* 페이지 전환 및 그리드 설정 */
+.page { display: none; }
+.page.active { display: block; }
 
-/* ★ 별 아이콘 — 검색창 내부 오른쪽 (Figma 3:558: 24x24px) */
-.save-kw-btn{
-  flex-shrink:0;
-  width:24px;
-  height:24px;
-  margin-right:12px;
-  border:none;
-  background:transparent;
-  color:var(--text3);
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:color .15s;
-  padding:0;
-}
-.save-kw-btn:hover{color:var(--accent);}
-.save-kw-btn svg{width:16px;height:16px;}
-
-/* 발견하기 버튼 — Figma: 100x46px, rounded-20px, bg #f2664b */
-.hunt-btn{
-  flex-shrink:0;
-  width:100px;
-  height:46px;
-  background:var(--accent);
-  border:none;
-  border-radius:20px;
-  color:#fff;
-  font-size:14px;
-  font-weight:700;
-  font-family:var(--font);
-  letter-spacing:-0.02em;
-  cursor:pointer;
-  white-space:nowrap;
-  transition:opacity .15s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-}
-.hunt-btn:hover{opacity:.86;}
-.hunt-btn:disabled{opacity:.5;cursor:not-allowed;}
-
-/* 포커스 그룹 헤더 (브랜드 선택 시) */
-.focus-group-header{padding:16px 28px 0;flex-shrink:0;display:none;}
-.focus-group-header.show{display:block;}
-.fg-label{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
-.fg-title{font-size:28px;font-weight:900;color:var(--text1);letter-spacing:-.03em;}
-
-/* ══════════════════════════
-   상태바 / 툴바
-   Figma toolbar: h-48.5px, padding 0 28px
-   ★ active 버튼 = 검정 #111 (orange 아님!)
-══════════════════════════ */
-.status-bar{padding:7px 28px;background:rgba(242,102,75,.04);border-bottom:0.5px solid var(--border);font-size:11px;font-weight:500;color:var(--text2);display:none;align-items:center;gap:8px;flex-shrink:0;}
-.spinner{width:11px;height:11px;border:1.5px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-.toolbar{
-  height:48px;
-  padding:0 28px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-shrink:0;
-  border-bottom:0.5px solid var(--border);
+.results-grid, .dashboard-grid {
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
 }
 
-/* 뷰 버튼 — Figma: 30x30, rounded-7px */
-.view-sw{display:flex;gap:3px;}
-.vs-btn{
-  width:30px;height:30px;
-  border:0.5px solid var(--border-md);
-  border-radius:7px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;background:transparent;
-  transition:all .15s;color:var(--text3);
-}
-/* Figma: active = 검정(#111) */
-.vs-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
-.vs-btn:hover:not(.on){background:rgba(0,0,0,.04);color:var(--text2);}
-
-.filter-sep{width:0.5px;height:18px;background:var(--border-md);}
-.sort-group{display:flex;gap:0;}
-
-/* 정렬 버튼 — Figma: h-30px, rounded pill, w≈80px */
-.sort-btn{
-  height:30px;padding:0 11px;
-  border:0.5px solid var(--border-md);
-  border-radius:50px;
-  /* 11px SemiBold, tracking -0.32px */
-  font-size:11px;font-weight:600;font-family:var(--font);
-  letter-spacing:-0.02em;color:var(--text2);
-  background:transparent;cursor:pointer;
-  transition:all .15s;white-space:nowrap;
-}
-/* Figma: active = 검정(#111) */
-.sort-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
-.sort-btn:hover:not(.on){border-color:var(--text2);}
-
-/* 11px SemiBold, #bdbdbd */
-.result-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;letter-spacing:-0.02em;}
-
-/* ══════════════════════════
-   CONTENT
-══════════════════════════ */
-.content{flex:1;overflow-y:auto;padding:20px 28px 28px;}
-.content::-webkit-scrollbar{width:4px;}
-.content::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:4px;}
-
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:40px;}
-.empty-icon{width:52px;height:52px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;}
-/* 15px Bold, #666 */
-.empty-title{font-size:15px;font-weight:700;color:var(--text2);}
-/* 13px Regular, #bdbdbd */
-.empty-desc{font-size:13px;color:var(--text3);line-height:1.7;max-width:300px;}
-
-/* ══════════════════════════
-   GRID CARDS — Figma 9:736 정확 반영
-   border: 0.5px #bdbdbd, rounded: 14px
-   image: 160px 고정
-   card body: 고정 높이 구조
-══════════════════════════ */
-.card-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:14px;
-  align-items:start;
-}
-
-/* Figma: border 0.5px #bdbdbd, rounded-14px */
-.pcard{
-  background:var(--white);
-  border-radius:14px;
-  overflow:hidden;
-  border:0.5px solid var(--text3);
-  display:flex;
-  flex-direction:column;
-  position:relative;
-  transition:transform .18s;
-}
-.pcard:hover{transform:translateY(-2px);}
-
-/* 이미지 — Figma: h-160px 고정 */
-.pcard-img-wrap{
-  position:relative;
-  width:100%;
-  height:160px;        /* Figma: 160.195px */
-  overflow:hidden;
-  flex-shrink:0;
-}
-.pcard-img{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  object-fit:cover;
-  display:block;
-  background:#f0f0f0;
-  transition:transform .3s;
-}
-.pcard:hover .pcard-img{transform:scale(1.03);}
-
-/* D-뱃지 — Figma: h-20px, w-34px, top-9px, left-9.5px, rgba(255,255,255,0.9), rounded pill */
-.pbadge{
-  position:absolute;
-  top:9px;left:9.5px;
-  height:20px;
-  padding:0 6.5px;
-  border-radius:50px;
-  background:rgba(255,255,255,.9);
-  /* 11px Bold, #666, tracking 0.225px, uppercase */
-  font-size:11px;font-weight:700;
-  color:var(--text2);
-  letter-spacing:0.02em;
-  text-transform:uppercase;
-  z-index:1;
-  white-space:nowrap;
-  display:flex;align-items:center;
-}
-
-/* 아카이브 버튼 — Figma: 28x28, top-9px, right-9px (left-185.5 in 224px card), rgba(255,255,255,0.9) */
-.archive-btn{
-  position:absolute;
-  top:9px;right:9px;
-  width:28px;height:28px;
-  border-radius:50%;
-  background:rgba(255,255,255,.9);
-  border:none;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:2;
-  transition:all .18s;color:var(--text2);
-}
-.archive-btn:hover{background:var(--white);color:var(--accent);}
-.archive-btn.archived{background:var(--accent);color:#fff;}
-.archive-btn svg{width:15px;height:15px;pointer-events:none;}
-
-/* 카드 바디 — Figma: left-12.5px, top-172px (=160+12), gap-10px */
-.pcard-body{
-  padding:12px 13px 13px;
-  display:flex;
-  flex-direction:column;
-  flex:1;
-  gap:10px;
-}
-
-/* 브랜드+타이틀 섹션 — gap-4px */
-.pc-brand-title{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-
-/* 브랜드 뱃지 — Figma: h-17.5px, w≈44.57px, rounded pill, rgba(242,102,75,0.08) bg */
-.pc-brand{
-  display:inline-block;
-  height:17.5px;
-  padding:0 7px;
-  border-radius:50px;
-  background:var(--accent-bg);
-  /* 9px ExtraBold, #f2664b, tracking 0.45px, uppercase */
-  font-size:9px;font-weight:800;
-  color:var(--accent);
-  letter-spacing:0.05em;text-transform:uppercase;
-  align-self:flex-start;
-  line-height:17.5px;
-  white-space:nowrap;
-}
-
-/* 상품명 — Figma: 13px Bold, #111, tracking -0.32px */
-/* ★ 고정 높이 35px (2줄까지 허용, 항상 같은 높이 유지) */
-.pc-name{
-  font-size:13px;
-  font-weight:700;
-  color:var(--text1);
-  letter-spacing:-0.02em;
-  height:35px;         /* 고정 높이 */
-  overflow:hidden;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  line-height:1.35;
-}
-
-/* 하단 푸터 — Figma: border-top 0.5px rgba(0,0,0,0.1), h-39.5px, justify-between */
-.pc-foot{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  border-top:0.5px solid var(--border-md);
-  padding-top:9px;
-  height:39.5px;       /* 고정 높이 */
-  flex-shrink:0;
-}
-
-/* 날짜 — Figma: "Coming Up" 8px Medium #bdbdbd + date 14px Black #111 */
-.pc-date-lbl{
-  font-size:8px;
-  font-weight:500;
-  color:var(--text3);
-  letter-spacing:-0.02em;
-  margin-bottom:2px;
-}
-.pc-date{
-  font-size:14px;
-  font-weight:900;
-  color:var(--text1);
-  letter-spacing:-0.02em;
-  line-height:1;
-  white-space:nowrap;
-}
-.pc-date.urg{color:var(--accent);}
-
-/* 캘린더 버튼 — Figma: h-30px, rounded-100px, bg white, border 1px #f2664b */
-/* text: 11.827px Bold, #f2664b */
-.cal-btn{
-  flex-shrink:0;
-  height:30px;
-  padding:0 10px;
-  background:var(--white);
-  border:1px solid var(--accent);
-  border-radius:100px;
-  color:var(--accent);
-  font-size:11.8px;font-weight:700;font-family:var(--font);
-  cursor:pointer;white-space:nowrap;
-  transition:all .15s;
-  display:inline-flex;align-items:center;gap:4px;
-  text-decoration:none;
-  letter-spacing:-0.02em;
-}
-.cal-btn:hover{background:var(--accent);color:#fff;}
-.cal-btn svg{width:14px;height:14px;pointer-events:none;}
-
-/* ══════════════════════════
-   LIST CARDS
-══════════════════════════ */
-.card-list{display:flex;flex-direction:column;gap:8px;}
-.lcard{
-  display:flex;align-items:center;
-  background:var(--white);
-  border:0.5px solid var(--text3);
-  border-radius:12px;overflow:hidden;
-  min-height:72px;
-  transition:border-color .18s;
-}
-.lcard:hover{border-color:var(--accent);}
-.lcard-img{width:96px;height:72px;object-fit:cover;flex-shrink:0;background:#f0f0f0;}
-.lcard-body{flex:1;min-width:0;padding:9px 12px;}
-.lc-brand{font-size:9px;font-weight:800;color:var(--accent);background:var(--accent-bg);display:inline-block;padding:2px 6px;border-radius:50px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;}
-.lc-name{font-size:13px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lcard-right{padding:0 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.lc-date-lbl{font-size:8px;font-weight:500;color:var(--text3);margin-bottom:2px;}
-.lc-date{font-size:13px;font-weight:900;color:var(--text1);text-align:right;}
-.lc-date.urg{color:var(--accent);}
-.lcal-btn{height:28px;padding:0 10px;background:var(--white);border:1px solid var(--accent);border-radius:100px;color:var(--accent);font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;text-decoration:none;}
-.lcal-btn:hover{background:var(--accent);color:#fff;}
-.larchive-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--text2);flex-shrink:0;}
-.larchive-btn:hover{color:var(--accent);}
-.larchive-btn.archived{background:var(--accent);color:#fff;}
-.larchive-btn svg{width:13px;height:13px;pointer-events:none;}
-
-/* ══════════════════════════
-   ARCHIVE
-══════════════════════════ */
-.archive-header{padding:20px 28px 14px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.archive-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.archive-title{font-size:20px;font-weight:900;color:var(--text1);letter-spacing:-.02em;}
-.archive-subtitle{font-size:13px;color:var(--text2);}
-.archive-meta{display:flex;align-items:center;gap:12px;margin-top:10px;}
-.archive-stat{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);}
-.archive-stat-num{font-size:18px;font-weight:900;color:var(--text1);}
-.archive-stat-sep{width:0.5px;height:20px;background:var(--border-md);}
-@keyframes flyIn{0%{transform:scale(1);}40%{transform:scale(1.07);}100%{transform:scale(1);}}
-.archive-pop{animation:flyIn .3s ease;}
-
-/* ══════════════════════════
-   TOAST
-══════════════════════════ */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;font-size:12px;font-weight:600;font-family:var(--font);padding:10px 18px;border-radius:50px;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;display:flex;align-items:center;gap:8px;white-space:nowrap;}
-.toast.show{opacity:1;}
-.toast-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-
-/* ══════════════════════════
-   RESPONSIVE
-══════════════════════════ */
-@media(max-width:900px){:root{--sb-w:200px;}}
-@media(max-width:700px){
-  .sb{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.1);}
-  .sb.open{transform:translateX(0);}
-  .mob-header{display:flex;}
-  .hd{height:64px;padding:0 16px;}
-  .toolbar{padding:0 16px;}
-  .content{padding:16px 16px 24px;}
-  .focus-group-header{padding:14px 16px 0;}
-  .card-grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
-  .result-count{display:none;}
-}
-@media(max-width:480px){
-  .card-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .hunt-btn{width:80px;font-size:13px;}
-  .pcard-img-wrap{height:130px;}
+/* 카드 스타일 */
+.keyword-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
