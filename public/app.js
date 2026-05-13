@@ -113,10 +113,17 @@ function updateLayoutForView(viewType){
   var searchHdr=document.getElementById('searchHeader');
   var focusHdr=document.getElementById('focusGroupHeader');
   var focusTitle=document.getElementById('focusGroupTitle');
-var isBrand=(viewType!=='radar'&&viewType!=='archive');  if(searchHdr) searchHdr.style.display=isBrand?'none':'flex';
+  /* 3. radar만 검색창 표시, 전체/브랜드/아카이브는 헤더로 */
+  var showSearch=(viewType==='radar');
+  if(searchHdr) searchHdr.style.display=showSearch?'flex':'none';
   if(focusHdr){
-    if(isBrand){ focusHdr.classList.add('show'); if(focusTitle) focusTitle.textContent = viewType==='all' ? '전체' : '# '+viewType;
-    else { focusHdr.classList.remove('show'); }
+    var showHeader=(viewType!=='radar'&&viewType!=='archive');
+    if(showHeader){
+      focusHdr.classList.add('show');
+      if(focusTitle) focusTitle.textContent=viewType==='all'?'전체':'# '+viewType;
+    } else {
+      focusHdr.classList.remove('show');
+    }
   }
 }
 
@@ -247,13 +254,24 @@ function syncToCloud(){
   }
 }
 
-/* ── 키워드 저장 ── */
+/* ── 키워드 저장 — 4. 현재 검색 결과를 이 키워드로 자동 저장 ── */
 function saveCurrentKeyword(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){ showToast('키워드를 먼저 입력해주세요.'); return; }
   if(savedBrands.has(kw)){ showToast('이미 저장된 키워드예요.'); return; }
+
+  /* 4. 현재 검색 결과 → 이 키워드 브랜드로 태깅 후 allItems에 저장 */
+  var added=0;
+  currentSearchItems.forEach(function(item){
+    var tagged=Object.assign({},item,{brand:kw});
+    var key=archiveKey(tagged);
+    if(!allItems.some(function(x){ return archiveKey(x)===key; })){
+      allItems.push(tagged); added++;
+    }
+  });
+
   savedBrands.add(kw); syncToCloud(); rebuildNav();
-  showToast('✅ "'+kw+'" 포커스 그룹에 추가됐어요!');
+  showToast('✅ "'+kw+'" 저장됨'+(added>0?' ('+added+'개 항목 추가)':''));
 }
 
 /* ── 검색 ── */
@@ -465,6 +483,26 @@ document.addEventListener('DOMContentLoaded',function(){
   setStatus('',false);
 });
 
+/* ── 5. 출시된 아이템 자동 삭제 ── */
+function cleanupReleasedItems(){
+  var before=allItems.length;
+  allItems=allItems.filter(function(item){
+    /* 저장된 키워드에 속한 아이템이고 이미 출시(오늘 이전)된 경우 삭제 */
+    if(savedBrands.has(item.brand)&&item.release_date<TODAY){
+      /* 아카이브에서도 제거 */
+      var key=archiveKey(item);
+      archivedIds.delete(key);
+      archivedItems=archivedItems.filter(function(a){ return archiveKey(a)!==key; });
+      return false;
+    }
+    return true;
+  });
+  if(allItems.length!==before){
+    syncToCloud();
+    console.log('출시된 항목 '+(before-allItems.length)+'개 자동 삭제됨');
+  }
+}
+
 /* ── Firebase Auth ── */
 fbAuth.onAuthStateChanged(function(u){
   if(u){
@@ -477,10 +515,10 @@ fbAuth.onAuthStateChanged(function(u){
         savedBrands=new Set(data.savedBrands||[]);
         archivedIds=new Set(archivedItems.map(function(item){ return archiveKey(item); }));
       }
-      updateUserUI(); rebuildNav(); switchView('radar'); runSilentAutoHunt();
+      updateUserUI(); rebuildNav(); cleanupReleasedItems(); switchView('radar'); runSilentAutoHunt();
     }).catch(function(e){ console.error(e); updateUserUI(); rebuildNav(); switchView('radar'); });
   } else {
     currentUser=null;
-    updateUserUI(); rebuildNav(); switchView('radar'); runSilentAutoHunt();
+    updateUserUI(); rebuildNav(); cleanupReleasedItems(); switchView('radar'); runSilentAutoHunt();
   }
 });
