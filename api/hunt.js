@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     send({ type: 'status', message: `AI 분석 중... (${filtered.length}개 릴리즈 정보 발견)` });
 
     // ── 2. Gemini 호출 — 503 시 최대 3회 재시도 ──
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
     const GEMINI_BODY = JSON.stringify({
       contents: [{ parts: [{ text:
         `You are a release date extractor. Extract ALL upcoming product/event release dates for "${keyword}".\n` +
