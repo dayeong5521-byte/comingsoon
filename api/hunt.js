@@ -79,14 +79,15 @@ export default async function handler(req, res) {
       `You extract upcoming release information. The user searched for: "${keyword}"\n\n` +
       `STRICT RULES:\n` +
       `1. ONLY include items DIRECTLY about "${keyword}". Reject anything unrelated.\n` +
-      `2. release_date must be ${TODAY} or later, in YYYY-MM-DD format.\n` +
+      `2. release_date must be ${TODAY} or later in YYYY-MM-DD format, OR "TBD" if date is unknown.\n` +
       `3. Vague dates: spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01.\n` +
-      `4. If only a year is known with no other hint, SKIP that item (do not guess 12-31).\n` +
+      `4. If only a year is known with no other hint, use "TBD" for release_date.\n` +
       `5. brand = official brand/maker. item_name = specific product or event name.\n` +
       `6. Return ONLY a raw JSON array — no markdown, no text, no code fences.\n` +
       `7. If nothing qualifies, return: []\n\n` +
       `FORMAT:\n` +
-      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."}]\n\n` +
+      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."},\n` +
+      ` {"brand":"Apple","item_name":"Apple Watch X","release_date":"TBD","description":"출시일 미정","image_url":"","link":"https://..."}]\n\n` +
       `Search results:\n${context}`;
 
     let gr, attempt = 0;
@@ -140,8 +141,9 @@ export default async function handler(req, res) {
     // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
     const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
     const valid = items.filter(item => {
-      if (!item.release_date || !DATE_RE.test(item.release_date)) return false;
-      if (item.release_date < TODAY) return false;
+      if (!item.release_date) return false;
+      const isTBD = item.release_date === 'TBD';
+      if (!isTBD && (!DATE_RE.test(item.release_date) || item.release_date < TODAY)) return false;
       if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
@@ -168,7 +170,11 @@ export default async function handler(req, res) {
     }));
 
     valid
-      .sort((a, b) => a.release_date.localeCompare(b.release_date))
+      .sort((a, b) => {
+        if (a.release_date === 'TBD') return 1;
+        if (b.release_date === 'TBD') return -1;
+        return a.release_date.localeCompare(b.release_date);
+      })
       .forEach(item => send({ type: 'item', data: item }));
 
     send({ type: 'done', total: valid.length });
