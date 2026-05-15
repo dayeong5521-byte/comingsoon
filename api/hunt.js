@@ -28,39 +28,52 @@ export default async function handler(req, res) {
   try {
     send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
-    // ── 1. Serper 검색 ──────────────────────────────────
-    const isKorean = /[ㄱ-ㅎ가-힣]/.test(keyword);
-    const query = isKorean
-      ? `${keyword} 출시일 발매일 출시예정 ${CY} ${CY + 1}`
-      : `"${keyword}" release date announced ${CY} ${CY + 1}`;
+    // ── 1. 한국어 + 영어 동시 검색 → 결과 합산 ──────────────
+    // 입력 언어 관계없이 항상 양쪽 검색 → "애플" = "apple" 동일 결과
+    const queries = [
+      { q: `${keyword} 출시일 발매일 출시예정 ${CY} ${CY + 1}`, gl: 'kr', hl: 'ko' },
+      { q: `${keyword} release date upcoming announced ${CY} ${CY + 1}`, gl: 'us', hl: 'en' },
+    ];
 
-    const sr = await fetch('https://google.serper.dev/search', {
-      method:  'POST',
-      headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        q: query, gl: isKorean ? 'kr' : 'us', hl: isKorean ? 'ko' : 'en', num: 10,
-      }),
-    });
-    if (!sr.ok) throw new Error(`Serper HTTP ${sr.status}`);
-    const sd = await sr.json();
-    if (!sd.organic?.length) throw new Error('검색 결과가 없습니다.');
+    const searchResults = await Promise.all(queries.map(opt =>
+      fetch('https://google.serper.dev/search', {
+        method:  'POST',
+        headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: opt.q, gl: opt.gl, hl: opt.hl, num: 10 }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null)
+    ));
+
+    const [sdKr, sdEn] = searchResults;
+
+    // 중복 URL 제거 후 합산
+    const seenUrls = new Set();
+    const allOrganics = [...(sdKr?.organic || []), ...(sdEn?.organic || [])]
+      .filter(o => {
+        if (!o?.link || seenUrls.has(o.link)) return false;
+        seenUrls.add(o.link);
+        return true;
+      });
+
+    if (!allOrganics.length) throw new Error('검색 결과가 없습니다.');
 
     // 컨텍스트 구성
     let context = '';
-    if (sd.answerBox?.answer || sd.answerBox?.snippet)
-      context += `[직접답변] ${sd.answerBox.answer || sd.answerBox.snippet}\n\n`;
-    if (sd.topStories?.length)
-      context += sd.topStories.slice(0, 3).map(s =>
-        `[뉴스] ${s.title} ${s.date || ''}`).join('\n') + '\n\n';
-    context += sd.organic.map((o, i) =>
+    const ab = sdKr?.answerBox || sdEn?.answerBox;
+    if (ab?.answer || ab?.snippet)
+      context += `[직접답변] ${ab.answer || ab.snippet}\n\n`;
+    const stories = [...(sdKr?.topStories || []), ...(sdEn?.topStories || [])].slice(0, 4);
+    if (stories.length)
+      context += stories.map(s => `[뉴스] ${s.title} ${s.date || ''}`).join('\n') + '\n\n';
+    context += allOrganics.map((o, i) =>
       `[${i+1}] ${o.title}\n${o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: '+o.date : ''}`
     ).join('\n\n');
 
     send({ type: 'status', message: 'AI 분석 중...' });
 
     // ── 2. Gemini 호출 ──────────────────────────────────
+    // gemini-2.5-flash-preview-05-20: 현재 안정 버전
     const GEMINI_URL =
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
       `You extract upcoming release information. The user searched for: "${keyword}"\n\n` +
@@ -83,11 +96,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 2048,
-            thinkingConfig: { thinkingBudget: 0 },
-          },
+          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
           safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
@@ -103,7 +112,10 @@ export default async function handler(req, res) {
         attempt++;
         continue;
       }
-      throw new Error(`Gemini HTTP ${gr.status}`);
+      // 상세 에러 로깅
+      const errBody = await gr.text().catch(() => '');
+      console.error(`[hunt] Gemini ${gr.status}:`, errBody);
+      throw new Error(`Gemini HTTP ${gr.status}: ${errBody.slice(0, 200)}`);
     }
 
     const gd = await gr.json();
