@@ -345,7 +345,7 @@ function saveCurrentKeyword(){
 
   /* 버튼 상태 → 이미 저장됨 */
   var saveBtn=document.getElementById('kwSaveBtn');
-  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='이미 저장됨'; }
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 찾기'; }
 
   var cnt=keywordData[kw].length;
   showToast('✅ "'+kw+'" 저장됨'+(cnt>0?' ('+cnt+'개 항목)':''));
@@ -392,7 +392,7 @@ async function startHunt(){
       } else if(currentSearchItems.length>0){
         saveBtn.disabled=false; saveBtn.textContent='키워드 저장'; // 활성 → orange
       } else {
-        saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; // 결과 없음 → gray
+        saveBtn.disabled=true; saveBtn.textContent='키워드 찾기'; // 결과 없음 → gray
       }
     }
   }
@@ -405,7 +405,7 @@ function addToCalendar(url){
 }
 
 /* ── 아이콘 ── */
-var ICON_ARCHIVE='<svg viewBox="0 0 15 15" fill="none"><path d="M2 5.5h11M3 5.5V12a1 1 0 001 1h7a1 1 0 001-1V5.5M6 5.5V4a1.5 1.5 0 013 0v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var ICON_ARCHIVE='<svg viewBox="0 0 15 15" fill="none"><rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
 var ICON_CHECK='<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var ICON_PLUS='<svg viewBox="0 0 15 15" fill="none"><line x1="7.5" y1="3" x2="7.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="3" y1="7.5" x2="12" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
 
@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded',function(){
     /* 새 키워드 입력 시 저장 버튼 초기화 */
     ms.oninput=function(){
       var saveBtn=document.getElementById('kwSaveBtn');
-      if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; }
+      if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 찾기'; }
     };
   }
 
