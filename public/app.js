@@ -81,7 +81,20 @@ function getAllItems(){
 /* 특정 키워드 아이템 */
 function getBrandItems(brand){ return keywordData[brand]||[]; }
 
-/* ── 토스트 ── */
+var archiveSortMode='imminent';
+
+/* ── 저장 배너 ── */
+function showSavePrompt(kw){
+  var el=document.getElementById('savePrompt');
+  var kwEl=document.getElementById('savePromptKeyword');
+  if(!el) return;
+  if(kwEl) kwEl.textContent='"'+kw+'"';
+  el.style.display='flex';
+}
+function hideSavePrompt(){
+  var el=document.getElementById('savePrompt');
+  if(el) el.style.display='none';
+}
 function showToast(msg){
   var t=document.getElementById('toast'),m=document.getElementById('toastMsg');
   if(!t||!m) return;
@@ -344,6 +357,9 @@ function saveCurrentKeyword(){
   });
   savedBrands.add(kw);
   syncToCloud(); rebuildNav();
+  hideSavePrompt();
+  var saveBtn=document.getElementById('saveKwBtn');
+  if(saveBtn) saveBtn.classList.remove('has-results');
   var cnt=keywordData[kw].length;
   showToast('✅ "'+kw+'" 저장됨'+(cnt>0?' ('+cnt+'개 항목)':''));
   switchView(kw);
@@ -385,6 +401,15 @@ async function startHunt(){
     btn.disabled=false;
     btn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="white" stroke-width="1.3"/><circle cx="6" cy="6" r="2" fill="white"/></svg> 발견하기';
     setStatus('',false);
+    // 검색 결과 있으면 저장 배너 + 별 버튼 강조
+    if(currentSearchItems.length>0){
+      var kw2=document.getElementById('mainSearch').value.trim();
+      if(kw2&&!savedBrands.has(kw2)){
+        showSavePrompt(kw2);
+        var saveBtn=document.getElementById('saveKwBtn');
+        if(saveBtn) saveBtn.classList.add('has-results');
+      }
+    }
   }
 }
 
@@ -513,8 +538,19 @@ function renderArchive(){
     el.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="16" rx="2" stroke="#BDBDBD" stroke-width="1.5"/><path d="M2 11h20" stroke="#BDBDBD" stroke-width="1.5"/><path d="M10 16h4" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="empty-title">아직 보관된 항목이 없어요</div><div class="empty-desc">릴리즈 카드에서 보관 버튼을 눌러보세요.</div></div>';
     return;
   }
-  var sorted=archivedItems.slice().sort(function(a,b){ return a.release_date.localeCompare(b.release_date); });
-  var html='<div class="card-grid">'; sorted.forEach(function(p){ html+=mkGrid(p); }); el.innerHTML=html+'</div>';
+  var sorted=archivedItems.slice().sort(function(a,b){
+    return archiveSortMode==='imminent'
+      ? a.release_date.localeCompare(b.release_date)
+      : b.release_date.localeCompare(a.release_date);
+  });
+  var cntEl=document.getElementById('archiveResultCount');
+  if(cntEl) cntEl.textContent=sorted.length+'개 보관됨';
+  if(viewMode==='grid'){
+    var html='<div class="card-grid">'; sorted.forEach(function(p){ html+=mkGrid(p); }); el.innerHTML=html+'</div>';
+  } else {
+    var html='<div class="card-list">'; sorted.forEach(function(p){ html+=mkList(p); }); el.innerHTML=html+'</div>';
+  }
+  bindCardEvents(el);
 }
 
 function updateArchiveStats(){
@@ -547,6 +583,26 @@ document.addEventListener('DOMContentLoaded',function(){
 
   var ms=document.getElementById('mainSearch');
   if(ms) ms.onkeydown=function(e){ if(e.key==='Enter') startHunt(); };
+
+  // 3. 아카이브 뷰/정렬 버튼
+  var btnGridArc=document.getElementById('btnGridArc');
+  var btnListArc=document.getElementById('btnListArc');
+  if(btnGridArc) btnGridArc.onclick=function(){
+    viewMode='grid'; btnGridArc.classList.add('on'); if(btnListArc) btnListArc.classList.remove('on');
+    renderArchive();
+  };
+  if(btnListArc) btnListArc.onclick=function(){
+    viewMode='list'; btnListArc.classList.add('on'); if(btnGridArc) btnGridArc.classList.remove('on');
+    renderArchive();
+  };
+  document.querySelectorAll('[data-sort-arc]').forEach(function(btn){
+    btn.onclick=function(){
+      archiveSortMode=this.getAttribute('data-sort-arc');
+      document.querySelectorAll('[data-sort-arc]').forEach(function(b){ b.classList.remove('on'); });
+      this.classList.add('on');
+      renderArchive();
+    };
+  });
   var lb=document.getElementById('loginModalBg');
   if(lb) lb.onclick=function(e){ if(e.target===this) closeModal('loginModalBg'); };
   setStatus('',false);
