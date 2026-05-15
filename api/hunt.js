@@ -71,9 +71,9 @@ export default async function handler(req, res) {
     send({ type: 'status', message: 'AI 분석 중...' });
 
     // ── 2. Gemini 호출 ──────────────────────────────────
-    // gemini-2.5-flash-preview-05-20: 현재 안정 버전
+    // gemini-2.5-flash: v1beta 지원 stable 버전
     const GEMINI_URL =
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_KEY}`;
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
       `You extract upcoming release information. The user searched for: "${keyword}"\n\n` +
@@ -96,7 +96,11 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
           safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
@@ -121,14 +125,12 @@ export default async function handler(req, res) {
     const gd = await gr.json();
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
-    // thinking 파트 제외 후 실제 텍스트 추출
-    const parts = gd.candidates?.[0]?.content?.parts || [];
-    const txt   = parts.filter(p => !p.thought).map(p => p.text || '').join('').trim();
-
-    // JSON 파싱
-    const cleaned = txt.replace(/```json|```/gi, '').trim();
-    const start   = cleaned.indexOf('[');
-    const end     = cleaned.lastIndexOf(']') + 1;
+    // 모든 parts의 텍스트를 합쳐서 JSON 배열 추출 (thinking 여부 무관)
+    const allParts = gd.candidates?.[0]?.content?.parts || [];
+    const fullText = allParts.map(p => p.text || '').join('').trim();
+    const cleaned  = fullText.replace(/```json|```/gi, '').trim();
+    const start    = cleaned.indexOf('[');
+    const end      = cleaned.lastIndexOf(']') + 1;
     if (start === -1 || end === 0) throw new Error('AI가 올바른 형식을 반환하지 않았습니다.');
 
     let items;
