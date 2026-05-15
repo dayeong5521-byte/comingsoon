@@ -153,9 +153,9 @@
           <!-- 텍스트 입력 -->
           <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
 
-          <!-- ★ 별 아이콘 — Figma: 24x24, 입력창 내부 오른쪽 -->
+          <!-- ★ 별 아이콘 — 검색 후 강조 표시됨 -->
           <button class="save-kw-btn" id="saveKwBtn" onclick="saveCurrentKeyword()" title="포커스 그룹에 저장">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
           </button>
@@ -170,6 +170,16 @@
           발견하기
         </button>
       </div>
+    </div>
+
+    <!-- 2. 검색 후 키워드 저장 배너 -->
+    <div class="save-prompt" id="savePrompt" style="display:none;">
+      <span class="save-prompt-text">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="var(--accent)"><path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4L7 10.4l-3.7 1.8.7-4L1 5.3l4.2-.7L7 1z"/></svg>
+        <span id="savePromptKeyword"></span>을(를) 포커스 그룹에 저장할까요?
+      </span>
+      <button class="save-prompt-btn" onclick="saveCurrentKeyword()">저장하기</button>
+      <button class="save-prompt-close" onclick="hideSavePrompt()">✕</button>
     </div>
 
     <!-- 포커스 그룹 헤더 (브랜드 클릭 시) -->
@@ -231,6 +241,23 @@
         <div class="archive-stat-sep"></div>
         <div class="archive-stat"><span class="archive-stat-num" id="archiveStatUpcoming">0</span>개 임박</div>
       </div>
+    </div>
+    <!-- 3. 아카이브 필터 툴바 -->
+    <div class="toolbar">
+      <div class="view-sw">
+        <button class="vs-btn on" id="btnGridArc">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1"/></svg>
+        </button>
+        <button class="vs-btn" id="btnListArc">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="3" x2="11" y2="3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><line x1="1" y1="9" x2="11" y2="9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="filter-sep"></div>
+      <div class="sort-group">
+        <button class="sort-btn on" data-sort-arc="imminent">날짜 임박한순</button>
+        <button class="sort-btn" data-sort-arc="recent">최근 발표된순</button>
+      </div>
+      <div class="result-count" id="archiveResultCount">0개 보관됨</div>
     </div>
     <div class="content" id="archiveContent"></div>
   </div>
