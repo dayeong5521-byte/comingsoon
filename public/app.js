@@ -83,18 +83,6 @@ function getBrandItems(brand){ return keywordData[brand]||[]; }
 
 var archiveSortMode='imminent';
 
-/* ── 저장 배너 ── */
-function showSavePrompt(kw){
-  var el=document.getElementById('savePrompt');
-  var kwEl=document.getElementById('savePromptKeyword');
-  if(!el) return;
-  if(kwEl) kwEl.textContent='"'+kw+'"';
-  el.style.display='flex';
-}
-function hideSavePrompt(){
-  var el=document.getElementById('savePrompt');
-  if(el) el.style.display='none';
-}
 function showToast(msg){
   var t=document.getElementById('toast'),m=document.getElementById('toastMsg');
   if(!t||!m) return;
@@ -344,35 +332,35 @@ function syncToCloud(){
 
 /* ── 키워드 저장 — 로그인 필요, 검색 결과 자동 연결 ── */
 function saveCurrentKeyword(){
-  /* 로그인 필요 */
   if(!currentUser){ openModal('loginModalBg'); return; }
-
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){ showToast('키워드를 먼저 입력해주세요.'); return; }
   if(savedBrands.has(kw)){ showToast('이미 저장된 키워드예요.'); return; }
 
-  /* 현재 검색 결과를 이 키워드로 태깅해서 저장 */
   keywordData[kw]=currentSearchItems.map(function(item){
     return Object.assign({},item,{brand:kw});
   });
   savedBrands.add(kw);
   syncToCloud(); rebuildNav();
-  hideSavePrompt();
-  var saveBtn=document.getElementById('saveKwBtn');
-  if(saveBtn) saveBtn.classList.remove('has-results');
+
+  /* 버튼 상태 → 이미 저장됨 */
+  var saveBtn=document.getElementById('kwSaveBtn');
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='이미 저장됨'; }
+
   var cnt=keywordData[kw].length;
   showToast('✅ "'+kw+'" 저장됨'+(cnt>0?' ('+cnt+'개 항목)':''));
   switchView(kw);
 }
 
-/* ── 검색 — currentSearchItems만 업데이트, keywordData에 저장 안 함 ── */
+/* ── 검색 — 엔터로 실행, 완료 후 키워드 저장 버튼 활성화 ── */
 async function startHunt(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw) return;
-  var btn=document.getElementById('huntBtn');
-  btn.disabled=true; btn.textContent='탐색 중...';
+
+  var saveBtn=document.getElementById('kwSaveBtn');
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='탐색 중...'; }
+
   setStatus("'"+kw+"' 수색 중...",true);
-  /* 검색할 때마다 radar 초기화 */
   currentSearchItems=[]; renderItems([]);
   try{
     var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
@@ -387,7 +375,6 @@ async function startHunt(){
         var ev=JSON.parse(line.slice(6));
         if(ev.type==='status') setStatus(ev.message,true);
         if(ev.type==='item'){
-          /* radar(임시)에만 추가 — keywordData에는 저장 안 함 */
           if(!currentSearchItems.some(function(x){ return archiveKey(x)===archiveKey(ev.data); })){
             currentSearchItems.push(ev.data);
           }
@@ -398,16 +385,14 @@ async function startHunt(){
     }
   } catch(e){ showToast('오류: '+e.message); }
   finally{
-    btn.disabled=false;
-    btn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="white" stroke-width="1.3"/><circle cx="6" cy="6" r="2" fill="white"/></svg> 발견하기';
     setStatus('',false);
-    // 검색 결과 있으면 저장 배너 + 별 버튼 강조
-    if(currentSearchItems.length>0){
-      var kw2=document.getElementById('mainSearch').value.trim();
-      if(kw2&&!savedBrands.has(kw2)){
-        showSavePrompt(kw2);
-        var saveBtn=document.getElementById('saveKwBtn');
-        if(saveBtn) saveBtn.classList.add('has-results');
+    if(saveBtn){
+      if(savedBrands.has(kw)){
+        saveBtn.disabled=true; saveBtn.textContent='이미 저장됨';
+      } else if(currentSearchItems.length>0){
+        saveBtn.disabled=false; saveBtn.textContent='키워드 저장'; // 활성 → orange
+      } else {
+        saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; // 결과 없음 → gray
       }
     }
   }
@@ -618,7 +603,14 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 
   var ms=document.getElementById('mainSearch');
-  if(ms) ms.onkeydown=function(e){ if(e.key==='Enter') startHunt(); };
+  if(ms){
+    ms.onkeydown=function(e){ if(e.key==='Enter') startHunt(); };
+    /* 새 키워드 입력 시 저장 버튼 초기화 */
+    ms.oninput=function(){
+      var saveBtn=document.getElementById('kwSaveBtn');
+      if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; }
+    };
+  }
 
   // 3. 아카이브 뷰/정렬 버튼
   var btnGridArc=document.getElementById('btnGridArc');
