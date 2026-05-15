@@ -293,81 +293,32 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .s-input::placeholder{color:var(--text3);}
 
-/* ★ 별 아이콘 — 검색창 내부 오른쪽 */
-.save-kw-btn{
+/* 키워드 저장 버튼 — 비활성(gray) → 활성(orange) */
+.kw-save-btn{
   flex-shrink:0;
-  width:28px;height:28px;
-  margin-right:10px;
-  border:none;background:transparent;
-  color:var(--text3);
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:color .15s, transform .15s;
-  padding:0;border-radius:50%;
-}
-.save-kw-btn:hover{color:var(--accent);transform:scale(1.15);}
-.save-kw-btn svg{width:18px;height:18px;}
-/* 검색 결과 있을 때 강조 */
-.save-kw-btn.has-results{color:var(--accent);}
-
-/* 검색 후 저장 배너 */
-.save-prompt{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:10px 28px;
-  background:var(--accent-bg);
-  border-bottom:0.5px solid rgba(242,102,75,0.2);
-  flex-shrink:0;
-  animation:slideDown .2s ease;
-}
-@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-.save-prompt-text{
-  flex:1;
-  font-size:13px;
-  color:var(--text1);
-  font-family:var(--font);
-  display:flex;align-items:center;gap:6px;
-  font-weight:500;
-}
-.save-prompt-btn{
-  height:32px;padding:0 16px;
-  background:var(--accent);border:none;border-radius:50px;
-  color:#fff;font-size:12px;font-weight:700;font-family:var(--font);
-  cursor:pointer;white-space:nowrap;transition:opacity .15s;flex-shrink:0;
-}
-.save-prompt-btn:hover{opacity:.85;}
-.save-prompt-close{
-  width:24px;height:24px;border:none;background:transparent;
-  color:var(--text3);cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-  transition:color .15s;flex-shrink:0;
-}
-.save-prompt-close:hover{color:var(--text1);}
-
-/* 발견하기 버튼 — Figma: 100x46px, rounded-20px, bg #f2664b */
-.hunt-btn{
-  flex-shrink:0;
-  width:100px;
   height:46px;
-  background:var(--accent);
+  padding:0 24px;
   border:none;
   border-radius:20px;
-  color:#fff;
   font-size:14px;
   font-weight:700;
   font-family:var(--font);
   letter-spacing:-0.02em;
-  cursor:pointer;
   white-space:nowrap;
-  transition:opacity .15s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
+  cursor:not-allowed;
+  transition:background .2s, color .2s, opacity .15s;
+  display:flex;align-items:center;justify-content:center;
+  /* 기본: 비활성 gray */
+  background:#E0E0E0;
+  color:#AAAAAA;
 }
-.hunt-btn:hover{opacity:.86;}
-.hunt-btn:disabled{opacity:.5;cursor:not-allowed;}
+/* 활성 상태: 검색 결과 로드 후 */
+.kw-save-btn:not(:disabled){
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+}
+.kw-save-btn:not(:disabled):hover{opacity:.86;}
 
 /* 포커스 그룹 헤더 (브랜드 선택 시) */
 /* 3. 포커스 그룹 헤더 — .hd와 동일한 80px */
@@ -693,6 +644,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 @media(max-width:480px){
   .card-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .hunt-btn{width:80px;font-size:13px;}
+  .kw-save-btn{padding:0 14px;font-size:13px;}
   .pcard-img-wrap{height:130px;}
 }
