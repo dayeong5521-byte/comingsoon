@@ -425,18 +425,21 @@ var ICON_CHECK='<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5l3.5 3.5 5.5
 var ICON_PLUS='<svg viewBox="0 0 15 15" fill="none"><line x1="7.5" y1="3" x2="7.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="3" y1="7.5" x2="12" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
 
 /* ── 그리드 카드 ── */
+/* ── 그리드 카드 — inline onclick 제거, data 속성으로 처리 ── */
 function mkGrid(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
   var calUrl=makeCalUrl(p);
-  var imgClick=p.link?'onclick="window.open(\''+escapeHtml(p.link)+'\',\'_blank\')" style="cursor:pointer;"':'';
+  var key=archiveKey(p);
   var badgeText=days<0?'출시됨':'D-'+days;
 
-  return '<div class="pcard" data-key="'+escapeHtml(archiveKey(p))+'">'+
-    '<div class="pcard-img-wrap" '+imgClick+'>'+
+  return '<div class="pcard" data-key="'+escapeHtml(key)+'">'+
+    /* ★ 이미지: onclick 대신 data-link 속성 사용 */
+    '<div class="pcard-img-wrap"'+(p.link?' data-link="'+escapeHtml(p.link)+'"':'')+'>'+
       '<img class="pcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
       '<span class="pbadge">'+escapeHtml(badgeText)+'</span>'+
-      '<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'" onclick="event.stopPropagation();toggleArchive(\''+escapeHtml(archiveKey(p))+'\',this)">'+
+      /* ★ 아카이브 버튼: data-key만, onclick 없음 */
+      '<button class="archive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(key)+'">'+
         (isArc?ICON_CHECK:ICON_ARCHIVE)+
       '</button>'+
     '</div>'+
@@ -450,8 +453,8 @@ function mkGrid(p){
           '<div class="pc-date-lbl">Coming Up</div>'+
           '<div class="pc-date'+(days>=0&&days<=30?' urg':'')+'">'+formatDateDot(p.release_date)+'</div>'+
         '</div>'+
-        /* 캘린더 버튼 — 로그인 필요 */
-        '<button class="cal-btn" onclick="addToCalendar(\''+escapeHtml(calUrl)+'\')">'+
+        /* ★ 캘린더 버튼: data-cal-url 속성 사용 */
+        '<button class="cal-btn" data-cal-url="'+escapeHtml(calUrl)+'">'+
           'Calendar '+ICON_PLUS+
         '</button>'+
       '</div>'+
@@ -464,8 +467,8 @@ function mkList(p){
   var days=daysUntil(p.release_date);
   var isArc=archivedIds.has(archiveKey(p));
   var calUrl=makeCalUrl(p);
-  var rowClick=p.link?'onclick="window.open(\''+escapeHtml(p.link)+'\',\'_blank\')" style="cursor:pointer;"':'';
-  return '<div class="lcard" data-key="'+escapeHtml(archiveKey(p))+'" '+rowClick+'>'+
+  var key=archiveKey(p);
+  return '<div class="lcard" data-key="'+escapeHtml(key)+'"'+(p.link?' data-link="'+escapeHtml(p.link)+'"':'')+'>'+
     '<img class="lcard-img" src="'+escapeHtml(p.image_url||FALLBACK)+'" onerror="this.src=\''+FALLBACK+'\'" loading="lazy"/>'+
     '<div class="lcard-body">'+
       '<div class="lc-brand">'+escapeHtml(p.brand)+'</div>'+
@@ -476,8 +479,8 @@ function mkList(p){
         '<div class="lc-date-lbl">Coming Up</div>'+
         '<div class="lc-date'+(days>=0&&days<=30?' urg':'')+'">D-'+days+'</div>'+
       '</div>'+
-      '<button class="lcal-btn" onclick="event.stopPropagation();addToCalendar(\''+escapeHtml(calUrl)+'\')">Calendar</button>'+
-      '<button class="larchive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(archiveKey(p))+'" onclick="event.stopPropagation();toggleArchive(\''+escapeHtml(archiveKey(p))+'\',this)">'+
+      '<button class="lcal-btn" data-cal-url="'+escapeHtml(calUrl)+'">Calendar</button>'+
+      '<button class="larchive-btn'+(isArc?' archived':'')+'" data-key="'+escapeHtml(key)+'">'+
         (isArc?ICON_CHECK:ICON_ARCHIVE)+
       '</button>'+
     '</div>'+
@@ -502,6 +505,39 @@ function renderItems(list){
   } else {
     var html='<div class="card-list">'; list.forEach(function(p){ html+=mkList(p); }); el.innerHTML=html+'</div>';
   }
+  bindCardEvents(el); /* ★ 항상 이벤트 다시 바인딩 */
+}
+
+/* ── 이벤트 바인딩 — data 속성 기반, inline onclick 없음 ── */
+function bindCardEvents(container){
+  /* 아카이브 버튼 */
+  container.querySelectorAll('.archive-btn,.larchive-btn').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      toggleArchive(this.getAttribute('data-key'),this);
+    });
+  });
+  /* 캘린더 버튼 — data-cal-url 속성에서 URL 읽기 */
+  container.querySelectorAll('.cal-btn,.lcal-btn').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      addToCalendar(this.getAttribute('data-cal-url'));
+    });
+  });
+  /* 이미지/카드 클릭 → 링크 열기 */
+  container.querySelectorAll('.pcard-img-wrap[data-link]').forEach(function(el){
+    el.style.cursor='pointer';
+    el.addEventListener('click',function(){
+      window.open(this.getAttribute('data-link'),'_blank','noopener');
+    });
+  });
+  container.querySelectorAll('.lcard[data-link]').forEach(function(el){
+    el.style.cursor='pointer';
+    el.addEventListener('click',function(e){
+      if(e.target.closest('.larchive-btn,.lcal-btn')) return;
+      window.open(this.getAttribute('data-link'),'_blank','noopener');
+    });
+  });
 }
 
 /* ── 아카이브 토글 — 로그인 필요 ── */
