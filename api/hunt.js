@@ -113,7 +113,11 @@ export default async function handler(req, res) {
         `[{"brand":"Nike","item_name":"Air Jordan 1 Retro","release_date":"2026-06-15","description":"레트로 컬러웨이 한정 출시","image_url":"","link":"https://..."}]\n\n` +
         `Search results for "${keyword}":\n${context}`
       }] }],
-      generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 2048,
+        thinkingConfig: { thinkingBudget: 0 },  // ★ thinking 비활성화
+      },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
@@ -142,7 +146,13 @@ export default async function handler(req, res) {
     const gd = await gr.json();
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
-    const txt = gd.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    // thinking 파트 제외하고 실제 텍스트만 추출
+    const parts = gd.candidates?.[0]?.content?.parts || [];
+    const txt = parts
+      .filter(p => !p.thought)
+      .map(p => p.text || '')
+      .join('')
+      .trim();
 
     // ✅ JSON 파싱 — 마크다운 코드블록 제거 후 시도
     const cleaned = txt.replace(/```json|```/gi, '').trim();
