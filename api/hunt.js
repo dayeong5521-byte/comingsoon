@@ -16,11 +16,9 @@ export default async function handler(req, res) {
   const TODAY = new Date().toISOString().split('T')[0];
   const CY    = new Date().getFullYear();
 
-  // ── SSE 헤더 ──
   res.setHeader('Content-Type',  'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection',    'keep-alive');
-  // ✅ CORS 허용 (Vercel 환경에서 간혹 필요)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.flushHeaders();
 
@@ -28,148 +26,104 @@ export default async function handler(req, res) {
   const seen = new Set();
 
   try {
-    send({ type: 'status', message: `'${keyword}' 릴리즈 정보 수집 중...` });
+    send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
-    // ── 1. 릴리즈 특화 쿼리 2개를 병렬로 검색 ──
+    // ── 1. Serper 검색 ──────────────────────────────────
     const isKorean = /[ㄱ-ㅎ가-힣]/.test(keyword);
-    const queries = isKorean
-      ? [
-          `"${keyword}" 출시일 발매일 출시예정 ${CY} ${CY + 1}`,
-          `"${keyword}" 신제품 컴백 출시 일정 ${CY}`,
-        ]
-      : [
-          `"${keyword}" release date upcoming ${CY} ${CY + 1}`,
-          `"${keyword}" launch schedule drop date ${CY}`,
-        ];
+    const query = isKorean
+      ? `${keyword} 출시일 발매일 출시예정 ${CY} ${CY + 1}`
+      : `"${keyword}" release date announced ${CY} ${CY + 1}`;
 
-    const searchOpts = { gl: isKorean ? 'kr' : 'us', hl: isKorean ? 'ko' : 'en', num: 10 };
-
-    const fetches = queries.map(q =>
-      fetch('https://google.serper.dev/search', {
-        method:  'POST',
-        headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ q, ...searchOpts }),
-      }).then(r => r.ok ? r.json() : null).catch(() => null)
-    );
-
-    const [sd1, sd2] = await Promise.all(fetches);
-    const allOrganics = [
-      ...(sd1?.organic || []),
-      ...(sd2?.organic || []),
-    ];
-
-    if (!allOrganics.length) throw new Error('검색 결과가 없습니다.');
-
-    // ── 릴리즈 관련 키워드 필터 ──
-    const RELEASE_WORDS = [
-      '출시', '발매', '출간', '공개', '발표', '예정', '일정', '드롭', '컴백',
-      'release', 'launch', 'drop', 'date', 'upcoming', 'schedule', 'available',
-      CY.toString(), (CY + 1).toString(),
-    ];
-
-    // 중복 URL 제거 + 릴리즈 관련 내용만 필터링
-    const seenUrls = new Set();
-    const filtered = allOrganics.filter(o => {
-      if (!o?.link || seenUrls.has(o.link)) return false;
-      seenUrls.add(o.link);
-      const text = `${o.title || ''} ${o.snippet || ''}`.toLowerCase();
-      return RELEASE_WORDS.some(w => text.includes(w.toLowerCase()));
+    const sr = await fetch('https://google.serper.dev/search', {
+      method:  'POST',
+      headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: query, gl: isKorean ? 'kr' : 'us', hl: isKorean ? 'ko' : 'en', num: 10,
+      }),
     });
+    if (!sr.ok) throw new Error(`Serper HTTP ${sr.status}`);
+    const sd = await sr.json();
+    if (!sd.organic?.length) throw new Error('검색 결과가 없습니다.');
 
-    if (!filtered.length) throw new Error('릴리즈 관련 정보를 찾지 못했습니다.');
-
-    // answerBox + topStories + 필터된 결과 컨텍스트 구성
+    // 컨텍스트 구성
     let context = '';
-    const ab = sd1?.answerBox || sd2?.answerBox;
-    if (ab?.answer || ab?.snippet) {
-      context += `[직접 답변] ${ab.answer || ab.snippet}\n\n`;
-    }
-    const stories = [...(sd1?.topStories || []), ...(sd2?.topStories || [])].slice(0, 4);
-    if (stories.length) {
-      context += stories.map(s => `[최신뉴스] ${s.title} ${s.date || ''}`).join('\n') + '\n\n';
-    }
-    context += filtered.map((o, i) =>
-      `[${i+1}] ${o.title}\n${o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: ' + o.date : ''}`
+    if (sd.answerBox?.answer || sd.answerBox?.snippet)
+      context += `[직접답변] ${sd.answerBox.answer || sd.answerBox.snippet}\n\n`;
+    if (sd.topStories?.length)
+      context += sd.topStories.slice(0, 3).map(s =>
+        `[뉴스] ${s.title} ${s.date || ''}`).join('\n') + '\n\n';
+    context += sd.organic.map((o, i) =>
+      `[${i+1}] ${o.title}\n${o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: '+o.date : ''}`
     ).join('\n\n');
 
-    send({ type: 'status', message: `AI 분석 중... (${filtered.length}개 릴리즈 정보 발견)` });
+    send({ type: 'status', message: 'AI 분석 중...' });
 
-    // ── 2. Gemini 호출 — 503 시 최대 3회 재시도 ──
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
-    const GEMINI_BODY = JSON.stringify({
-      contents: [{ parts: [{ text:
-        `You are a release date extractor. Extract ALL upcoming product/event release dates for "${keyword}".\n` +
-        `Today is ${TODAY}. Include ONLY items with release_date >= ${TODAY}.\n\n` +
-        `RULES:\n` +
-        `- release_date must be YYYY-MM-DD format\n` +
-        `- If only month/season is given, estimate: spring=03-21, summer=06-21, fall=09-21, winter=12-01\n` +
-        `- If only year is given, use ${CY}-12-31\n` +
-        `- brand: use the official brand/artist name\n` +
-        `- item_name: specific product or event name\n` +
-        `- link: use the URL from the search result\n` +
-        `- description: one-line Korean summary\n` +
-        `- Return ONLY a valid JSON array. No markdown, no explanation.\n\n` +
-        `OUTPUT FORMAT:\n` +
-        `[{"brand":"Nike","item_name":"Air Jordan 1 Retro","release_date":"2026-06-15","description":"레트로 컬러웨이 한정 출시","image_url":"","link":"https://..."}]\n\n` +
-        `Search results for "${keyword}":\n${context}`
-      }] }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 2048,
-        thinkingConfig: { thinkingBudget: 0 },  // ★ thinking 비활성화
-      },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-      ],
-    });
+    // ── 2. Gemini 호출 ──────────────────────────────────
+    const GEMINI_URL =
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
+    const prompt =
+      `You extract upcoming release information. The user searched for: "${keyword}"\n\n` +
+      `STRICT RULES:\n` +
+      `1. ONLY include items DIRECTLY about "${keyword}". Reject anything unrelated.\n` +
+      `2. release_date must be ${TODAY} or later, in YYYY-MM-DD format.\n` +
+      `3. Vague dates: spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01.\n` +
+      `4. If only a year is known with no other hint, SKIP that item (do not guess 12-31).\n` +
+      `5. brand = official brand/maker. item_name = specific product or event name.\n` +
+      `6. Return ONLY a raw JSON array — no markdown, no text, no code fences.\n` +
+      `7. If nothing qualifies, return: []\n\n` +
+      `FORMAT:\n` +
+      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."}]\n\n` +
+      `Search results:\n${context}`;
 
     let gr, attempt = 0;
     while (attempt < 3) {
       gr = await fetch(GEMINI_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: GEMINI_BODY,
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+          ],
+        }),
       });
       if (gr.ok) break;
       if (gr.status === 503 && attempt < 2) {
-        // 503: 서버 과부하 → 잠시 대기 후 재시도 (1초, 2초)
         send({ type: 'status', message: `AI 서버 혼잡, 재시도 중... (${attempt + 1}/3)` });
-        await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
+        await new Promise(r => setTimeout(r, (attempt + 1) * 1500));
         attempt++;
         continue;
       }
       throw new Error(`Gemini HTTP ${gr.status}`);
     }
+
     const gd = await gr.json();
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
-    // thinking 파트 제외하고 실제 텍스트만 추출
+    // thinking 파트 제외 후 실제 텍스트 추출
     const parts = gd.candidates?.[0]?.content?.parts || [];
-    const txt = parts
-      .filter(p => !p.thought)
-      .map(p => p.text || '')
-      .join('')
-      .trim();
+    const txt   = parts.filter(p => !p.thought).map(p => p.text || '').join('').trim();
 
-    // ✅ JSON 파싱 — 마크다운 코드블록 제거 후 시도
+    // JSON 파싱
     const cleaned = txt.replace(/```json|```/gi, '').trim();
     const start   = cleaned.indexOf('[');
     const end     = cleaned.lastIndexOf(']') + 1;
     if (start === -1 || end === 0) throw new Error('AI가 올바른 형식을 반환하지 않았습니다.');
 
     let items;
-    try {
-      items = JSON.parse(cleaned.slice(start, end));
-    } catch {
-      throw new Error('AI 응답 JSON 파싱 실패');
-    }
+    try { items = JSON.parse(cleaned.slice(start, end)); }
+    catch { throw new Error('AI 응답 JSON 파싱 실패'); }
 
-    // ✅ 유효 아이템 필터링
+    // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
     const valid = items.filter(item => {
-      if (!item.release_date || item.release_date < TODAY) return false;
+      if (!item.release_date || !DATE_RE.test(item.release_date)) return false;
+      if (item.release_date < TODAY) return false;
       if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
@@ -177,30 +131,24 @@ export default async function handler(req, res) {
       return true;
     });
 
-    if (valid.length === 0) {
-      send({ type: 'done', total: 0 });
-      return;
-    }
+    if (!valid.length) { send({ type: 'done', total: 0 }); return; }
 
     send({ type: 'status', message: `이미지 검색 중... (${valid.length}개)` });
 
-    // ── 3. 이미지 병렬 검색 ──
-    await Promise.allSettled(
-      valid.map(async item => {
-        try {
-          const ir  = await fetch('https://google.serper.dev/images', {
-            method:  'POST',
-            headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ q: `${item.brand} ${item.item_name}`, num: 1 }),
-          });
-          if (!ir.ok) return;
-          const id_ = await ir.json();
-          if (id_.images?.[0]) item.image_url = id_.images[0].imageUrl;
-        } catch { /* 이미지 없어도 계속 진행 */ }
-      })
-    );
+    // ── 3. 이미지 병렬 검색 ──────────────────────────────
+    await Promise.allSettled(valid.map(async item => {
+      try {
+        const ir = await fetch('https://google.serper.dev/images', {
+          method:  'POST',
+          headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ q: `${item.brand} ${item.item_name}`, num: 1 }),
+        });
+        if (!ir.ok) return;
+        const id_ = await ir.json();
+        if (id_.images?.[0]) item.image_url = id_.images[0].imageUrl;
+      } catch { /* 이미지 없어도 진행 */ }
+    }));
 
-    // ── 날짜순 정렬 후 전송 ──
     valid
       .sort((a, b) => a.release_date.localeCompare(b.release_date))
       .forEach(item => send({ type: 'item', data: item }));
