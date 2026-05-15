@@ -308,11 +308,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   cursor:not-allowed;
   transition:background .2s, color .2s, opacity .15s;
   display:flex;align-items:center;justify-content:center;
-  /* 기본: 비활성 gray */
-  background:#E0E0E0;
-  color:#AAAAAA;
+  /* 비활성: 스크린샷 컬러 */
+  background:#EBEBEB;
+  color:#B0B0B0;
 }
-/* 활성 상태: 검색 결과 로드 후 */
+/* 활성: 검색 결과 후 orange */
 .kw-save-btn:not(:disabled){
   background:var(--accent);
   color:#fff;
