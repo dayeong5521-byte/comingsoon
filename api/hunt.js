@@ -159,6 +159,7 @@ export default async function handler(req, res) {
       `## SOURCE RULES\n` +
       `Trust: official sites, major media. Ignore: personal blogs, fan accounts, rumors.\n\n` +
       `## OUTPUT (raw JSON array only, no markdown)\n` +
+      `IMPORTANT: Escape all double quotes inside string values with \\" (e.g. "item_name": "Air Jordan \\"Retro\\"")\n` +
       `[{"category":"PRODUCT|EVENT|CULTURE|CONTENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}]\n` +
       `If nothing found: []\n\n` +
       `## SOURCES\n${context}`;
@@ -203,34 +204,35 @@ export default async function handler(req, res) {
     const allParts = gd.candidates?.[0]?.content?.parts || [];
     const fullText = allParts.map(p => p.text || '').join('').trim();
 
-    // ` ```json ... ``` ` 코드펜스 제거 후 JSON 배열 추출
-    // 방법 1: 코드펜스 제거 시도
-    let workText = fullText
-      .replace(/^```json\s*/im, '')
-      .replace(/```\s*$/im, '')
-      .replace(/```json|```/gi, '')
-      .trim();
+    // 코드펜스 제거 없이 [ 와 ] 사이를 직접 추출
+    const firstBracket = fullText.indexOf('[');
+    const lastBracket  = fullText.lastIndexOf(']');
 
-    // 방법 2: [ 를 못 찾으면 원본에서 직접 [ 위치 탐색
-    let start = workText.indexOf('[');
-    if (start === -1) {
-      start = fullText.indexOf('[');
-      workText = fullText;
+    if (firstBracket === -1 || lastBracket <= firstBracket) {
+      console.error('[hunt] no array found, raw:', fullText.slice(0, 300));
+      send({ type:'done', total:0 }); return;
     }
 
-    const end = workText.lastIndexOf(']') + 1;
-
-    if (start === -1 || end === 0) {
-      console.error('[hunt] parse fail, raw:', fullText.slice(0, 300));
-      if (/no result|nothing|없습니다|찾을 수 없/i.test(fullText)) {
-        send({ type:'done', total:0 }); return;
-      }
-      throw new Error('AI가 올바른 형식을 반환하지 않았습니다.');
-    }
+    let jsonStr = fullText.slice(firstBracket, lastBracket + 1);
 
     let items;
-    try { items = JSON.parse(workText.slice(start, end)); }
-    catch(e) { throw new Error('AI 응답 JSON 파싱 실패: ' + e.message); }
+    try {
+      items = JSON.parse(jsonStr);
+    } catch(e) {
+      // JSON 안에 이스케이프 안 된 따옴표 수정 시도
+      // "item_name": "Air Jordan "World's Best Dad"" → "item_name": "Air Jordan \"World's Best Dad\""
+      try {
+        const repaired = jsonStr
+          .replace(/"(brand|item_name|description|link|image_url|category)"\s*:\s*"([\s\S]*?)(?=",\s*"(?:brand|item_name|description|link|image_url|category|release_date)")/g,
+            (match, key, val) => `"${key}": "${val.replace(/(?<!\\)"/g, '\\"')}"`)
+          .replace(/,\s*}/g, '}')  // trailing comma 제거
+          .replace(/,\s*]/g, ']'); // trailing comma 제거
+        items = JSON.parse(repaired);
+      } catch(e2) {
+        console.error('[hunt] parse fail:', e2.message, jsonStr.slice(0, 200));
+        throw new Error('AI 응답 파싱 실패. 다시 시도해주세요.');
+      }
+    }
 
     // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
     const getBaseDate = d => {
