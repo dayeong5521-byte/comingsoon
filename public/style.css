@@ -293,38 +293,33 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .s-input::placeholder{color:var(--text3);}
 
-/* 키워드 저장 버튼 — 기본 숨김, 검색 완료 후 슬라이드인 */
+/* 키워드 저장 버튼 — 검색창 안 오른쪽 배치 */
 .kw-save-btn{
   flex-shrink:0;
-  height:46px;
-  padding:0 24px;
+  height:32px;
+  padding:0 16px;
+  margin-right:7px;
   border:none;
-  border-radius:20px;
-  font-size:14px;
+  border-radius:50px;
+  font-size:13px;
   font-weight:700;
   font-family:var(--font);
   letter-spacing:-0.02em;
   white-space:nowrap;
-  cursor:pointer;
-  display:none;           /* 기본: 숨김 */
-  align-items:center;
-  justify-content:center;
-  background:var(--accent);
-  color:#fff;
-  transition:opacity .15s;
-  animation:slideInBtn .2s ease;
-}
-@keyframes slideInBtn{
-  from{opacity:0;transform:translateX(10px);}
-  to{opacity:1;transform:translateX(0);}
-}
-.kw-save-btn.visible{display:flex;}  /* 검색 완료 후 표시 */
-.kw-save-btn:hover{opacity:.86;}
-.kw-save-btn:disabled{
+  cursor:not-allowed;
+  /* 비활성: ghost 스타일 */
   background:#EBEBEB;
   color:#B0B0B0;
-  cursor:not-allowed;
+  transition:background .2s, color .2s, opacity .15s;
+  display:flex;align-items:center;
 }
+/* 활성: 주황 */
+.kw-save-btn:not(:disabled){
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+}
+.kw-save-btn:not(:disabled):hover{opacity:.86;}
 
 /* 포커스 그룹 헤더 (브랜드 선택 시) */
 /* 3. 포커스 그룹 헤더 — .hd와 동일한 80px */
