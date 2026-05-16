@@ -354,7 +354,7 @@ function saveCurrentKeyword(){
 
   /* 버튼 상태 → 이미 저장됨 */
   var saveBtn=document.getElementById('kwSaveBtn');
-  if(saveBtn){ saveBtn.classList.remove('visible'); saveBtn.textContent='키워드 저장'; }
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; }
 
   var cnt=keywordData[kw].length;
   analytics.logEvent('keyword_saved',{keyword:kw,item_count:cnt}); // ★
@@ -402,15 +402,14 @@ async function startHunt(){
       if(savedBrands.has(kw)){
         saveBtn.disabled=true;
         saveBtn.textContent='이미 저장됨';
-        saveBtn.classList.add('visible');
         analytics.logEvent('search_completed',{keyword:kw,result_count:currentSearchItems.length,already_saved:true});
       } else if(currentSearchItems.length>0){
         saveBtn.disabled=false;
         saveBtn.textContent='키워드 저장';
-        saveBtn.classList.add('visible'); // ★ 버튼 등장
         analytics.logEvent('search_completed',{keyword:kw,result_count:currentSearchItems.length});
       } else {
-        saveBtn.classList.remove('visible'); // 결과 없으면 숨김 유지
+        saveBtn.disabled=true;
+        saveBtn.textContent='키워드 저장';
         analytics.logEvent('search_empty',{keyword:kw});
       }
     }
@@ -634,7 +633,7 @@ document.addEventListener('DOMContentLoaded',function(){
     /* 새 키워드 입력 시 저장 버튼 초기화 */
     ms.oninput=function(){
       var saveBtn=document.getElementById('kwSaveBtn');
-      if(saveBtn){ saveBtn.classList.remove('visible'); saveBtn.textContent='키워드 저장'; }
+      if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 저장'; }
     };
   }
 
