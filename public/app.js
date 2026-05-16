@@ -55,18 +55,61 @@ function archiveKey(p){ return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.rele
 function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function daysUntil(d){
   if(!d||d==='TBD') return 9999;
-  return Math.ceil((new Date(d)-new Date(TODAY))/86400000);
+  var base=d.split('~')[0];
+  if(/^\d{4}-\d{2}$/.test(base)) base=base+'-01';
+  return Math.ceil((new Date(base)-new Date(TODAY))/86400000);
 }
 function formatDateDot(dateStr){
   if(!dateStr||dateStr==='TBD') return '??';
-  var d=new Date(dateStr);
-  return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+
+  // 범위 처리: "2026-08-25~27" or "2026-08-25~2026-09-01"
+  if(dateStr.includes('~')){
+    var parts=dateStr.split('~');
+    var start=parts[0], end=parts[1];
+    var startFmt=formatSingle(start);
+    // 끝이 일(day)만 있는 경우: "2026-08-25~27"
+    if(/^\d{1,2}$/.test(end)){
+      return startFmt+'~'+end.padStart(2,'0');
+    }
+    // 끝이 전체 날짜: "2026-08-25~2026-09-01"
+    var startP=start.split('-'), endP=end.split('-');
+    if(startP[0]===endP[0]&&startP[1]===endP[1]){
+      return startFmt+'~'+endP[2]; // 같은 월이면 일만
+    }
+    return startFmt+'~'+formatSingle(end);
+  }
+
+  // 년월만: "2026-08" → "2026.08.??"
+  if(/^\d{4}-\d{2}$/.test(dateStr)){
+    var p=dateStr.split('-');
+    return p[0]+'.'+p[1]+'.??';
+  }
+
+  return formatSingle(dateStr);
+}
+function formatSingle(d){
+  var p=d.split('-');
+  return p[0]+'.'+p[1]+'.'+p[2];
 }
 function makeCalUrl(p){
-  var d=(p.release_date&&p.release_date!=='TBD')?p.release_date.replace(/-/g,''):TODAY.replace(/-/g,'');
+  var raw=p.release_date;
+  var startD,endD;
+  if(!raw||raw==='TBD'){
+    startD=endD=TODAY.replace(/-/g,'');
+  } else if(raw.includes('~')){
+    var pts=raw.split('~');
+    startD=pts[0].replace(/-/g,'');
+    endD=/^\d{1,2}$/.test(pts[1])
+      ? pts[0].slice(0,7).replace('-','')+pts[1].padStart(2,'0')
+      : pts[1].replace(/-/g,'');
+  } else if(/^\d{4}-\d{2}$/.test(raw)){
+    startD=endD=raw.replace('-','')+'01';
+  } else {
+    startD=endD=raw.replace(/-/g,'');
+  }
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
     +'&text='+encodeURIComponent('[출시] '+p.brand+' '+p.item_name)
-    +'&dates='+d+'/'+d
+    +'&dates='+startD+'/'+endD
     +'&details='+encodeURIComponent(p.description||'');
 }
 
@@ -438,7 +481,9 @@ function mkGrid(p){
   var isArc=archivedIds.has(archiveKey(p));
   var calUrl=makeCalUrl(p);
   var key=archiveKey(p);
-  var badgeText=p.release_date==='TBD'?'??':days<0?'출시됨':'D-'+days;
+  var badgeText=p.release_date==='TBD'?'??':days<0?'출시됨':days===9999?'??':'D-'+days;
+  var isRange=p.release_date&&p.release_date.includes('~');
+  var isYearMonth=p.release_date&&/^\d{4}-\d{2}$/.test(p.release_date);
 
   return '<div class="pcard" data-key="'+escapeHtml(key)+'">'+
     /* ★ 이미지: onclick 대신 data-link 속성 사용 */
@@ -458,7 +503,9 @@ function mkGrid(p){
       '<div class="pc-foot">'+
         '<div>'+
           '<div class="pc-date-lbl">Coming Up</div>'+
-          '<div class="pc-date'+(days>=0&&days<=30?' urg':'')+'">'+formatDateDot(p.release_date)+'</div>'+
+          '<div class="pc-date'+(days>=0&&days<=30&&!isRange?' urg':'')+
+            (isRange||isYearMonth?' range':'')+'">'+
+            formatDateDot(p.release_date)+'</div>'+
         '</div>'+
         /* ★ 캘린더 버튼: data-cal-url 속성 사용 */
         '<button class="cal-btn" data-cal-url="'+escapeHtml(calUrl)+'">'+
