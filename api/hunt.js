@@ -82,6 +82,42 @@ export default async function handler(req, res) {
 
     send({ type: 'status', message: 'AI 분석 중...' });
 
+    // ── 상위 2개 페이지 병렬 fetch (최대 3초, 정확도 향상) ──
+    const toFetch = allItems
+      .filter(o => !['instagram.com','twitter.com','x.com','youtube.com']
+        .some(d => o.link?.includes(d)))
+      .slice(0, 2);
+
+    const pageResults = await Promise.allSettled(toFetch.map(async item => {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3000);
+        const r = await fetch(item.link, {
+          signal: ctrl.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+        });
+        clearTimeout(timer);
+        if (!r.ok) return null;
+        const html = await r.text();
+        // 스크립트/스타일 제거 후 텍스트만 추출, 2500자 제한
+        const text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 2500);
+        return `[페이지 전문: ${item.link}]\n${text}`;
+      } catch { return null; }
+    }));
+
+    const pageContext = pageResults
+      .filter(r => r.status === 'fulfilled' && r.value)
+      .map(r => r.value)
+      .join('\n\n');
+
+    if (pageContext) context += '\n\n' + pageContext;
+
     // ── 2. Gemini 호출 ──────────────────────────────────
     // gemini-2.5-flash: v1beta 지원 stable 버전
     const GEMINI_URL =
@@ -97,12 +133,14 @@ export default async function handler(req, res) {
       `- If uncertain whether SNS account is official → use "TBD" for date, still include item\n\n` +
       `DATE RULES (STRICT):\n` +
       `- release_date must be ${TODAY} or later in YYYY-MM-DD format, OR exactly "TBD"\n` +
-      `- Specific date known → use YYYY-MM-DD\n` +
-      `- Month known but not exact day → use first of that month (e.g. 2026-09-01)\n` +
-      `- Season known → spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01\n` +
-      `- Quarter/분기 known (Q1/Q2/Q3/Q4/1분기/2분기/3분기/4분기) → use "TBD" (DO NOT guess a specific date)\n` +
-      `- Only year known → use "TBD"\n` +
-      `- Vague/unknown → use "TBD"\n\n` +
+      `- Only use dates EXPLICITLY stated as release/launch dates in the source\n` +
+      `- !! Do NOT use a year in a product NAME as the release year\n` +
+      `  (e.g. "2026 Season's Greetings", "2026 CALENDAR" → the year is in the title, NOT necessarily the release year)\n` +
+      `- Month known but not exact day → use "TBD"\n` +
+      `- Season only → spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01\n` +
+      `- Quarter/분기 (Q1/Q2/Q3/Q4/1분기/2분기/3분기/4분기) → use "TBD"\n` +
+      `- Year only → use "TBD"\n` +
+      `- Any doubt → use "TBD"\n\n` +
       `OTHER RULES:\n` +
       `1. ONLY include items DIRECTLY about "${keyword}"\n` +
       `2. brand = official brand/maker name, item_name = specific product or event name\n` +
