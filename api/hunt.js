@@ -169,8 +169,7 @@ export default async function handler(req, res) {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0,
-            maxOutputTokens: 2048,
-            thinkingConfig: { thinkingBudget: 0 },
+            maxOutputTokens: 4096,
           },
           safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
@@ -203,16 +202,26 @@ export default async function handler(req, res) {
     const fullText = (answerParts.length > 0 ? answerParts : allParts)
       .map(p => p.text || '').join('').trim();
 
-    // 코드펜스 제거 없이 [ 와 ] 사이를 직접 추출
     const firstBracket = fullText.indexOf('[');
-    const lastBracket  = fullText.lastIndexOf(']');
+    let lastBracket = fullText.lastIndexOf(']');
 
-    if (firstBracket === -1 || lastBracket <= firstBracket) {
-      console.error('[hunt] no array found, raw:', fullText.slice(0, 300));
+    if (firstBracket === -1) {
+      console.error('[hunt] no [ found, raw:', fullText.slice(0, 200));
       send({ type:'done', total:0 }); return;
     }
 
-    let jsonStr = fullText.slice(firstBracket, lastBracket + 1);
+    // 응답이 잘렸을 때 (] 없음) → 마지막 완전한 객체까지만 복구
+    let jsonStr;
+    if (lastBracket === -1 || lastBracket < firstBracket) {
+      console.log('[hunt] response truncated, recovering partial...');
+      const partial = fullText.slice(firstBracket);
+      const lastClose = partial.lastIndexOf('},');
+      jsonStr = lastClose !== -1
+        ? partial.slice(0, lastClose + 1) + ']'
+        : partial + ']';
+    } else {
+      jsonStr = fullText.slice(firstBracket, lastBracket + 1);
+    }
 
     let items;
     try {
