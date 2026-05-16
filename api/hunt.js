@@ -203,26 +203,34 @@ export default async function handler(req, res) {
     const allParts = gd.candidates?.[0]?.content?.parts || [];
     const fullText = allParts.map(p => p.text || '').join('').trim();
 
-    // 상세 로그
-    console.log('[hunt] Gemini raw length:', fullText.length);
-    console.log('[hunt] Gemini raw preview:', fullText.slice(0, 300));
+    // ` ```json ... ``` ` 코드펜스 제거 후 JSON 배열 추출
+    // 방법 1: 코드펜스 제거 시도
+    let workText = fullText
+      .replace(/^```json\s*/im, '')
+      .replace(/```\s*$/im, '')
+      .replace(/```json|```/gi, '')
+      .trim();
 
-    const cleaned = fullText.replace(/```json|```/gi, '').trim();
-    const start   = cleaned.indexOf('[');
-    const end     = cleaned.lastIndexOf(']') + 1;
+    // 방법 2: [ 를 못 찾으면 원본에서 직접 [ 위치 탐색
+    let start = workText.indexOf('[');
+    if (start === -1) {
+      start = fullText.indexOf('[');
+      workText = fullText;
+    }
+
+    const end = workText.lastIndexOf(']') + 1;
 
     if (start === -1 || end === 0) {
-      console.error('[hunt] No JSON array found. Full response:', fullText.slice(0, 500));
-      // Gemini가 빈 배열 텍스트로 "no results" 표현한 경우 처리
-      if (/no result|nothing found|없습니다|찾을 수 없|empty/i.test(fullText)) {
-        send({ type: 'done', total: 0 }); return;
+      console.error('[hunt] parse fail, raw:', fullText.slice(0, 300));
+      if (/no result|nothing|없습니다|찾을 수 없/i.test(fullText)) {
+        send({ type:'done', total:0 }); return;
       }
-      throw new Error('AI가 올바른 형식을 반환하지 않았습니다. 다시 시도해주세요.');
+      throw new Error('AI가 올바른 형식을 반환하지 않았습니다.');
     }
 
     let items;
-    try { items = JSON.parse(cleaned.slice(start, end)); }
-    catch { throw new Error('AI 응답 JSON 파싱 실패'); }
+    try { items = JSON.parse(workText.slice(start, end)); }
+    catch(e) { throw new Error('AI 응답 JSON 파싱 실패: ' + e.message); }
 
     // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
     const getBaseDate = d => {
