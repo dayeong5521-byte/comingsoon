@@ -29,13 +29,19 @@ export default async function handler(req, res) {
     send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
     // ── 1. 검색 + 뉴스 병렬 실행 ──────────────────────────
+    // 한국어/영어 혼합 OR 확장어 (모든 카테고리 커버)
+    const KO = '출시 OR 발매 OR 오픈 OR 개봉 OR 공연 OR 전시 OR 팝업 OR 출간 OR 드롭 OR 티켓팅 OR 컴백';
+    const EN = 'release OR launch OR drop OR open OR concert OR exhibition OR collab OR collection OR premiere';
+    const TERMS = `(${KO} OR ${EN})`;
+    const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`; // 패션 시즌
+
     const queries = [
-      // 이벤트 유형별 한국어 (앨범/콘서트/팬미팅/행사 모두)
-      { endpoint:'/search', body:{ q:`${keyword} 앨범 발매일 콘서트 팬미팅 행사 일정 ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
-      // 영어
-      { endpoint:'/search', body:{ q:`${keyword} release concert tour fanmeeting event date ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
-      // 뉴스
-      { endpoint:'/news',   body:{ q:`${keyword} 출시 공연 발매 일정 ${CY}`, gl:'kr', hl:'ko', num:5 } },
+      // 쿼리 1: 한국어 OR 확장어 + 한국 구글
+      { endpoint:'/search', body:{ q:`${keyword} ${TERMS} ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
+      // 쿼리 2: 영어 OR 확장어 + 미국 구글 (한국어 키워드도 영어 결과 가져옴)
+      { endpoint:'/search', body:{ q:`${keyword} ${EN} ${FW} ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
+      // 쿼리 3: 뉴스 (언론사 기사 우선)
+      { endpoint:'/news',   body:{ q:`${keyword} ${TERMS} ${CY}`, gl:'kr', hl:'ko', num:5 } },
     ];
 
     const responses = await Promise.all(queries.map(opt =>
@@ -82,11 +88,23 @@ export default async function handler(req, res) {
 
     send({ type: 'status', message: 'AI 분석 중...' });
 
-    // ── 상위 2개 페이지 병렬 fetch (최대 3초, 정확도 향상) ──
+    // ── 상위 2개 페이지 fetch + 날짜 포함 문장만 추출 ──────
     const toFetch = allItems
       .filter(o => !['instagram.com','twitter.com','x.com','youtube.com']
         .some(d => o.link?.includes(d)))
       .slice(0, 2);
+
+    // 날짜가 포함된 문장만 추출 (Gemini 추측 여지 제거)
+    const extractDateLines = text => {
+      if (!text) return '';
+      return text.split(/[\n。.!?]/)
+        .filter(line =>
+          /\d{4}[\.\-\/년]\s*\d{1,2}|발매|출시|공연|콘서트|팬미팅|컴백|오픈|개최|일정|예정|release|launch|concert|tour|date|open/i
+          .test(line) && line.trim().length > 10
+        )
+        .slice(0, 15)
+        .join('\n');
+    };
 
     const pageResults = await Promise.allSettled(toFetch.map(async item => {
       try {
@@ -99,15 +117,15 @@ export default async function handler(req, res) {
         clearTimeout(timer);
         if (!r.ok) return null;
         const html = await r.text();
-        // 스크립트/스타일 제거 후 텍스트만 추출, 2500자 제한
         const text = html
           .replace(/<script[\s\S]*?<\/script>/gi, '')
           .replace(/<style[\s\S]*?<\/style>/gi, '')
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 2500);
-        return `[페이지 전문: ${item.link}]\n${text}`;
+          .trim();
+        // 날짜 포함 문장만 전달 (노이즈 제거)
+        const dateLines = extractDateLines(text);
+        return dateLines ? `[${item.link} 날짜 관련 내용]\n${dateLines}` : null;
       } catch { return null; }
     }));
 
@@ -119,36 +137,31 @@ export default async function handler(req, res) {
     if (pageContext) context += '\n\n' + pageContext;
 
     // ── 2. Gemini 호출 ──────────────────────────────────
-    // gemini-2.5-flash: v1beta 지원 stable 버전
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
-      `You extract upcoming release dates for "${keyword}" from search results.\n\n` +
-      `SOURCE RULES (STRICT):\n` +
-      `- TRUST: official brand websites, major news outlets, official SNS accounts (instagram.com/[brand], twitter.com/[brand], x.com/[brand])\n` +
-      `- IGNORE: personal/fan SNS accounts (low follower count indicators, fan-made content, rumor accounts)\n` +
-      `- IGNORE: personal blogs, forums, community posts\n` +
-      `- For SNS sources: only trust if the account name matches the brand/artist being searched (e.g. instagram.com/nike for Nike)\n` +
-      `- If uncertain whether SNS account is official → use "TBD" for date, still include item\n\n` +
-      `DATE FORMAT (IMPORTANT):\n` +
-      `Use these exact formats for release_date field:\n` +
-      `- Exact date known       → "YYYY-MM-DD"        (e.g. "2026-08-25")\n` +
-      `- Date range same month  → "YYYY-MM-DD~DD"     (e.g. "2026-08-25~27")\n` +
-      `- Date range diff month  → "YYYY-MM-DD~YYYY-MM-DD" (e.g. "2026-08-30~2026-09-01")\n` +
-      `- Month known, day unknown → "YYYY-MM"         (e.g. "2026-08")\n` +
-      `- Quarter/분기/season/year only → "TBD"\n` +
-      `- Any uncertainty → "TBD"\n` +
-      `- !! NEVER use a year in the product NAME as the release year\n` +
-      `  (e.g. "2026 Season's Greetings" → check actual release date from source)\n\n` +
-      `OTHER RULES:\n` +
-      `1. ONLY include items DIRECTLY about "${keyword}"\n` +
-      `2. brand = official brand/maker name, item_name = specific product or event name\n` +
-      `3. Return ONLY a raw JSON array. No markdown, no explanation.\n` +
-      `4. If nothing qualifies, return: []\n\n` +
-      `FORMAT:\n` +
-      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."}]\n\n` +
-      `Search results:\n${context}`;
+      `You are a release curator. Extract upcoming release/event schedule for "${keyword}".\n` +
+      `Today: ${TODAY}. Only include items releasing on or after ${TODAY}.\n\n` +
+      `## CATEGORIES\n` +
+      `Assign one category per item:\n` +
+      `- PRODUCT: fashion, sneakers, tech, goods, merchandise\n` +
+      `- EVENT: popup store, launch party, exhibition, fan meeting, concert, tour\n` +
+      `- CULTURE: movie premiere, book release, album, drama/anime air date\n` +
+      `- CONTENT: game update, digital drop, streaming release\n\n` +
+      `## DATE RULES\n` +
+      `DO NOT infer or guess. Only use dates EXPLICITLY written in source.\n` +
+      `- Day known → "YYYY-MM-DD"\n` +
+      `- Month known, day unknown → "YYYY-MM"\n` +
+      `- Range → "YYYY-MM-DD~DD"\n` +
+      `- Season/Quarter/Year only/Unclear → "TBD"\n` +
+      `- Year in product NAME ≠ release year (e.g. "FW26 Collection" → find actual drop date)\n\n` +
+      `## SOURCE RULES\n` +
+      `Trust: official sites, major media. Ignore: personal blogs, fan accounts, rumors.\n\n` +
+      `## OUTPUT (raw JSON array only, no markdown)\n` +
+      `[{"category":"PRODUCT|EVENT|CULTURE|CONTENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}]\n` +
+      `If nothing found: []\n\n` +
+      `## SOURCES\n${context}`;
 
     let gr, attempt = 0;
     while (attempt < 3) {
