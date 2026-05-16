@@ -30,12 +30,12 @@ export default async function handler(req, res) {
 
     // ── 1. 검색 + 뉴스 병렬 실행 ──────────────────────────
     const queries = [
-      // 일반 검색 (한국어 + 영어)
-      { endpoint:'/search', body:{ q:`${keyword} 출시일 발매일 ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:8 } },
-      { endpoint:'/search', body:{ q:`${keyword} release date announced ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
-      // 뉴스 검색 — 블로그/SNS 제외, 언론사만
-      { endpoint:'/news',   body:{ q:`${keyword} 출시 발매 ${CY}`, gl:'kr', hl:'ko', num:5 } },
-      { endpoint:'/news',   body:{ q:`${keyword} release date ${CY}`, gl:'us', hl:'en', num:5 } },
+      // 이벤트 유형별 한국어 (앨범/콘서트/팬미팅/행사 모두)
+      { endpoint:'/search', body:{ q:`${keyword} 앨범 발매일 콘서트 팬미팅 행사 일정 ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
+      // 영어
+      { endpoint:'/search', body:{ q:`${keyword} release concert tour fanmeeting event date ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
+      // 뉴스
+      { endpoint:'/news',   body:{ q:`${keyword} 출시 공연 발매 일정 ${CY}`, gl:'kr', hl:'ko', num:5 } },
     ];
 
     const responses = await Promise.all(queries.map(opt =>
@@ -131,16 +131,16 @@ export default async function handler(req, res) {
       `- IGNORE: personal blogs, forums, community posts\n` +
       `- For SNS sources: only trust if the account name matches the brand/artist being searched (e.g. instagram.com/nike for Nike)\n` +
       `- If uncertain whether SNS account is official → use "TBD" for date, still include item\n\n` +
-      `DATE RULES (STRICT):\n` +
-      `- release_date must be ${TODAY} or later in YYYY-MM-DD format, OR exactly "TBD"\n` +
-      `- Only use dates EXPLICITLY stated as release/launch dates in the source\n` +
-      `- !! Do NOT use a year in a product NAME as the release year\n` +
-      `  (e.g. "2026 Season's Greetings", "2026 CALENDAR" → the year is in the title, NOT necessarily the release year)\n` +
-      `- Month known but not exact day → use "TBD"\n` +
-      `- Season only → spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01\n` +
-      `- Quarter/분기 (Q1/Q2/Q3/Q4/1분기/2분기/3분기/4분기) → use "TBD"\n` +
-      `- Year only → use "TBD"\n` +
-      `- Any doubt → use "TBD"\n\n` +
+      `DATE FORMAT (IMPORTANT):\n` +
+      `Use these exact formats for release_date field:\n` +
+      `- Exact date known       → "YYYY-MM-DD"        (e.g. "2026-08-25")\n` +
+      `- Date range same month  → "YYYY-MM-DD~DD"     (e.g. "2026-08-25~27")\n` +
+      `- Date range diff month  → "YYYY-MM-DD~YYYY-MM-DD" (e.g. "2026-08-30~2026-09-01")\n` +
+      `- Month known, day unknown → "YYYY-MM"         (e.g. "2026-08")\n` +
+      `- Quarter/분기/season/year only → "TBD"\n` +
+      `- Any uncertainty → "TBD"\n` +
+      `- !! NEVER use a year in the product NAME as the release year\n` +
+      `  (e.g. "2026 Season's Greetings" → check actual release date from source)\n\n` +
       `OTHER RULES:\n` +
       `1. ONLY include items DIRECTLY about "${keyword}"\n` +
       `2. brand = official brand/maker name, item_name = specific product or event name\n` +
@@ -199,11 +199,22 @@ export default async function handler(req, res) {
     catch { throw new Error('AI 응답 JSON 파싱 실패'); }
 
     // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
-    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    const getBaseDate = d => {
+      if (!d || d === 'TBD') return null;
+      const base = d.split('~')[0];
+      return /^\d{4}-\d{2}$/.test(base) ? base+'-01' : base;
+    };
+    const isValidFmt = d =>
+      d === 'TBD' ||
+      /^\d{4}-\d{2}$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}~\d{1,2}$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}~\d{4}-\d{2}-\d{2}$/.test(d);
+
     const valid = items.filter(item => {
-      if (!item.release_date) return false;
-      const isTBD = item.release_date === 'TBD';
-      if (!isTBD && (!DATE_RE.test(item.release_date) || item.release_date < TODAY)) return false;
+      if (!item.release_date || !isValidFmt(item.release_date)) return false;
+      const base = getBaseDate(item.release_date);
+      if (base && base < TODAY) return false;
       if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
@@ -231,9 +242,9 @@ export default async function handler(req, res) {
 
     valid
       .sort((a, b) => {
-        if (a.release_date === 'TBD') return 1;
-        if (b.release_date === 'TBD') return -1;
-        return a.release_date.localeCompare(b.release_date);
+        const da = getBaseDate(a.release_date) || '9999-12-31';
+        const db = getBaseDate(b.release_date) || '9999-12-31';
+        return da.localeCompare(db);
       })
       .forEach(item => send({ type: 'item', data: item }));
 
