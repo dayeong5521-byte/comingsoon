@@ -202,10 +202,23 @@ export default async function handler(req, res) {
     // 모든 parts의 텍스트를 합쳐서 JSON 배열 추출 (thinking 여부 무관)
     const allParts = gd.candidates?.[0]?.content?.parts || [];
     const fullText = allParts.map(p => p.text || '').join('').trim();
-    const cleaned  = fullText.replace(/```json|```/gi, '').trim();
-    const start    = cleaned.indexOf('[');
-    const end      = cleaned.lastIndexOf(']') + 1;
-    if (start === -1 || end === 0) throw new Error('AI가 올바른 형식을 반환하지 않았습니다.');
+
+    // 상세 로그
+    console.log('[hunt] Gemini raw length:', fullText.length);
+    console.log('[hunt] Gemini raw preview:', fullText.slice(0, 300));
+
+    const cleaned = fullText.replace(/```json|```/gi, '').trim();
+    const start   = cleaned.indexOf('[');
+    const end     = cleaned.lastIndexOf(']') + 1;
+
+    if (start === -1 || end === 0) {
+      console.error('[hunt] No JSON array found. Full response:', fullText.slice(0, 500));
+      // Gemini가 빈 배열 텍스트로 "no results" 표현한 경우 처리
+      if (/no result|nothing found|없습니다|찾을 수 없|empty/i.test(fullText)) {
+        send({ type: 'done', total: 0 }); return;
+      }
+      throw new Error('AI가 올바른 형식을 반환하지 않았습니다. 다시 시도해주세요.');
+    }
 
     let items;
     try { items = JSON.parse(cleaned.slice(start, end)); }
