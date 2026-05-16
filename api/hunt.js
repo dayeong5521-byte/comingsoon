@@ -29,19 +29,15 @@ export default async function handler(req, res) {
     send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
     // ── 1. 검색 + 뉴스 병렬 실행 ──────────────────────────
-    // 한국어/영어 혼합 OR 확장어 (모든 카테고리 커버)
-    const KO = '출시 OR 발매 OR 오픈 OR 개봉 OR 공연 OR 전시 OR 팝업 OR 출간 OR 드롭 OR 티켓팅 OR 컴백';
-    const EN = 'release OR launch OR drop OR open OR concert OR exhibition OR collab OR collection OR premiere';
-    const TERMS = `(${KO} OR ${EN})`;
-    const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`; // 패션 시즌
+    // 한국어/영어 혼합 OR 확장어 — 5-7개로 제한 (구글 최적)
+    const KO = '출시 OR 발매 OR 오픈 OR 공연 OR 팝업 OR 출간';
+    const EN = 'release OR launch OR drop OR concert OR collection';
+    const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`;
 
     const queries = [
-      // 쿼리 1: 한국어 OR 확장어 + 한국 구글
-      { endpoint:'/search', body:{ q:`${keyword} ${TERMS} ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
-      // 쿼리 2: 영어 OR 확장어 + 미국 구글 (한국어 키워드도 영어 결과 가져옴)
-      { endpoint:'/search', body:{ q:`${keyword} ${EN} ${FW} ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
-      // 쿼리 3: 뉴스 (언론사 기사 우선)
-      { endpoint:'/news',   body:{ q:`${keyword} ${TERMS} ${CY}`, gl:'kr', hl:'ko', num:5 } },
+      { endpoint:'/search', body:{ q:`${keyword} (${KO}) ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
+      { endpoint:'/search', body:{ q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
+      { endpoint:'/news',   body:{ q:`${keyword} release OR 출시 OR 발매 ${CY}`, gl:'kr', hl:'ko', num:5 } },
     ];
 
     const responses = await Promise.all(queries.map(opt =>
@@ -202,7 +198,10 @@ export default async function handler(req, res) {
 
     // 모든 parts의 텍스트를 합쳐서 JSON 배열 추출 (thinking 여부 무관)
     const allParts = gd.candidates?.[0]?.content?.parts || [];
-    const fullText = allParts.map(p => p.text || '').join('').trim();
+    // thinking 파트 제외 — 실제 답변 파트만 사용
+    const answerParts = allParts.filter(p => !p.thought);
+    const fullText = (answerParts.length > 0 ? answerParts : allParts)
+      .map(p => p.text || '').join('').trim();
 
     // 코드펜스 제거 없이 [ 와 ] 사이를 직접 추출
     const firstBracket = fullText.indexOf('[');
@@ -247,16 +246,24 @@ export default async function handler(req, res) {
       /^\d{4}-\d{2}-\d{2}~\d{1,2}$/.test(d) ||
       /^\d{4}-\d{2}-\d{2}~\d{4}-\d{2}-\d{2}$/.test(d);
 
+    console.log('[hunt] parsed items:', items.length, items.map(i => i.release_date));
     const valid = items.filter(item => {
-      if (!item.release_date || !isValidFmt(item.release_date)) return false;
+      if (!item.release_date || !isValidFmt(item.release_date)) {
+        console.log('[hunt] skip invalid date:', item.item_name, item.release_date);
+        return false;
+      }
       const base = getBaseDate(item.release_date);
-      if (base && base < TODAY) return false;
+      if (base && base < TODAY) {
+        console.log('[hunt] skip past:', item.item_name, item.release_date);
+        return false;
+      }
       if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
+    console.log('[hunt] valid items:', valid.length);
 
     if (!valid.length) { send({ type: 'done', total: 0 }); return; }
 
