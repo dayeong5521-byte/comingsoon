@@ -497,7 +497,10 @@ function mkGrid(p){
     '</div>'+
     '<div class="pcard-body">'+
       '<div class="pc-brand-title">'+
-        '<span class="pc-brand">'+escapeHtml(p.brand)+'</span>'+
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
+          '<span class="pc-brand">'+escapeHtml(p.brand)+'</span>'+
+          (p.category?'<span class="pc-category pc-cat-'+escapeHtml(p.category)+'">'+escapeHtml(p.category)+'</span>':'')+
+        '</div>'+
         '<div class="pc-name">'+escapeHtml(p.item_name)+'</div>'+
       '</div>'+
       '<div class="pc-foot">'+
