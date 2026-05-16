@@ -10,6 +10,7 @@ firebase.initializeApp({
 var fbAuth=firebase.auth();
 var fbProvider=new firebase.auth.GoogleAuthProvider();
 var db=firebase.firestore();
+var analytics=firebase.analytics(); // ★ Analytics 초기화
 
 var TODAY=new Date().toISOString().split('T')[0];
 var FALLBACK='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
@@ -52,14 +53,17 @@ var newBadgeCounts={};
 /* ── 유틸 ── */
 function archiveKey(p){ return (p.brand||'')+'||'+(p.item_name||'')+'||'+(p.release_date||''); }
 function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function daysUntil(d){ return Math.ceil((new Date(d)-new Date(TODAY))/86400000); }
+function daysUntil(d){
+  if(!d||d==='TBD') return 9999;
+  return Math.ceil((new Date(d)-new Date(TODAY))/86400000);
+}
 function formatDateDot(dateStr){
-  if(!dateStr) return '';
+  if(!dateStr||dateStr==='TBD') return '??';
   var d=new Date(dateStr);
   return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
 }
 function makeCalUrl(p){
-  var d=p.release_date.replace(/-/g,'');
+  var d=(p.release_date&&p.release_date!=='TBD')?p.release_date.replace(/-/g,''):TODAY.replace(/-/g,'');
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
     +'&text='+encodeURIComponent('[출시] '+p.brand+' '+p.item_name)
     +'&dates='+d+'/'+d
@@ -180,6 +184,7 @@ function switchView(viewType){
     renderArchive();
   } else {
     renderItems(getSortedItems(getBrandItems(viewType)));
+    analytics.logEvent('focus_group_viewed',{keyword:viewType}); // ★
     newBadgeCounts[viewType]=0;
   }
   rebuildNav(); closeSidebar();
@@ -270,6 +275,7 @@ function deleteKeyword(brand, e){
   archivedItems=archivedItems.filter(function(p){ return p.brand!==brand; });
   archivedIds=new Set(archivedItems.map(function(p){ return archiveKey(p); }));
   syncToCloud();
+  analytics.logEvent('keyword_deleted',{keyword:brand}); // ★
   if(currentView===brand) switchView('radar');
   else rebuildNav();
   showToast('"'+brand+'" 키워드가 삭제됐어요.');
@@ -332,7 +338,10 @@ function syncToCloud(){
 
 /* ── 키워드 저장 — 로그인 필요, 검색 결과 자동 연결 ── */
 function saveCurrentKeyword(){
-  if(!currentUser){ openModal('loginModalBg'); return; }
+  if(!currentUser){
+    analytics.logEvent('login_prompted',{feature:'keyword_save'}); // ★
+    openModal('loginModalBg'); return;
+  }
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw){ showToast('키워드를 먼저 입력해주세요.'); return; }
   if(savedBrands.has(kw)){ showToast('이미 저장된 키워드예요.'); return; }
@@ -348,6 +357,7 @@ function saveCurrentKeyword(){
   if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='키워드 찾기'; }
 
   var cnt=keywordData[kw].length;
+  analytics.logEvent('keyword_saved',{keyword:kw,item_count:cnt}); // ★
   showToast('✅ "'+kw+'" 저장됨'+(cnt>0?' ('+cnt+'개 항목)':''));
   switchView(kw);
 }
@@ -356,6 +366,8 @@ function saveCurrentKeyword(){
 async function startHunt(){
   var kw=document.getElementById('mainSearch').value.trim();
   if(!kw) return;
+
+  analytics.logEvent('search_started',{keyword:kw}); // ★
 
   var saveBtn=document.getElementById('kwSaveBtn');
   if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='탐색 중...'; }
@@ -389,10 +401,14 @@ async function startHunt(){
     if(saveBtn){
       if(savedBrands.has(kw)){
         saveBtn.disabled=true; saveBtn.textContent='이미 저장됨';
+        // ★ 이미 저장된 키워드 재검색
+        analytics.logEvent('search_completed',{keyword:kw,result_count:currentSearchItems.length,already_saved:true});
       } else if(currentSearchItems.length>0){
-        saveBtn.disabled=false; saveBtn.textContent='키워드 저장'; // 활성 → orange
+        saveBtn.disabled=false; saveBtn.textContent='키워드 저장';
+        analytics.logEvent('search_completed',{keyword:kw,result_count:currentSearchItems.length}); // ★
       } else {
-        saveBtn.disabled=true; saveBtn.textContent='키워드 찾기'; // 결과 없음 → gray
+        saveBtn.disabled=true; saveBtn.textContent='키워드 찾기';
+        analytics.logEvent('search_empty',{keyword:kw}); // ★ 결과 없음
       }
     }
   }
@@ -400,7 +416,11 @@ async function startHunt(){
 
 /* ── 캘린더 추가 — 로그인 필요 ── */
 function addToCalendar(url){
-  if(!currentUser){ openModal('loginModalBg'); return; }
+  if(!currentUser){
+    analytics.logEvent('login_prompted',{feature:'calendar_add'}); // ★
+    openModal('loginModalBg'); return;
+  }
+  analytics.logEvent('calendar_added',{url:url}); // ★
   window.open(url,'_blank','noopener');
 }
 
@@ -416,7 +436,7 @@ function mkGrid(p){
   var isArc=archivedIds.has(archiveKey(p));
   var calUrl=makeCalUrl(p);
   var key=archiveKey(p);
-  var badgeText=days<0?'출시됨':'D-'+days;
+  var badgeText=p.release_date==='TBD'?'??':days<0?'출시됨':'D-'+days;
 
   return '<div class="pcard" data-key="'+escapeHtml(key)+'">'+
     /* ★ 이미지: onclick 대신 data-link 속성 사용 */
@@ -527,10 +547,11 @@ function bindCardEvents(container){
 
 /* ── 아카이브 토글 — 로그인 필요 ── */
 function toggleArchive(key,btn){
-  /* 로그인 필요 */
-  if(!currentUser){ openModal('loginModalBg'); return; }
+  if(!currentUser){
+    analytics.logEvent('login_prompted',{feature:'archive'}); // ★
+    openModal('loginModalBg'); return;
+  }
 
-  /* keywordData + currentSearchItems에서 아이템 찾기 */
   var item=null;
   savedBrands.forEach(function(kw){
     if(item) return;
@@ -542,10 +563,12 @@ function toggleArchive(key,btn){
   if(archivedIds.has(key)){
     archivedIds.delete(key); archivedItems=archivedItems.filter(function(p){ return archiveKey(p)!==key; });
     if(btn){ btn.innerHTML=ICON_ARCHIVE; btn.classList.remove('archived'); }
+    analytics.logEvent('archive_removed',{brand:item.brand,item_name:item.item_name}); // ★
     showToast('보관을 취소했어요.');
   } else {
     archivedIds.add(key); archivedItems.push(item);
     if(btn){ btn.innerHTML=ICON_CHECK; btn.classList.add('archived'); }
+    analytics.logEvent('archive_saved',{brand:item.brand,item_name:item.item_name}); // ★
     showToast('✅ 아카이브에 추가됐어요!');
   }
   syncToCloud(); updateArchiveStats();
@@ -640,6 +663,7 @@ document.addEventListener('DOMContentLoaded',function(){
 fbAuth.onAuthStateChanged(function(u){
   if(u){
     currentUser={name:u.displayName,email:u.email,uid:u.uid};
+    analytics.logEvent('login_completed',{method:'google'}); // ★
     db.collection('users').doc(u.uid).get().then(function(doc){
       if(doc.exists){
         var data=doc.data();
