@@ -559,7 +559,17 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 /* 날짜 범위/년월 표시 — 글자 작게 */
 .pc-date.range{font-size:11px;letter-spacing:-0.03em;}
-.pc-date.urg{color:var(--accent);}
+/* 카테고리 뱃지 */
+.pc-category{
+  font-size:8px;font-weight:700;
+  padding:2px 6px;border-radius:50px;
+  letter-spacing:.05em;text-transform:uppercase;
+  opacity:.85;
+}
+.pc-cat-PRODUCT { background:#EEF2FF;color:#4F46E5; }
+.pc-cat-EVENT   { background:#FFF7ED;color:#EA580C; }
+.pc-cat-CULTURE { background:#F0FDF4;color:#16A34A; }
+.pc-cat-CONTENT { background:#FDF4FF;color:#9333EA; }
 
 /* 캘린더 버튼 — Figma: h-30px, rounded-100px, bg white, border 1px #f2664b */
 /* text: 11.827px Bold, #f2664b */
