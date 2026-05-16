@@ -28,44 +28,56 @@ export default async function handler(req, res) {
   try {
     send({ type: 'status', message: `'${keyword}' 검색 중...` });
 
-    // ── 1. 한국어 + 영어 동시 검색 → 결과 합산 ──────────────
-    // 입력 언어 관계없이 항상 양쪽 검색 → "애플" = "apple" 동일 결과
+    // ── 1. 검색 + 뉴스 병렬 실행 ──────────────────────────
     const queries = [
-      { q: `${keyword} 출시일 발매일 출시예정 ${CY} ${CY + 1}`, gl: 'kr', hl: 'ko' },
-      { q: `${keyword} release date upcoming announced ${CY} ${CY + 1}`, gl: 'us', hl: 'en' },
+      // 일반 검색 (한국어 + 영어)
+      { endpoint:'/search', body:{ q:`${keyword} 출시일 발매일 ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:8 } },
+      { endpoint:'/search', body:{ q:`${keyword} release date announced ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
+      // 뉴스 검색 — 블로그/SNS 제외, 언론사만
+      { endpoint:'/news',   body:{ q:`${keyword} 출시 발매 ${CY}`, gl:'kr', hl:'ko', num:5 } },
+      { endpoint:'/news',   body:{ q:`${keyword} release date ${CY}`, gl:'us', hl:'en', num:5 } },
     ];
 
-    const searchResults = await Promise.all(queries.map(opt =>
-      fetch('https://google.serper.dev/search', {
+    const responses = await Promise.all(queries.map(opt =>
+      fetch(`https://google.serper.dev${opt.endpoint}`, {
         method:  'POST',
         headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: opt.q, gl: opt.gl, hl: opt.hl, num: 10 }),
+        body:    JSON.stringify(opt.body),
       }).then(r => r.ok ? r.json() : null).catch(() => null)
     ));
 
-    const [sdKr, sdEn] = searchResults;
+    // 개인 블로그/커뮤니티만 차단, SNS는 허용 (공식 계정 포함 가능)
+    const BLOCK_DOMAINS = [
+      'blog.naver.com','m.blog.naver.com','cafe.naver.com',
+      'tistory.com','brunch.co.kr','blog.daum.net',
+      'blog.kakao.com','post.naver.com',
+      'reddit.com','quora.com','pinterest.com',
+      'dcinside.com','ruliweb.com','clien.net','fmkorea.com',
+    ];
+    const isBlocked = url => BLOCK_DOMAINS.some(d => url?.includes(d));
 
-    // 중복 URL 제거 후 합산
+    // 중복 URL 제거 + 차단 도메인 필터
     const seenUrls = new Set();
-    const allOrganics = [...(sdKr?.organic || []), ...(sdEn?.organic || [])]
-      .filter(o => {
-        if (!o?.link || seenUrls.has(o.link)) return false;
+    const allItems = [];
+    for (const sd of responses) {
+      if (!sd) continue;
+      // 일반 검색 결과
+      for (const o of (sd.organic || sd.news || [])) {
+        if (!o?.link || seenUrls.has(o.link) || isBlocked(o.link)) continue;
         seenUrls.add(o.link);
-        return true;
-      });
+        allItems.push(o);
+      }
+    }
 
-    if (!allOrganics.length) throw new Error('검색 결과가 없습니다.');
+    if (!allItems.length) throw new Error('신뢰할 수 있는 검색 결과가 없습니다.');
 
-    // 컨텍스트 구성
+    // answerBox 추가
     let context = '';
-    const ab = sdKr?.answerBox || sdEn?.answerBox;
+    const ab = responses[0]?.answerBox || responses[1]?.answerBox;
     if (ab?.answer || ab?.snippet)
       context += `[직접답변] ${ab.answer || ab.snippet}\n\n`;
-    const stories = [...(sdKr?.topStories || []), ...(sdEn?.topStories || [])].slice(0, 4);
-    if (stories.length)
-      context += stories.map(s => `[뉴스] ${s.title} ${s.date || ''}`).join('\n') + '\n\n';
-    context += allOrganics.map((o, i) =>
-      `[${i+1}] ${o.title}\n${o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: '+o.date : ''}`
+    context += allItems.map((o, i) =>
+      `[${i+1}] ${o.title}\n${o.snippet || o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: '+o.date : ''}`
     ).join('\n\n');
 
     send({ type: 'status', message: 'AI 분석 중...' });
@@ -76,18 +88,28 @@ export default async function handler(req, res) {
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
-      `You extract upcoming release information. The user searched for: "${keyword}"\n\n` +
-      `STRICT RULES:\n` +
-      `1. ONLY include items DIRECTLY about "${keyword}". Reject anything unrelated.\n` +
-      `2. release_date must be ${TODAY} or later in YYYY-MM-DD format, OR "TBD" if date is unknown.\n` +
-      `3. Vague dates: spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01.\n` +
-      `4. If only a year is known with no other hint, use "TBD" for release_date.\n` +
-      `5. brand = official brand/maker. item_name = specific product or event name.\n` +
-      `6. Return ONLY a raw JSON array — no markdown, no text, no code fences.\n` +
-      `7. If nothing qualifies, return: []\n\n` +
+      `You extract upcoming release dates for "${keyword}" from search results.\n\n` +
+      `SOURCE RULES (STRICT):\n` +
+      `- TRUST: official brand websites, major news outlets, official SNS accounts (instagram.com/[brand], twitter.com/[brand], x.com/[brand])\n` +
+      `- IGNORE: personal/fan SNS accounts (low follower count indicators, fan-made content, rumor accounts)\n` +
+      `- IGNORE: personal blogs, forums, community posts\n` +
+      `- For SNS sources: only trust if the account name matches the brand/artist being searched (e.g. instagram.com/nike for Nike)\n` +
+      `- If uncertain whether SNS account is official → use "TBD" for date, still include item\n\n` +
+      `DATE RULES (STRICT):\n` +
+      `- release_date must be ${TODAY} or later in YYYY-MM-DD format, OR exactly "TBD"\n` +
+      `- Specific date known → use YYYY-MM-DD\n` +
+      `- Month known but not exact day → use first of that month (e.g. 2026-09-01)\n` +
+      `- Season known → spring=${CY}-04-01, summer=${CY}-07-01, fall=${CY}-10-01, winter=${CY}-12-01\n` +
+      `- Quarter/분기 known (Q1/Q2/Q3/Q4/1분기/2분기/3분기/4분기) → use "TBD" (DO NOT guess a specific date)\n` +
+      `- Only year known → use "TBD"\n` +
+      `- Vague/unknown → use "TBD"\n\n` +
+      `OTHER RULES:\n` +
+      `1. ONLY include items DIRECTLY about "${keyword}"\n` +
+      `2. brand = official brand/maker name, item_name = specific product or event name\n` +
+      `3. Return ONLY a raw JSON array. No markdown, no explanation.\n` +
+      `4. If nothing qualifies, return: []\n\n` +
       `FORMAT:\n` +
-      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."},\n` +
-      ` {"brand":"Apple","item_name":"Apple Watch X","release_date":"TBD","description":"출시일 미정","image_url":"","link":"https://..."}]\n\n` +
+      `[{"brand":"Apple","item_name":"iPhone 17 Pro","release_date":"2026-09-12","description":"한 줄 한국어 설명","image_url":"","link":"https://..."}]\n\n` +
       `Search results:\n${context}`;
 
     let gr, attempt = 0;
