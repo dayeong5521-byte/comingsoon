@@ -557,6 +557,8 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   line-height:1;
   white-space:nowrap;
 }
+/* 날짜 범위/년월 표시 — 글자 작게 */
+.pc-date.range{font-size:11px;letter-spacing:-0.03em;}
 .pc-date.urg{color:var(--accent);}
 
 /* 캘린더 버튼 — Figma: h-30px, rounded-100px, bg white, border 1px #f2664b */
