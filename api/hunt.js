@@ -197,13 +197,18 @@ export default async function handler(req, res) {
 
     // 모든 parts의 텍스트를 합쳐서 JSON 배열 추출 (thinking 여부 무관)
     const allParts = gd.candidates?.[0]?.content?.parts || [];
-    // thinking 파트 제외 — 실제 답변 파트만 사용
-    const answerParts = allParts.filter(p => !p.thought);
-    const fullText = (answerParts.length > 0 ? answerParts : allParts)
-      .map(p => p.text || '').join('').trim();
+    // 모든 파트 합치기 (thought 필터 제거 - 오히려 빈 텍스트 유발 가능)
+    const fullText = allParts.map(p => p.text || '').join('').trim();
+    console.log('[hunt] fullText length:', fullText.length, '| first 100:', fullText.slice(0, 100));
 
-    const firstBracket = fullText.indexOf('[');
+    // [{ 패턴으로 JSON 배열 시작점 탐색 (thinking 텍스트의 [ 와 구분)
+    let firstBracket = fullText.indexOf('[{');
+    if (firstBracket === -1) firstBracket = fullText.indexOf('[ {');
+    if (firstBracket === -1) firstBracket = fullText.indexOf('[\n{');
+    if (firstBracket === -1) firstBracket = fullText.indexOf('[');
+
     let lastBracket = fullText.lastIndexOf(']');
+    console.log('[hunt] brackets:', firstBracket, lastBracket);
 
     if (firstBracket === -1) {
       console.error('[hunt] no [ found, raw:', fullText.slice(0, 200));
