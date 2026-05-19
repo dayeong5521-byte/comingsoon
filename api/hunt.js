@@ -7,11 +7,10 @@ export default async function handler(req, res) {
   const GEMINI_KEY = process.env.GEMINI_API_KEY;
   const SERPER_KEY = process.env.SERPER_API_KEY;
   if (!GEMINI_KEY || !SERPER_KEY)
-    return res.status(500).json({ error: 'API 키가 서버에 설정되지 않았습니다.' });
+    return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' });
 
-  const { keyword } = req.body;
-  if (!keyword?.trim())
-    return res.status(400).json({ error: '키워드를 입력해주세요.' });
+  const { keyword } = req.body ?? {};
+  if (!keyword?.trim()) return res.status(400).json({ error: '키워드를 입력해주세요.' });
 
   const TODAY = new Date().toISOString().split('T')[0];
   const CY    = new Date().getFullYear();
@@ -26,89 +25,80 @@ export default async function handler(req, res) {
   const seen = new Set();
 
   try {
-    send({ type: 'status', message: `'${keyword}' 검색 중...` });
+    // ────────────────────────────────────────────
+    // 1. Serper 검색 — 한국어 + 영어 OR 쿼리 병렬
+    // ────────────────────────────────────────────
+    send({ type:'status', message:`'${keyword}' 검색 중...` });
 
-    // ── 1. 검색 + 뉴스 병렬 실행 ──────────────────────────
-    // 한국어/영어 혼합 OR 확장어 — 5-7개로 제한 (구글 최적)
     const KO = '출시 OR 발매 OR 오픈 OR 공연 OR 팝업 OR 출간';
     const EN = 'release OR launch OR drop OR concert OR collection';
     const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`;
 
     const queries = [
-      { endpoint:'/search', body:{ q:`${keyword} (${KO}) ${CY} ${CY+1}`, gl:'kr', hl:'ko', num:10 } },
-      { endpoint:'/search', body:{ q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:8 } },
-      { endpoint:'/news',   body:{ q:`${keyword} release OR 출시 OR 발매 ${CY}`, gl:'kr', hl:'ko', num:5 } },
+      { q:`${keyword} (${KO}) ${CY} ${CY+1}`,        gl:'kr', hl:'ko', num:10 },
+      { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:10 },
     ];
 
-    const responses = await Promise.all(queries.map(opt =>
-      fetch(`https://google.serper.dev${opt.endpoint}`, {
-        method:  'POST',
-        headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(opt.body),
+    const searchResponses = await Promise.all(queries.map(opt =>
+      fetch('https://google.serper.dev/search', {
+        method:'POST',
+        headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
+        body:JSON.stringify(opt),
       }).then(r => r.ok ? r.json() : null).catch(() => null)
     ));
 
-    // 개인 블로그/커뮤니티만 차단, SNS는 허용 (공식 계정 포함 가능)
-    const BLOCK_DOMAINS = [
-      'blog.naver.com','m.blog.naver.com','cafe.naver.com',
-      'tistory.com','brunch.co.kr','blog.daum.net',
-      'blog.kakao.com','post.naver.com',
-      'reddit.com','quora.com','pinterest.com',
-      'dcinside.com','ruliweb.com','clien.net','fmkorea.com',
-    ];
-    const isBlocked = url => BLOCK_DOMAINS.some(d => url?.includes(d));
+    // 차단 도메인
+    const BLOCKED = ['blog.naver.com','m.blog.naver.com','cafe.naver.com',
+      'tistory.com','brunch.co.kr','reddit.com','quora.com','dcinside.com'];
+    const isBlocked = url => BLOCKED.some(d => url?.includes(d));
 
-    // 중복 URL 제거 + 차단 도메인 필터
+    // 중복 제거 + 차단 필터
     const seenUrls = new Set();
-    const allItems = [];
-    for (const sd of responses) {
+    const allResults = [];
+    for (const sd of searchResponses) {
       if (!sd) continue;
-      // 일반 검색 결과
-      for (const o of (sd.organic || sd.news || [])) {
+      // answerBox
+      if (sd.answerBox?.answer || sd.answerBox?.snippet) {
+        allResults.push({ title:'[직접답변]', snippet: sd.answerBox.answer || sd.answerBox.snippet, link:'' });
+      }
+      for (const o of (sd.organic || [])) {
         if (!o?.link || seenUrls.has(o.link) || isBlocked(o.link)) continue;
         seenUrls.add(o.link);
-        allItems.push(o);
+        allResults.push(o);
       }
     }
 
-    if (!allItems.length) throw new Error('신뢰할 수 있는 검색 결과가 없습니다.');
+    if (!allResults.length) throw new Error('검색 결과가 없습니다.');
 
-    // answerBox 추가
-    let context = '';
-    const ab = responses[0]?.answerBox || responses[1]?.answerBox;
-    if (ab?.answer || ab?.snippet)
-      context += `[직접답변] ${ab.answer || ab.snippet}\n\n`;
-    context += allItems.map((o, i) =>
-      `[${i+1}] ${o.title}\n${o.snippet || o.snippet || ''}\nURL: ${o.link}${o.date ? '\nDate: '+o.date : ''}`
-    ).join('\n\n');
+    // ────────────────────────────────────────────
+    // 2. 상위 페이지 fetch — 리스트 페이지 우선 선택
+    //    release-dates, schedule, calendar 등 키워드 포함 URL 우선
+    // ────────────────────────────────────────────
+    send({ type:'status', message:'페이지 내용 수집 중...' });
 
-    send({ type: 'status', message: 'AI 분석 중...' });
+    const LIST_KEYWORDS = ['release-date','release-dates','schedule','calendar',
+      'lineup','upcoming','drop-list','출시일정','발매일정'];
+    const isListPage = url => LIST_KEYWORDS.some(k => url?.toLowerCase().includes(k));
 
-    // ── 상위 2개 페이지 fetch + 날짜 포함 문장만 추출 ──────
-    const toFetch = allItems
-      .filter(o => !['instagram.com','twitter.com','x.com','youtube.com']
-        .some(d => o.link?.includes(d)))
-      .slice(0, 2);
+    // 리스트 페이지 우선, 나머지는 뒤로
+    const sortedResults = [
+      ...allResults.filter(o => o.link && isListPage(o.link)),
+      ...allResults.filter(o => o.link && !isListPage(o.link)),
+    ];
 
-    // 날짜가 포함된 문장만 추출 (Gemini 추측 여지 제거)
-    const extractDateLines = text => {
-      if (!text) return '';
-      return text.split(/[\n。.!?]/)
-        .filter(line =>
-          /\d{4}[\.\-\/년]\s*\d{1,2}|발매|출시|공연|콘서트|팬미팅|컴백|오픈|개최|일정|예정|release|launch|concert|tour|date|open/i
-          .test(line) && line.trim().length > 10
-        )
-        .slice(0, 15)
-        .join('\n');
-    };
+    // 상위 3개 페이지 병렬 fetch (5초 타임아웃)
+    const toFetch = sortedResults
+      .filter(o => o.link && !['instagram.com','twitter.com','x.com','youtube.com','facebook.com']
+        .some(d => o.link.includes(d)))
+      .slice(0, 3);
 
-    const pageResults = await Promise.allSettled(toFetch.map(async item => {
+    const pageContents = await Promise.allSettled(toFetch.map(async item => {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 3000);
+        const timer = setTimeout(() => ctrl.abort(), 5000);
         const r = await fetch(item.link, {
           signal: ctrl.signal,
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+          headers: { 'User-Agent':'Mozilla/5.0 (compatible; Googlebot/2.1)' },
         });
         clearTimeout(timer);
         if (!r.ok) return null;
@@ -118,136 +108,105 @@ export default async function handler(req, res) {
           .replace(/<style[\s\S]*?<\/style>/gi, '')
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
-          .trim();
-        // 날짜 포함 문장만 전달 (노이즈 제거)
-        const dateLines = extractDateLines(text);
-        return dateLines ? `[${item.link} 날짜 관련 내용]\n${dateLines}` : null;
+          .trim()
+          .slice(0, 5000); // 넉넉하게 5000자
+        return `[페이지: ${item.link}]\n${text}`;
       } catch { return null; }
     }));
 
-    const pageContext = pageResults
+    // 컨텍스트 구성 (스니펫 + 페이지 내용)
+    let context = allResults.slice(0, 12).map((o, i) =>
+      `[${i+1}] ${o.title}\n${o.snippet || ''}\n${o.link ? 'URL: '+o.link : ''}`
+    ).join('\n\n');
+
+    const pageTexts = pageContents
       .filter(r => r.status === 'fulfilled' && r.value)
       .map(r => r.value)
       .join('\n\n');
 
-    if (pageContext) context += '\n\n' + pageContext;
+    if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
 
-    // ── 2. Gemini 호출 ──────────────────────────────────
+    // ────────────────────────────────────────────
+    // 3. Gemini 호출 — JSONL 형식 (한 줄 = 하나의 아이템)
+    //    JSON 배열 대신 JSONL → 토큰 잘려도 앞 항목은 살아있음
+    // ────────────────────────────────────────────
+    send({ type:'status', message:'AI 분석 중...' });
+
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
-      `You are a release curator. Extract upcoming release/event schedule for "${keyword}".\n` +
-      `Today: ${TODAY}. Only include items releasing on or after ${TODAY}.\n\n` +
+      `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
+      `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
       `## CATEGORIES\n` +
-      `Assign one category per item:\n` +
-      `- PRODUCT: fashion, sneakers, tech, goods, merchandise\n` +
-      `- EVENT: popup store, launch party, exhibition, fan meeting, concert, tour\n` +
-      `- CULTURE: movie premiere, book release, album, drama/anime air date\n` +
-      `- CONTENT: game update, digital drop, streaming release\n\n` +
+      `PRODUCT: fashion/sneakers/tech goods | EVENT: popup/concert/exhibition/fanmeeting\n` +
+      `CULTURE: album/movie/book premiere   | CONTENT: game/streaming/digital drop\n\n` +
       `## DATE RULES\n` +
-      `DO NOT infer or guess. Only use dates EXPLICITLY written in source.\n` +
-      `- Day known → "YYYY-MM-DD"\n` +
-      `- Month known, day unknown → "YYYY-MM"\n` +
-      `- Range → "YYYY-MM-DD~DD"\n` +
-      `- Season/Quarter/Year only/Unclear → "TBD"\n` +
-      `- Year in product NAME ≠ release year (e.g. "FW26 Collection" → find actual drop date)\n\n` +
-      `## SOURCE RULES\n` +
-      `Trust: official sites, major media. Ignore: personal blogs, fan accounts, rumors.\n\n` +
-      `## OUTPUT (raw JSON array only, no markdown)\n` +
-      `IMPORTANT: Escape all double quotes inside string values with \\" (e.g. "item_name": "Air Jordan \\"Retro\\"")\n` +
-      `[{"category":"PRODUCT|EVENT|CULTURE|CONTENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}]\n` +
-      `If nothing found: []\n\n` +
+      `- Exact date found → "YYYY-MM-DD"\n` +
+      `- Month only → "YYYY-MM"\n` +
+      `- Date range → "YYYY-MM-DD~DD"\n` +
+      `- Quarter/season/year only/unclear → "TBD"\n` +
+      `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
+      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
+      `## OUTPUT FORMAT — JSONL (one JSON object per line, NO array brackets)\n` +
+      `Each line must be a complete, valid JSON object. No trailing commas.\n` +
+      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
+      `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
+      `Extract ALL items found. If none, output nothing.\n\n` +
       `## SOURCES\n${context}`;
 
     let gr, attempt = 0;
     while (attempt < 3) {
       gr = await fetch(GEMINI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 4096,
-          },
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+          contents:[{ parts:[{ text: prompt }] }],
+          generationConfig:{ temperature:0, maxOutputTokens:8192 },
+          safetySettings:[
+            { category:'HARM_CATEGORY_HARASSMENT',        threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_HATE_SPEECH',       threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_DANGEROUS_CONTENT', threshold:'BLOCK_NONE' },
           ],
         }),
       });
       if (gr.ok) break;
       if (gr.status === 503 && attempt < 2) {
-        send({ type: 'status', message: `AI 서버 혼잡, 재시도 중... (${attempt + 1}/3)` });
-        await new Promise(r => setTimeout(r, (attempt + 1) * 1500));
+        send({ type:'status', message:`AI 서버 혼잡, 재시도... (${attempt+1}/3)` });
+        await new Promise(r => setTimeout(r, (attempt+1)*1500));
         attempt++;
         continue;
       }
-      // 상세 에러 로깅
       const errBody = await gr.text().catch(() => '');
-      console.error(`[hunt] Gemini ${gr.status}:`, errBody);
-      throw new Error(`Gemini HTTP ${gr.status}: ${errBody.slice(0, 200)}`);
+      console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
+      throw new Error(`Gemini HTTP ${gr.status}`);
     }
 
     const gd = await gr.json();
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
-    // 모든 parts의 텍스트를 합쳐서 JSON 배열 추출 (thinking 여부 무관)
-    const allParts = gd.candidates?.[0]?.content?.parts || [];
-    // 모든 파트 합치기 (thought 필터 제거 - 오히려 빈 텍스트 유발 가능)
-    const fullText = allParts.map(p => p.text || '').join('').trim();
-    console.log('[hunt] fullText length:', fullText.length, '| first 100:', fullText.slice(0, 100));
+    const fullText = (gd.candidates?.[0]?.content?.parts || [])
+      .map(p => p.text || '').join('').trim();
 
-    // [{ 패턴으로 JSON 배열 시작점 탐색 (thinking 텍스트의 [ 와 구분)
-    let firstBracket = fullText.indexOf('[{');
-    if (firstBracket === -1) firstBracket = fullText.indexOf('[ {');
-    if (firstBracket === -1) firstBracket = fullText.indexOf('[\n{');
-    if (firstBracket === -1) firstBracket = fullText.indexOf('[');
-
-    let lastBracket = fullText.lastIndexOf(']');
-    console.log('[hunt] brackets:', firstBracket, lastBracket);
-
-    if (firstBracket === -1) {
-      console.error('[hunt] no [ found, raw:', fullText.slice(0, 200));
-      send({ type:'done', total:0 }); return;
-    }
-
-    // 응답이 잘렸을 때 (] 없음) → 마지막 완전한 객체까지만 복구
-    let jsonStr;
-    if (lastBracket === -1 || lastBracket < firstBracket) {
-      console.log('[hunt] response truncated, recovering partial...');
-      const partial = fullText.slice(firstBracket);
-      const lastClose = partial.lastIndexOf('},');
-      jsonStr = lastClose !== -1
-        ? partial.slice(0, lastClose + 1) + ']'
-        : partial + ']';
-    } else {
-      jsonStr = fullText.slice(firstBracket, lastBracket + 1);
-    }
-
-    let items;
-    try {
-      items = JSON.parse(jsonStr);
-    } catch(e) {
-      // JSON 안에 이스케이프 안 된 따옴표 수정 시도
-      // "item_name": "Air Jordan "World's Best Dad"" → "item_name": "Air Jordan \"World's Best Dad\""
+    // ────────────────────────────────────────────
+    // 4. JSONL 파싱 — 한 줄씩 파싱 (잘려도 앞 항목 살아있음)
+    // ────────────────────────────────────────────
+    const items = [];
+    for (const line of fullText.split('\n')) {
+      const t = line.trim();
+      if (!t.startsWith('{')) continue;
       try {
-        const repaired = jsonStr
-          .replace(/"(brand|item_name|description|link|image_url|category)"\s*:\s*"([\s\S]*?)(?=",\s*"(?:brand|item_name|description|link|image_url|category|release_date)")/g,
-            (match, key, val) => `"${key}": "${val.replace(/(?<!\\)"/g, '\\"')}"`)
-          .replace(/,\s*}/g, '}')  // trailing comma 제거
-          .replace(/,\s*]/g, ']'); // trailing comma 제거
-        items = JSON.parse(repaired);
-      } catch(e2) {
-        console.error('[hunt] parse fail:', e2.message, jsonStr.slice(0, 200));
-        throw new Error('AI 응답 파싱 실패. 다시 시도해주세요.');
-      }
+        const obj = JSON.parse(t.endsWith('}') ? t : t + '}');
+        if (obj.item_name && obj.release_date) items.push(obj);
+      } catch { /* 잘린 줄 무시 */ }
     }
 
-    // 유효 아이템 필터 — YYYY-MM-DD 형식 + 오늘 이후만
+    console.log(`[hunt] items parsed: ${items.length}`);
+
+    // ────────────────────────────────────────────
+    // 5. 날짜 유효성 필터
+    // ────────────────────────────────────────────
     const getBaseDate = d => {
       if (!d || d === 'TBD') return null;
       const base = d.split('~')[0];
@@ -260,56 +219,52 @@ export default async function handler(req, res) {
       /^\d{4}-\d{2}-\d{2}~\d{1,2}$/.test(d) ||
       /^\d{4}-\d{2}-\d{2}~\d{4}-\d{2}-\d{2}$/.test(d);
 
-    console.log('[hunt] parsed items:', items.length, items.map(i => i.release_date));
     const valid = items.filter(item => {
-      if (!item.release_date || !isValidFmt(item.release_date)) {
-        console.log('[hunt] skip invalid date:', item.item_name, item.release_date);
-        return false;
-      }
+      if (!item.release_date || !isValidFmt(item.release_date)) return false;
       const base = getBaseDate(item.release_date);
-      if (base && base < TODAY) {
-        console.log('[hunt] skip past:', item.item_name, item.release_date);
-        return false;
-      }
-      if (!item.brand?.trim()) item.brand = keyword.toUpperCase();
+      if (base && base < TODAY) return false;
+      if (!item.brand?.trim()) item.brand = keyword;
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-    console.log('[hunt] valid items:', valid.length);
 
-    if (!valid.length) { send({ type: 'done', total: 0 }); return; }
+    console.log(`[hunt] valid items: ${valid.length}`);
+    if (!valid.length) { send({ type:'done', total:0 }); return; }
 
-    send({ type: 'status', message: `이미지 검색 중... (${valid.length}개)` });
+    // ────────────────────────────────────────────
+    // 6. 이미지 병렬 검색
+    // ────────────────────────────────────────────
+    send({ type:'status', message:`이미지 검색 중... (${valid.length}개)` });
 
-    // ── 3. 이미지 병렬 검색 ──────────────────────────────
     await Promise.allSettled(valid.map(async item => {
       try {
         const ir = await fetch('https://google.serper.dev/images', {
-          method:  'POST',
-          headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ q: `${item.brand} ${item.item_name}`, num: 1 }),
+          method:'POST',
+          headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
+          body: JSON.stringify({ q:`${item.brand} ${item.item_name}`, num:1 }),
         });
         if (!ir.ok) return;
-        const id_ = await ir.json();
-        if (id_.images?.[0]) item.image_url = id_.images[0].imageUrl;
-      } catch { /* 이미지 없어도 진행 */ }
+        const id = await ir.json();
+        if (id.images?.[0]) item.image_url = id.images[0].imageUrl;
+      } catch {}
     }));
 
+    // 날짜순 정렬 후 전송
     valid
       .sort((a, b) => {
         const da = getBaseDate(a.release_date) || '9999-12-31';
         const db = getBaseDate(b.release_date) || '9999-12-31';
         return da.localeCompare(db);
       })
-      .forEach(item => send({ type: 'item', data: item }));
+      .forEach(item => send({ type:'item', data:item }));
 
-    send({ type: 'done', total: valid.length });
+    send({ type:'done', total:valid.length });
 
-  } catch (err) {
+  } catch(err) {
     console.error('[hunt] Error:', err.message);
-    send({ type: 'error', message: err.message });
+    send({ type:'error', message:err.message });
   } finally {
     res.end();
   }
