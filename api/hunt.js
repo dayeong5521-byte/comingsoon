@@ -35,8 +35,8 @@ export default async function handler(req, res) {
     const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`;
 
     const queries = [
-      { q:`${keyword} (${KO}) ${CY} ${CY+1}`,        gl:'kr', hl:'ko', num:10 },
-      { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:10 },
+      { q:`${keyword} (${KO}) ${CY} ${CY+1}`,          gl:'kr', hl:'ko', num:10, tbs:'qdr:m6' },
+      { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:10, tbs:'qdr:m6' },
     ];
 
     const searchResponses = await Promise.all(queries.map(opt =>
@@ -48,8 +48,12 @@ export default async function handler(req, res) {
     ));
 
     // 차단 도메인
-    const BLOCKED = ['blog.naver.com','m.blog.naver.com','cafe.naver.com',
-      'tistory.com','brunch.co.kr','reddit.com','quora.com','dcinside.com'];
+    const BLOCKED = [
+      'facebook.com','threads.net',           // ← 차단
+      'blog.naver.com','m.blog.naver.com','cafe.naver.com',
+      'tistory.com','brunch.co.kr',
+      'reddit.com','quora.com','dcinside.com',
+    ];
     const isBlocked = url => BLOCKED.some(d => url?.includes(d));
 
     // 중복 제거 + 차단 필터
