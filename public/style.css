@@ -541,46 +541,45 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   flex-shrink:0;
 }
 
-/* 날짜 — Figma: "Coming Up" 8px Medium #bdbdbd + date 14px Black #111 */
-.pc-date-lbl{
-  font-size:8px;
-  font-weight:500;
-  color:var(--text3);
-  letter-spacing:-0.02em;
-  margin-bottom:2px;
-}
-/* ── 날짜 폰트 크기 절대 통일 (강제 적용) ── */
-.pc-date, 
-.pc-date.range {
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  color: var(--text1) !important;
-  letter-spacing: -0.03em !important;
-  line-height: 1 !important;
-  white-space: nowrap !important;
-  font-variant-numeric: tabular-nums !important;
-}
-/* ── [1] 카드 하단 전체 박스 (양끝 정렬의 핵심) ── */
-.pc-bot {
-  /* 다영님이 피그마에서 뽑아온 레이아웃! */
-  display: flex;
-  justify-content: space-between; 
-  align-items: center; /* 필요에 따라 flex-end로 바꾸면 아래쪽 선이 맞습니다 */
-  flex-shrink: 0;
-  
-  /* 웹 적용 필수 보정 */
-  width: 100%; /* 198.5px 고정 대신, 카드 크기에 맞춰 꽉 차게 */
-  margin-top: 12px;
-  box-sizing: border-box;
+.pc-date-lbl {
+  font-size: 8px; /* 피그마 수치 유지 */
+  font-weight: 600;
+  color: #BDBDBD;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px; /* 💡 날짜와 딱 붙도록 미세 조정 */
+  line-height: 1;
 }
 
-/* ── [2] Coming Up과 날짜를 위아래로 예쁘게 묶는 박스 ── */
-/* (만약 HTML에 이 둘을 묶는 별도 클래스가 있다면 거기에 적용해 주세요) */
-.pc-date-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px; /* 라벨과 날짜 사이의 미세한 간격 */
+/* 날짜 폰트는 다영님이 짜두신 것 그대로 유지! */
+.pc-date {
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  color: #111 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1 !important; /* 위아래 쓸데없는 여백 제거 */
+}
+
+/* ── [3] 캘린더 버튼 (날렵한 알약 모양 복구) ── */
+.calendar-btn { /* ⚠️ 다영님 코드의 실제 버튼 클래스명으로 바꿔주세요 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* 💡 핵심: 높이를 명시적으로 깎아서 뚱뚱해지는 것 방지 */
+  height: 26px; 
+  padding: 0 10px;
+  
+  border: 1px solid #FF6B4A; /* 피그마 오렌지 컬러 */
+  border-radius: 100px; /* 완벽한 알약(Pill) 쉐입 */
+  background: transparent;
+  
+  color: #FF6B4A;
+  font-size: 11px; /* 버튼 안 텍스트 크기 미세 조정 */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  box-sizing: border-box;
+  gap: 4px; /* 글자와 + 기호 사이 간격 */
+  cursor: pointer;
 }
 /* TBD 토글 버튼 */
 .tbd-toggle{
