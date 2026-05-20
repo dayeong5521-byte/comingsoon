@@ -681,55 +681,129 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .pcard-img-wrap{height:130px;}
 }
 
-/* ── [1] 사이드바 '의견 보내기' 버튼 간격 통일 ── */
+/* ── [1] 사이드바 '의견 보내기' 버튼 ── */
 .feedback-trigger-btn {
-  /* 다영님이 피그마에서 가져오신 레이아웃 속성 */
   display: flex;
-  height: 44px; /* 버튼 자체의 높이 고정 */
-  align-items: center; /* 텍스트와 아이콘을 세로 중앙 정렬 */
+  height: 44px;
+  align-items: center;
   gap: 10px;
-  align-self: stretch;
+  padding: 0 12px;
+  margin-bottom: 16px; /* 프로필 카드와 간격 띄우기 */
   background: #F4F4F2;
-  
-  /* 💡 디테일 보정: 내부 간격 통일 및 하단 여백 추가 */
-  padding-top: 12px !important; /* 위쪽 내부 간격 */
-  padding-bottom: 12px !important; /* 아래쪽 내부 간격 */
-  padding-left: 12px !important; 
-  padding-right: 12px !important;
-  margin-bottom: 16px !important; /* 💡 프로필 카드와의 확실한 간격 추가 */
-
-  /* 웹 구현 필수 속성 */
   width: 100%;
   box-sizing: border-box;
   border: none;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 8px; /* 모서리 둥글기 */
-  
-  /* 텍스트 & 아이콘 스타일 */
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: #555;
   font-family: inherit;
   letter-spacing: -0.02em;
   transition: background 0.2s;
 }
+.feedback-trigger-btn:hover {
+  background: #EAEAEA;
+  color: #111;
+}
+.feedback-trigger-btn svg {
+  flex-shrink: 0;
+}
 
-/* ── [2] 모달 크기 키우기 ── */
+/* ── [2] 의견 보내기 모달 (라이트 톤 픽셀 퍼펙트) ── */
 .feedback-modal-light {
-  /* 다영님이 피그마에서 가져오신 레이아웃 & 스타일 */
   display: flex;
-  padding: 32px 24px;
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
-  border-radius: 10px;
-  background: var(--back, #F4F4F2);
-
-  /* 💡 디테일 보정: 모달의 최대 너비를 더 키움 */
-  width: 90%; /* 모바일 대응을 위한 비율 */
-  max-width: 480px !important; /* 💡 기존 420px에서 480px로 변경 */
-  
-  /* 화면 중앙 배치 및 그림자 */
+  padding: 32px 24px;
+  background: #F4F4F2;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px; /* 더 시원하게 키운 사이즈 */
   box-shadow: 0 10px 40px rgba(0,0,0,0.1);
   box-sizing: border-box;
+}
+
+/* 헤더 가로 꽉 채우고 양끝 정렬 */
+.feedback-modal-light .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 0; /* 불필요한 여백 제거 */
+}
+
+.feedback-modal-light .modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* 닫기 버튼 찌그러짐 및 밉상 테두리 방지 */
+.feedback-modal-light .close-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.feedback-modal-light .modal-desc {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  width: 100%;
+  margin: 0;
+}
+
+/* 텍스트박스 가로 꽉 채우기 및 브라우저 테두리 강제 제거 */
+.feedback-modal-light textarea {
+  width: 100%;
+  height: 130px;
+  background: #FFFFFF;
+  border: none !important; /* 브라우저 기본 테두리 파괴 */
+  border-radius: 12px;
+  padding: 16px;
+  color: #111;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  letter-spacing: -0.02em;
+  outline: none;
+}
+.feedback-modal-light textarea::placeholder {
+  color: #999;
+}
+.feedback-modal-light textarea:focus {
+  outline: 1.5px solid #111;
+}
+
+/* 제출 버튼 가로 꽉 채우기 및 찌그러짐 방지 */
+.feedback-modal-light .submit-btn {
+  width: 100%;
+  background: #151515;
+  color: #FFFFFF;
+  border: none !important; /* 브라우저 기본 테두리 파괴 */
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  box-sizing: border-box;
+  outline: none;
+  margin: 0;
+}
+.feedback-modal-light .submit-btn:hover {
+  background: #333;
 }
