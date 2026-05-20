@@ -566,7 +566,7 @@ function renderItems(list){
       '<div class="empty-state">'+
         '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="7.5" stroke="#BDBDBD" stroke-width="1.5"/><line x1="16" y1="16" x2="22" y2="22" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div>'+
         '<div class="empty-title">데이터가 없습니다</div>'+
-        '<div class="empty-desc"> 브랜드,테크,그리고 컬처까지. 놓치고 싶지 않은 모든 관심사의 릴리즈 소식을 선점하세요.</div>'+
+        '<div class="empty-desc"> 브랜드,테크,그리고 컬처까지..<br>놓치고 싶지 않은 모든 관심사의 릴리즈 소식을 선점하세요.</div>'+
       '</div>';
     return;
   }
