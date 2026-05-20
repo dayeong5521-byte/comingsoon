@@ -680,42 +680,39 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .kw-save-btn{padding:0 14px;font-size:13px;}
   .pcard-img-wrap{height:130px;}
 }
-
-/* ── 사이드바 '의견 보내기' 버튼 ── */
-.feedback-trigger-btn {
-  /* 다영님이 주신 피그마 수치 100% 그대로 */
+/* ── [3] 사이드바 하단 프로필 영역 (새로운 레이아웃) ── */
+.user-area-new {
   display: flex;
-  height: 44px;
-  padding: 12px;
-  align-items: center;
-  gap: 10px;
-  align-self: stretch;
-
-  /* 웹 기본 스타일 초기화 (불필요한 여백 완전 제거) */
-  margin: 0; /* 💡 제가 넣었던 넓은 간격 원인 제거 */
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 16px;
+  gap: 16px;
+  background: #F9F9F9; /* 사이드바 배경과 어울리는 옅은 회색 카드 */
+  border-radius: 12px;
   width: 100%;
   box-sizing: border-box;
-  background: #F4F4F2;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  
-  /* 텍스트 & 아이콘 스타일 */
+}
+
+.user-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-text-group .av-name {
   font-size: 15px;
-  font-weight: 600;
-  color: #555;
-  font-family: inherit;
-  letter-spacing: -0.02em;
-  transition: background 0.2s;
-}
-
-.feedback-trigger-btn:hover {
-  background: #EAEAEA;
+  font-weight: 700;
   color: #111;
+  letter-spacing: -0.02em;
 }
 
-.feedback-trigger-btn svg {
-  flex-shrink: 0;
+.user-text-group .av-role {
+  font-size: 13px;
+  font-weight: 500;
+  color: #777;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  word-break: keep-all; /* 텍스트가 예쁘게 줄바꿈 되도록 설정 */
 }
 
 /* ── [2] 의견 보내기 모달 (라이트 톤 픽셀 퍼펙트) ── */
