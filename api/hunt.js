@@ -176,21 +176,37 @@ let gr, attempt = 0;
         }),
       });
 
-      if (gr.ok) break;
-
-      // 💡 503(혼잡) 시에만 대기 후 재시도
-      if (gr.status === 503 && attempt < 2) {
-        send({ type:'status', message: `잠시 혼잡하여 다시 시도 중... (${attempt+1}/3)` });
-        await new Promise(r => setTimeout(r, 2000));
-        attempt++;
-        continue;
-      }
-      
-      // 404나 기타 에러는 재시도해도 안 되므로 즉시 중단
-      const errBody = await gr.text().catch(() => '');
-      console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
-      throw new Error(`Gemini HTTP ${gr.status}`);
+      // 3. Gemini 호출 루프 직후...
+    const gd = await gr.json();
+    
+    // 💡 1단계: 명시적 API 오류 확인
+    if (gd.error) {
+      throw new Error(`Gemini API 오류 (${gd.error.code}): ${gd.error.message}`);
     }
+
+    // 💡 2단계: 응답 구조 2중 검사 (구조가 꼬였을 때 대비)
+    if (!gd.candidates || !gd.candidates[0] || !gd.candidates[0].content) {
+      console.error('[hunt] 비정상 응답:', JSON.stringify(gd));
+      throw new Error('AI가 결과를 생성하지 않았습니다. (응답 데이터 구조 오류)');
+    }
+
+    // 💡 3단계: 안전하게 텍스트 추출
+    const fullText = (gd.candidates[0].content.parts || [])
+      .map(p => p.text || '')
+      .join('')
+      .trim();
+
+    if (!fullText) {
+      throw new Error('AI 분석 결과가 빈 값입니다. 검색 키워드를 다시 확인해주세요.');
+    }
+
+    console.log(`[hunt] 분석 성공, 텍스트 길이: ${fullText.length}`);
+
+    // ────────────────────────────────────────────
+    // 4. JSONL 파싱 (이후 기존 로직 동일)
+    // ────────────────────────────────────────────
+    const items = [];
+    // ... (기존 JSONL 파싱 로직 사용)
 
     // ────────────────────────────────────────────
     // 4. JSONL 파싱
