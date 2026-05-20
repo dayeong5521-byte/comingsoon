@@ -113,7 +113,12 @@ function makeCalUrl(p){
     +'&details='+encodeURIComponent(p.description||'');
 }
 
-/* 전체 아이템 = 저장된 키워드 데이터 합산 */
+var showTbd=true; // TBD 포함 여부
+
+/* TBD 필터 적용 */
+function applyTbdFilter(list){
+  return showTbd ? list : list.filter(function(p){ return p.release_date!=='TBD'; });
+}
 function getAllItems(){
   var all=[],seen=new Set();
   savedBrands.forEach(function(kw){
@@ -546,9 +551,10 @@ function mkList(p){
 
 /* ── 렌더 ── */
 function renderItems(list){
+  var filtered=applyTbdFilter(list);
   var el=document.getElementById('content');
-  document.getElementById('resultCount').textContent=list.length+'개 시그널';
-  if(!list.length){
+  document.getElementById('resultCount').textContent=filtered.length+'개 시그널';
+  if(!filtered.length){
     el.innerHTML=
       '<div class="empty-state">'+
         '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="7.5" stroke="#BDBDBD" stroke-width="1.5"/><line x1="16" y1="16" x2="22" y2="22" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div>'+
@@ -558,9 +564,9 @@ function renderItems(list){
     return;
   }
   if(viewMode==='grid'){
-    var html='<div class="card-grid">'; list.forEach(function(p){ html+=mkGrid(p); }); el.innerHTML=html+'</div>';
+    var html='<div class="card-grid">'; filtered.forEach(function(p){ html+=mkGrid(p); }); el.innerHTML=html+'</div>';
   } else {
-    var html='<div class="card-list">'; list.forEach(function(p){ html+=mkList(p); }); el.innerHTML=html+'</div>';
+    var html='<div class="card-list">'; filtered.forEach(function(p){ html+=mkList(p); }); el.innerHTML=html+'</div>';
   }
   bindCardEvents(el); /* ★ 항상 이벤트 다시 바인딩 */
 }
@@ -634,11 +640,13 @@ function renderArchive(){
     el.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="16" rx="2" stroke="#BDBDBD" stroke-width="1.5"/><path d="M2 11h20" stroke="#BDBDBD" stroke-width="1.5"/><path d="M10 16h4" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="empty-title">아직 보관된 항목이 없어요</div><div class="empty-desc">릴리즈 카드에서 보관 버튼을 눌러보세요.</div></div>';
     return;
   }
-  var sorted=archivedItems.slice().sort(function(a,b){
+  var sorted=applyTbdFilter(archivedItems.slice().sort(function(a,b){
+    if(a.release_date==='TBD') return 1;
+    if(b.release_date==='TBD') return -1;
     return archiveSortMode==='imminent'
       ? a.release_date.localeCompare(b.release_date)
       : b.release_date.localeCompare(a.release_date);
-  });
+  }));
   var cntEl=document.getElementById('archiveResultCount');
   if(cntEl) cntEl.textContent=sorted.length+'개 보관됨';
   if(viewMode==='grid'){
@@ -677,7 +685,26 @@ document.addEventListener('DOMContentLoaded',function(){
     };
   });
 
-  var ms=document.getElementById('mainSearch');
+  // TBD 토글
+  ['tbdToggle','tbdToggleArc'].forEach(function(id){
+    var btn=document.getElementById(id);
+    if(!btn) return;
+    btn.classList.add('on'); // 기본: 미정 포함(on)
+    btn.onclick=function(){
+      showTbd=!showTbd;
+      // 두 버튼 동기화
+      ['tbdToggle','tbdToggleArc'].forEach(function(bid){
+        var b=document.getElementById(bid);
+        if(b){
+          b.textContent=showTbd?'미정 포함':'날짜 확정만';
+          showTbd?b.classList.add('on'):b.classList.remove('on');
+        }
+      });
+      // 현재 뷰 재렌더
+      if(currentView==='archive') renderArchive();
+      else renderItems(getSortedItems(getDisplayList()));
+    };
+  });
   if(ms){
     ms.onkeydown=function(e){ if(e.key==='Enter') startHunt(); };
     /* 새 키워드 입력 시 저장 버튼 초기화 */
