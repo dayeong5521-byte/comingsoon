@@ -686,7 +686,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   display: flex;
   height: 36px;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   background: #F4F4F2;
   
   /* 웹 적용을 위한 필수 조정 */
