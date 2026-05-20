@@ -555,7 +555,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   font-size: 14px !important;
   font-weight: 900 !important;
   color: var(--text1) !important;
-  letter-spacing: -0.02em !important;
+  letter-spacing: -0.03em !important;
   line-height: 1 !important;
   white-space: nowrap !important;
   font-variant-numeric: tabular-nums !important;
