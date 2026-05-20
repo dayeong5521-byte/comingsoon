@@ -7,13 +7,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
 <link rel="stylesheet" href="style.css"/>
 <script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","wnf1ptnwa0");</script>
-<!-- 1. Vercel Speed Insights -->
 <script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};</script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 
-<!-- 로그인 모달 -->
 <div class="modal-bg" id="loginModalBg">
   <div class="modal login-modal">
     <div class="login-header">
@@ -33,19 +31,32 @@
   </div>
 </div>
 
+<div class="modal-bg" id="feedbackModalBg">
+  <div class="modal feedback-modal-light">
+    <div class="modal-header">
+      <div class="modal-title">의견 보내기</div>
+      <button class="close-btn" onclick="closeModal('feedbackModalBg')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-desc">
+      COMING SOON 서비스 어떠신가요?<br>
+      모든 의견은 익명으로 전달되며 서비스의 개선에 큰 도움이 됩니다.
+    </div>
+
+    <textarea id="feedbackText" placeholder="버그, 개선할 점, 장점, 아이디어 등 어떤 의견이든 자유롭게 남겨주세요."></textarea>
+
+    <button class="submit-btn" onclick="submitFeedback()">제출하기</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
 
 <div class="layout">
 <div class="sb-overlay" id="overlay"></div>
 
-<!-- ════════════════════════════
-     SIDEBAR — Figma 1:1501 구조 정확 반영
-     Logo → [gap] → Navigation label → nav items → divider →
-     Focus Groups label → 검색 → brand items → [gap] → user
-════════════════════════════ -->
 <aside class="sb" id="sidebar">
 
-  <!-- 로고 — 16px Black uppercase + dot -->
   <div class="sb-logo">
     <div class="logo-row">
       <span class="logo-txt">Coming Soon</span>
@@ -54,10 +65,8 @@
     <div class="logo-sub">Release Tracker</div>
   </div>
 
-  <!-- NAVIGATION 섹션 -->
   <div class="sb-sec-lbl">Navigation</div>
   <div class="nav-list" style="margin-bottom:16px;">
-    <!-- Release Radar — active: white bg, bold icon accent -->
     <div class="nav-item nav-item-top" id="navRadar" onclick="switchView('radar')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none">
@@ -68,7 +77,6 @@
         <span class="ni-label">Release Radar</span>
       </div>
     </div>
-    <!-- My Archive -->
     <div class="nav-item nav-item-top" id="navArchive" onclick="switchView('archive')">
       <div class="ni-left">
         <svg class="ni-icon" viewBox="0 0 15 15" fill="none">
@@ -82,15 +90,11 @@
     </div>
   </div>
 
-  <!-- 구분선 -->
   <div class="sb-div"></div>
 
-  <!-- FOCUS GROUPS 섹션 -->
   <div class="sb-sec-lbl">Focus Groups</div>
 
-  <!-- 브랜드 아이템 목록 -->
   <div class="nav-list" id="navList">
-    <!-- 전체 -->
     <div class="nav-item nav-item-brand" id="allFilter" onclick="switchView('all')">
       <div class="ni-left">
         <div class="ni-dot"></div>
@@ -99,18 +103,13 @@
       <span id="allFilterCnt" style="display:none">0</span>
     </div>
   </div>
+
   <div class="sb-footer">
     <button class="feedback-trigger-btn" onclick="openModal('feedbackModalBg')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
       의견 보내기
     </button>
     
-    <div class="user-area" id="userArea">
-      </div>
-  </div>
-
-  <!-- 유저 영역 -->
-  <div class="sb-footer">
     <div class="user-area" id="userArea">
       <div class="av" id="userAv">?</div>
       <div class="av-info">
@@ -122,9 +121,6 @@
   </div>
 </aside>
 
-<!-- ════════════════════════════
-     MAIN
-════════════════════════════ -->
 <div class="main">
   <div class="mob-header">
     <div class="mob-logo"><span>Coming Soon</span><span class="mob-dot"></span></div>
@@ -137,15 +133,8 @@
     </button>
   </div>
 
-  <!-- Radar 패널 -->
   <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
 
-    <!-- ════════════════════════
-         검색 헤더
-         Figma: h-80px, padding 0 28px
-         [input: flex-1, h-46, rounded-20] [발견하기: 100x46]
-         ★ 별 아이콘은 input 내부 오른쪽
-    ════════════════════════ -->
     <div class="hd" id="searchHeader">
       <div class="search-row">
         <div class="search-bar">
@@ -156,7 +145,6 @@
             </svg>
           </div>
           <input class="s-input" id="mainSearch" type="text" placeholder="릴리즈 소식을 알고 싶은 키워드를 검색하세요."/>
-          <!-- ★ 버튼을 검색창 안 오른쪽에 배치 -->
           <button class="kw-save-btn" id="kwSaveBtn" disabled onclick="saveCurrentKeyword()">
             키워드 저장
           </button>
@@ -164,19 +152,16 @@
       </div>
     </div>
 
-    <!-- 포커스 그룹 헤더 (브랜드 클릭 시) -->
     <div class="focus-group-header" id="focusGroupHeader">
       <div class="fg-label">Focus Groups</div>
       <div class="fg-title" id="focusGroupTitle"></div>
     </div>
 
-    <!-- 상태바 -->
     <div class="status-bar" id="statusBar">
       <div class="spinner"></div>
       <span id="statusMsg"></span>
     </div>
 
-    <!-- 툴바 — Figma: h-48.5px, 버튼 active = #111 -->
     <div class="toolbar">
       <div class="view-sw">
         <button class="vs-btn on" id="btnGrid">
@@ -201,7 +186,6 @@
         <button class="sort-btn" data-sort="recent">최근 발표된순</button>
       </div>
       <div class="filter-sep"></div>
-      <!-- TBD 필터 토글 -->
       <button class="tbd-toggle" id="tbdToggle" data-show-tbd="true">
         날짜 미정 포함
       </button>
@@ -211,7 +195,6 @@
     <div class="content" id="content"></div>
   </div>
 
-  <!-- Archive 패널 -->
   <div id="archivePanel" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="archive-header">
       <div class="archive-title-row">
@@ -229,7 +212,6 @@
         <div class="archive-stat"><span class="archive-stat-num" id="archiveStatUpcoming">0</span>개 임박</div>
       </div>
     </div>
-    <!-- 3. 아카이브 필터 툴바 -->
     <div class="toolbar">
       <div class="view-sw">
         <button class="vs-btn on" id="btnGridArc">
