@@ -131,6 +131,11 @@ export default async function handler(req, res) {
     // ────────────────────────────────────────────
     send({ type:'status', message:'AI 분석 중...' });
 
+    const prompt = 
+      `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
+      `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n` +
+      `Extract in JSON format: {"category":"PRODUCT/EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","link":"..."}`;
+    
     let gr, attempt = 0;
     const MODEL_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
