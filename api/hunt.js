@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
     // 차단 도메인
     const BLOCKED = [
-      'facebook.com','threads.net',           // ← 차단
+      'facebook.com','threads.net',
       'blog.naver.com','m.blog.naver.com','cafe.naver.com',
       'tistory.com','brunch.co.kr',
       'reddit.com','quora.com','dcinside.com',
@@ -65,7 +65,6 @@ export default async function handler(req, res) {
     const allResults = [];
     for (const sd of searchResponses) {
       if (!sd) continue;
-      // answerBox
       if (sd.answerBox?.answer || sd.answerBox?.snippet) {
         allResults.push({ title:'[직접답변]', snippet: sd.answerBox.answer || sd.answerBox.snippet, link:'' });
       }
@@ -87,13 +86,11 @@ export default async function handler(req, res) {
       'lineup','upcoming','drop-list','출시일정','발매일정'];
     const isListPage = url => LIST_KEYWORDS.some(k => url?.toLowerCase().includes(k));
 
-    // 리스트 페이지 우선, 나머지는 뒤로
     const sortedResults = [
       ...allResults.filter(o => o.link && isListPage(o.link)),
       ...allResults.filter(o => o.link && !isListPage(o.link)),
     ];
 
-    // 상위 3개 페이지 병렬 fetch (5초 타임아웃)
     const toFetch = sortedResults
       .filter(o => o.link && !['instagram.com','twitter.com','x.com','youtube.com','facebook.com','threads.net']
         .some(d => o.link.includes(d)))
@@ -116,9 +113,176 @@ export default async function handler(req, res) {
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 5000); // 넉넉하게 5000자
+          .slice(0, 5000); 
         return `[페이지: ${item.link}]\n${text}`;
       } catch { return null; }
     }));
 
-    // 컨텍스트
+    let context = allResults.slice(0, 12).map((o, i) =>
+      `[${i+1}] ${o.title}\n${o.snippet || ''}\n${o.link ? 'URL: '+o.link : ''}`
+    ).join('\n\n');
+
+    const pageTexts = pageContents
+      .filter(r => r.status === 'fulfilled' && r.value)
+      .map(r => r.value)
+      .join('\n\n');
+
+    if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
+
+    // ────────────────────────────────────────────
+    // 3. Gemini 호출 — JSONL 형식
+    // ────────────────────────────────────────────
+    send({ type:'status', message:'AI 분석 중...' });
+
+    const GEMINI_URL =
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+    const prompt =
+      `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
+      `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
+      `## CATEGORIES\n` +
+      `PRODUCT: fashion/sneakers/tech goods | EVENT: popup/concert/exhibition/fanmeeting\n` +
+      `CULTURE: album/movie/book premiere   | CONTENT: game/streaming/digital drop\n\n` +
+      `## DATE RULES\n` +
+      `- CRITICAL: Distinguish between the "article publication date" and the "actual event/release date". NEVER extract the publication date of the webpage as the release_date.\n` +
+      `- If the text says "Next Friday" or "Tomorrow", calculate the exact date based on Today (${TODAY}).\n` +
+      `- Exact date found → "YYYY-MM-DD"\n` +
+      `- Month only → "YYYY-MM"\n` +
+      `- Date range → "YYYY-MM-DD~DD"\n` +
+      `- Quarter/season/year only/unclear → "TBD"\n` +
+      `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
+      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
+      `## SOURCE RULES\n` +
+      `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
+      `- Prefer official brand sites or major media outlets for the link field\n\n` +
+      `Each line must be a complete, valid JSON object. No trailing commas.\n` +
+      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
+      `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
+      `Extract ALL items found. If none, output nothing.\n\n` +
+      `## SOURCES\n${context}`;
+
+    let gr, attempt = 0;
+    while (attempt < 3) {
+      gr = await fetch(GEMINI_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          contents:[{ parts:[{ text: prompt }] }],
+          generationConfig:{ temperature:0, maxOutputTokens:8192 },
+          safetySettings:[
+            { category:'HARM_CATEGORY_HARASSMENT',        threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_HATE_SPEECH',       threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold:'BLOCK_NONE' },
+            { category:'HARM_CATEGORY_DANGEROUS_CONTENT', threshold:'BLOCK_NONE' },
+          ],
+        }),
+      });
+      if (gr.ok) break;
+      if (gr.status === 503 && attempt < 2) {
+        send({ type:'status', message:`AI 서버 혼잡, 재시도... (${attempt+1}/3)` });
+        await new Promise(r => setTimeout(r, (attempt+1)*1500));
+        attempt++;
+        continue;
+      }
+      const errBody = await gr.text().catch(() => '');
+      console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
+      throw new Error(`Gemini HTTP ${gr.status}`);
+    }
+
+    const gd = await gr.json();
+    if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
+
+    const fullText = (gd.candidates?.[0]?.content?.parts || [])
+      .map(p => p.text || '').join('').trim();
+
+    // ────────────────────────────────────────────
+    // 4. JSONL 파싱 — 한 줄씩 파싱
+    // ────────────────────────────────────────────
+    const items = [];
+    for (const line of fullText.split('\n')) {
+      const t = line.trim();
+      if (!t.startsWith('{')) continue;
+      try {
+        const obj = JSON.parse(t.endsWith('}') ? t : t + '}');
+        if (obj.item_name && obj.release_date) items.push(obj);
+      } catch { /* 잘린 줄 무시 */ }
+    }
+
+    console.log(`[hunt] items parsed: ${items.length}`);
+
+    // ────────────────────────────────────────────
+    // 5. 날짜 유효성 필터 (확장 적용)
+    // ────────────────────────────────────────────
+    const getBaseDate = d => {
+      if (!d || d === 'TBD') return null;
+      const base = d.split('~')[0];
+      return /^\d{4}-\d{2}$/.test(base) ? base+'-01' : base;
+    };
+    
+    // 범용성을 위해 분기(Q1~4) 및 early/mid/late 등 유연한 표현 허용
+    const isValidFmt = d =>
+      d === 'TBD' ||
+      /^\d{4}-\d{2}$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}$/.test(d) ||
+      /^\d{4}-(Q1|Q2|Q3|Q4)$/.test(d) ||
+      /^\d{4}-\d{2}-(early|mid|late)$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}~\d{1,2}$/.test(d) ||
+      /^\d{4}-\d{2}-\d{2}~\d{4}-\d{2}-\d{2}$/.test(d);
+
+    const valid = items.filter(item => {
+      if (!item.release_date || !isValidFmt(item.release_date)) return false;
+      const base = getBaseDate(item.release_date);
+      if (base && base < TODAY) return false;
+      if (item.link && isBlocked(item.link)) return false;
+      if (!item.brand?.trim()) item.brand = keyword;
+      const key = `${item.item_name}||${item.release_date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const confirmed = valid.filter(i => i.release_date !== 'TBD');
+    const tbdItems  = valid.filter(i => i.release_date === 'TBD'); 
+    const finalList = [...confirmed, ...tbdItems];
+
+    console.log(`[hunt] confirmed: ${confirmed.length}, tbd: ${tbdItems.length}`);
+    if (!finalList.length) { send({ type:'done', total:0 }); return; }
+
+    // ────────────────────────────────────────────
+    // 6. 이미지 병렬 검색
+    // ────────────────────────────────────────────
+    send({ type:'status', message:`이미지 검색 중... (${finalList.length}개)` });
+
+    await Promise.allSettled(finalList.map(async item => {
+      try {
+        const ir = await fetch('https://google.serper.dev/images', {
+          method:'POST',
+          headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
+          body: JSON.stringify({ q:`${item.brand} ${item.item_name}`, num:1 }),
+        });
+        if (!ir.ok) return;
+        const id = await ir.json();
+        if (id.images?.[0]) item.image_url = id.images[0].imageUrl;
+      } catch {}
+    }));
+
+    // 날짜순 정렬 후 전송
+    finalList
+      .sort((a, b) => {
+        if (a.release_date === 'TBD') return 1;
+        if (b.release_date === 'TBD') return -1;
+        const da = getBaseDate(a.release_date) || '9999-12-31';
+        const db = getBaseDate(b.release_date) || '9999-12-31';
+        return da.localeCompare(db);
+      })
+      .forEach(item => send({ type:'item', data:item }));
+
+    send({ type:'done', total:valid.length });
+
+  } catch(err) {
+    console.error('[hunt] Error:', err.message);
+    send({ type:'error', message:err.message });
+  } finally {
+    res.end(); // 이 부분의 괄호가 완벽하게 닫혔습니다!
+  }
+}
