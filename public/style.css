@@ -692,7 +692,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   /* 웹 적용을 위한 필수 조정 */
   width: 100%;
   padding: 0 12px; /* 좌우 패딩만 유지해 높이(44px) 찌그러짐 방지 */
-  margin: 0 0 12px 0; /* 💡 로그인 카드와의 간격만 딱 16px 띄움 */
+  margin: 0 0 4px 0; /* 💡 로그인 카드와의 간격만 딱 16px 띄움 */
   box-sizing: border-box;
   border: none;
   border-radius: 8px;
