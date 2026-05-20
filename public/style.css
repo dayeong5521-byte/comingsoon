@@ -559,6 +559,25 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 /* 날짜 범위/년월 표시 — 글자 작게 */
 .pc-date.range{font-size:11px;letter-spacing:-0.03em;}
+/* TBD 토글 버튼 */
+.tbd-toggle{
+  height:30px;padding:0 11px;
+  border:0.5px solid var(--border-md);
+  border-radius:50px;
+  font-size:11px;font-weight:600;font-family:var(--font);
+  letter-spacing:-0.02em;color:var(--text2);
+  background:transparent;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;
+}
+.tbd-toggle::before{
+  content:'';width:7px;height:7px;border-radius:50%;
+  background:var(--text3);flex-shrink:0;transition:background .15s;
+}
+.tbd-toggle.on{background:var(--text1);border-color:var(--text1);color:#fff;}
+.tbd-toggle.on::before{background:var(--accent);}
+.tbd-toggle:hover:not(.on){border-color:var(--text2);}
+
 /* 카테고리 뱃지 */
 .pc-category{
   font-size:8px;font-weight:700;
