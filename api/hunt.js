@@ -37,7 +37,6 @@ export default async function handler(req, res) {
     const queries = [
       { q:`${keyword} (${KO}) ${CY} ${CY+1}`,       gl:'kr', hl:'ko', num:10, tbs:'qdr:m6' },
       { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`,  gl:'us', hl:'en', num:10, tbs:'qdr:m6' },
-      // 뉴스 기사 우선 — 날짜가 텍스트에 명확히 포함됨
       { q:`${keyword} release date ${CY}`,               gl:'us', hl:'en', num:8,  tbs:'qdr:m6', news:true },
       { q:`${keyword} 출시일 발매일 ${CY}`,              gl:'kr', hl:'ko', num:5,  tbs:'qdr:m6', news:true },
     ];
@@ -51,7 +50,6 @@ export default async function handler(req, res) {
       }).then(r => r.ok ? r.json() : null).catch(() => null);
     }));
 
-    // 차단 도메인
     const BLOCKED = [
       'facebook.com','threads.net',
       'blog.naver.com','m.blog.naver.com','cafe.naver.com',
@@ -60,7 +58,6 @@ export default async function handler(req, res) {
     ];
     const isBlocked = url => BLOCKED.some(d => url?.includes(d));
 
-    // 중복 제거 + 차단 필터
     const seenUrls = new Set();
     const allResults = [];
     for (const sd of searchResponses) {
@@ -78,7 +75,7 @@ export default async function handler(req, res) {
     if (!allResults.length) throw new Error('검색 결과가 없습니다.');
 
     // ────────────────────────────────────────────
-    // 2. 상위 페이지 fetch — 리스트 페이지 우선 선택
+    // 2. 상위 페이지 fetch
     // ────────────────────────────────────────────
     send({ type:'status', message:'페이지 내용 수집 중...' });
 
@@ -130,7 +127,7 @@ export default async function handler(req, res) {
     if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
 
     // ────────────────────────────────────────────
-    // 3. Gemini 호출 — 💡 2.0 세대 기반 철벽 방어 자동 우회(Fallback) 시스템
+    // 3. Gemini 호출 — 💡 최신 2.5 엔진 기반 404/503 철벽 디펜스 및 UX 문구 반영
     // ────────────────────────────────────────────
     send({ type:'status', message:'AI 분석 중...' });
 
@@ -161,12 +158,12 @@ export default async function handler(req, res) {
     let gr, attempt = 0;
     
     while (attempt < 3) {
-      // 💡 1트: 메인 모델 (v1 주소 + gemini-2.5-flash)
+      // 💡 1트: 정식 v1 경로의 최신 gemini-2.5-flash 활용
       let currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
       
       if (attempt > 0) {
-        // 🌟 메인 통로 에러 시, 같은 2.0 세대의 초고속 엔진인 gemini-2.0-flash 예비 주소로 즉시 대피!
-        currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+        // 🌟 메인 경로 실패(503 혼잡) 시, v1beta 주소 체계의 gemini-2.5-flash 통로로 우회 재시도!
+        currentUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
       }
 
       gr = await fetch(currentUrl, {
@@ -186,9 +183,12 @@ export default async function handler(req, res) {
 
       if (gr.ok) break;
 
-      // 503(혼잡) 혹은 404(주소 꼬임) 발생 시 대피 로직 작동
+      // 💡 UX 라이팅 개선: 시스템 용어를 지우고 다영님의 Vibe에 맞춘 자연스러운 흐름으로 수정
       if ((gr.status === 503 || gr.status === 404) && attempt < 2) {
-        const fallbackMsg = gr.status === 404 ? '데이터 연결을 최적화하고 있어요...' : `소식이 많아 찾는 데 시간이 조금 더 걸려요... (${attempt+1}/3)`;
+        const fallbackMsg = gr.status === 404 
+          ? '데이터 연결을 최적화하고 있어요...' 
+          : `소식이 많아 찾는 데 시간이 조금 더 걸려요... (${attempt+1}/3)`;
+          
         send({ type:'status', message: fallbackMsg });
         
         await new Promise(r => setTimeout(r, 500));
@@ -208,7 +208,7 @@ export default async function handler(req, res) {
       .map(p => p.text || '').join('').trim();
 
     // ────────────────────────────────────────────
-    // 4. JSONL 파싱 — 한 줄씩 파싱
+    // 4. JSONL 파싱
     // ────────────────────────────────────────────
     const items = [];
     for (const line of fullText.split('\n')) {
@@ -223,7 +223,7 @@ export default async function handler(req, res) {
     console.log(`[hunt] items parsed: ${items.length}`);
 
     // ────────────────────────────────────────────
-    // 5. 날짜 유효성 필터 (확장 적용)
+    // 5. 날짜 유효성 필터
     // ────────────────────────────────────────────
     const getBaseDate = d => {
       if (!d || d === 'TBD') return null;
@@ -231,7 +231,6 @@ export default async function handler(req, res) {
       return /^\d{4}-\d{2}$/.test(base) ? base+'-01' : base;
     };
     
-    // 범용성을 위해 분기(Q1~4) 및 early/mid/late 등 유연한 표현 허용
     const isValidFmt = d =>
       d === 'TBD' ||
       /^\d{4}-\d{2}$/.test(d) ||
@@ -278,7 +277,6 @@ export default async function handler(req, res) {
       } catch {}
     }));
 
-    // 날짜순 정렬 후 전송
     finalList
       .sort((a, b) => {
         if (a.release_date === 'TBD') return 1;
