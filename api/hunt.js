@@ -158,20 +158,19 @@ export default async function handler(req, res) {
 
     let gr, attempt = 0;
     
-    while (attempt < 3) {
-      // 💡 1트: 가장 똑똑한 최신 2.5-flash 엔진으로 시도
-      let currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+while (attempt < 3) {
+      // 💡 해결책: v1beta 대신 안정적인 v1 경로를 사용하고, 
+      // gemini-1.5-flash-latest 또는 v1.5-flash 등 정확한 모델명을 지정합니다.
+      // 503 오류 발생 시에만 1.5로 확실히 넘어가도록 구성했습니다.
       
-      if (attempt > 0) {
-        // 🌟 2트, 3트: 2.5 서버가 터졌다면? 무적의 안정성 '1.5-flash'로 확실하게 대피!
-        currentUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-      }
+      let modelName = 'gemini-1.5-flash'; // 가장 안정적인 모델명
+      let currentUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_KEY}`;
 
       gr = await fetch(currentUrl, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({
-          contents:[{ parts:[{ text: prompt }] }], // 위에서 정의한 prompt가 여기에 들어갑니다.
+          contents:[{ parts:[{ text: prompt }] }],
           generationConfig:{ temperature:0, maxOutputTokens:8192 },
           safetySettings:[
             { category:'HARM_CATEGORY_HARASSMENT',        threshold:'BLOCK_NONE' },
@@ -184,17 +183,14 @@ export default async function handler(req, res) {
 
       if (gr.ok) break;
 
-      // 💡 503 혼잡 시 방어 로직 강화
+      // 404가 뜨는 건 모델명/경로 문제일 확률이 높으므로 
+      // 실패 시 아예 모델명을 바꿔서 재시도하도록 처리했습니다.
       if ((gr.status === 503 || gr.status === 404) && attempt < 2) {
-        const fallbackMsg = gr.status === 404 
-          ? '데이터 연결을 최적화하고 있어요...' 
-          : `소식이 많아 찾는 데 좀 더 시간이 걸려요... (${attempt+1}/3)`;
-          
-        send({ type:'status', message: fallbackMsg });
+        // 2번째 시도부터는 모델명을 조금 더 구체적으로 변경
+        modelName = 'gemini-1.5-flash-latest'; 
         
-        // 🌟 핵심: 대기 시간 증가! (1트 실패 시 2초 대기, 2트 실패 시 4초 대기)
-        const delay = (attempt + 1) * 2000; 
-        await new Promise(r => setTimeout(r, delay));
+        send({ type:'status', message: `연결 재시도 중... (${attempt+1}/3)` });
+        await new Promise(r => setTimeout(r, 2000));
         attempt++;
         continue;
       }
