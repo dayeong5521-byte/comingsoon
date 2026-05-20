@@ -560,6 +560,28 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   white-space: nowrap !important;
   font-variant-numeric: tabular-nums !important;
 }
+/* ── [1] 카드 하단 전체 박스 (양끝 정렬의 핵심) ── */
+.pc-bot {
+  /* 다영님이 피그마에서 뽑아온 레이아웃! */
+  display: flex;
+  justify-content: space-between; 
+  align-items: center; /* 필요에 따라 flex-end로 바꾸면 아래쪽 선이 맞습니다 */
+  flex-shrink: 0;
+  
+  /* 웹 적용 필수 보정 */
+  width: 100%; /* 198.5px 고정 대신, 카드 크기에 맞춰 꽉 차게 */
+  margin-top: 12px;
+  box-sizing: border-box;
+}
+
+/* ── [2] Coming Up과 날짜를 위아래로 예쁘게 묶는 박스 ── */
+/* (만약 HTML에 이 둘을 묶는 별도 클래스가 있다면 거기에 적용해 주세요) */
+.pc-date-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px; /* 라벨과 날짜 사이의 미세한 간격 */
+}
 /* TBD 토글 버튼 */
 .tbd-toggle{
   height:30px;padding:0 11px;
