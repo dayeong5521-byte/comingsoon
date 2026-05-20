@@ -840,7 +840,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
     /* 💡 검색창의 원래 배경색으로 변경해 주세요 (예: 하얀색이면 #FFFFFF, 연회색이면 #F5F5F5) */
-    -webkit-box-shadow: 0 0 0px 1000px #F4F4F4 inset !important; 
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important; 
     
     /* 💡 입력되는 글자 색상 유지 */
     -webkit-text-fill-color: #111 !important; 
