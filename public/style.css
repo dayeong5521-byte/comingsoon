@@ -834,3 +834,18 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .feedback-modal-light .submit-btn:hover {
   background: #333;
 }
+
+/* 크롬 자동완성(Autofill) 파란색 배경 제거 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    /* 💡 검색창의 원래 배경색으로 변경해 주세요 (예: 하얀색이면 #FFFFFF, 연회색이면 #F5F5F5) */
+    -webkit-box-shadow: 0 0 0px 1000px #F4F4F4 inset !important; 
+    
+    /* 💡 입력되는 글자 색상 유지 */
+    -webkit-text-fill-color: #111 !important; 
+    
+    /* 배경색이 변하는 것을 극단적으로 지연시킴 */
+    transition: background-color 5000s ease-in-out 0s; 
+}
