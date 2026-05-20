@@ -546,7 +546,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   font-weight: 600;
   color: #BDBDBD;
   letter-spacing: -0.02em;
-  margin-bottom: 2px; /* 💡 날짜와 딱 붙도록 미세 조정 */
+  margin-bottom: 3px; /* 💡 날짜와 딱 붙도록 미세 조정 */
   line-height: 1;
 }
 
