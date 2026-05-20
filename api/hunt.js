@@ -188,7 +188,7 @@ export default async function handler(req, res) {
       if ((gr.status === 503 || gr.status === 404) && attempt < 2) {
         const fallbackMsg = gr.status === 404 
           ? '데이터 연결을 최적화하고 있어요...' 
-          : `소식이 많아 예비 채널로 전환합니다... (${attempt+1}/3)`;
+          : `소식이 많아 찾는 데 좀 더 시간이 걸려요... (${attempt+1}/3)`;
           
         send({ type:'status', message: fallbackMsg });
         
