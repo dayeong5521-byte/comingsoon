@@ -127,37 +127,11 @@ export default async function handler(req, res) {
     if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
 
     // ────────────────────────────────────────────
-    // 3. Gemini 호출 — 💡 잃어버린 프롬프트 복구 & 완벽한 1.5 우회망 적용
+    // 3. Gemini 호출 및 파싱 (중복 선언 방지 완벽 정리)
     // ────────────────────────────────────────────
     send({ type:'status', message:'AI 분석 중...' });
 
-    // 🌟 핵심: 이 영어 텍스트 덩어리(프롬프트)가 있어야 AI가 일을 합니다!
-    const prompt =
-      `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
-      `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
-      `## CATEGORIES\n` +
-      `PRODUCT: fashion/sneakers/tech goods | EVENT: popup/concert/exhibition/fanmeeting\n` +
-      `CULTURE: album/movie/book premiere   | CONTENT: game/streaming/digital drop\n\n` +
-      `## DATE RULES\n` +
-      `- CRITICAL: Distinguish between the "article publication date" and the "actual event/release date". NEVER extract the publication date of the webpage as the release_date.\n` +
-      `- If the text says "Next Friday" or "Tomorrow", calculate the exact date based on Today (${TODAY}).\n` +
-      `- Exact date found → "YYYY-MM-DD"\n` +
-      `- Month only → "YYYY-MM"\n` +
-      `- Date range → "YYYY-MM-DD~DD"\n` +
-      `- Quarter/season/year only/unclear → "TBD"\n` +
-      `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
-      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
-      `## SOURCE RULES\n` +
-      `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
-      `- Prefer official brand sites or major media outlets for the link field\n\n` +
-      `Each line must be a complete, valid JSON object. No trailing commas.\n` +
-      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
-      `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
-      `Extract ALL items found. If none, output nothing.\n\n` +
-      `## SOURCES\n${context}`;
-    
-let gr, attempt = 0;
-    // 2.5-flash 전용 URL
+    let gr, attempt = 0;
     const MODEL_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     while (attempt < 3) {
@@ -176,37 +150,26 @@ let gr, attempt = 0;
         }),
       });
 
-      // 3. Gemini 호출 루프 직후...
+      if (gr.ok) break;
+
+      if (gr.status === 503 && attempt < 2) {
+        send({ type:'status', message: `잠시 혼잡하여 다시 시도 중... (${attempt+1}/3)` });
+        await new Promise(r => setTimeout(r, 2000));
+        attempt++;
+        continue;
+      }
+      
+      const errBody = await gr.text().catch(() => '');
+      console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
+      throw new Error(`Gemini HTTP ${gr.status}`);
+    }
+
     const gd = await gr.json();
-    
-    // 💡 1단계: 명시적 API 오류 확인
-    if (gd.error) {
-      throw new Error(`Gemini API 오류 (${gd.error.code}): ${gd.error.message}`);
-    }
+    if (gd.error) throw new Error(`Gemini API 오류: ${gd.error.message}`);
+    if (!gd.candidates?.[0]?.content?.parts) throw new Error('AI 결과값이 비어있습니다.');
 
-    // 💡 2단계: 응답 구조 2중 검사 (구조가 꼬였을 때 대비)
-    if (!gd.candidates || !gd.candidates[0] || !gd.candidates[0].content) {
-      console.error('[hunt] 비정상 응답:', JSON.stringify(gd));
-      throw new Error('AI가 결과를 생성하지 않았습니다. (응답 데이터 구조 오류)');
-    }
-
-    // 💡 3단계: 안전하게 텍스트 추출
-    const fullText = (gd.candidates[0].content.parts || [])
-      .map(p => p.text || '')
-      .join('')
-      .trim();
-
-    if (!fullText) {
-      throw new Error('AI 분석 결과가 빈 값입니다. 검색 키워드를 다시 확인해주세요.');
-    }
-
+    const fullText = gd.candidates[0].content.parts.map(p => p.text || '').join('').trim();
     console.log(`[hunt] 분석 성공, 텍스트 길이: ${fullText.length}`);
-
-    // ────────────────────────────────────────────
-    // 4. JSONL 파싱 (이후 기존 로직 동일)
-    // ────────────────────────────────────────────
-    const items = [];
-    // ... (기존 JSONL 파싱 로직 사용)
 
     // ────────────────────────────────────────────
     // 4. JSONL 파싱
