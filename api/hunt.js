@@ -155,18 +155,13 @@ export default async function handler(req, res) {
       `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
       `Extract ALL items found. If none, output nothing.\n\n` +
       `## SOURCES\n${context}`;
-
-    let gr, attempt = 0;
     
-while (attempt < 3) {
-      // 💡 해결책: v1beta 대신 안정적인 v1 경로를 사용하고, 
-      // gemini-1.5-flash-latest 또는 v1.5-flash 등 정확한 모델명을 지정합니다.
-      // 503 오류 발생 시에만 1.5로 확실히 넘어가도록 구성했습니다.
-      
-      let modelName = 'gemini-1.5-flash'; // 가장 안정적인 모델명
-      let currentUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_KEY}`;
+let gr, attempt = 0;
+    // 2.5-flash 전용 URL
+    const MODEL_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-      gr = await fetch(currentUrl, {
+    while (attempt < 3) {
+      gr = await fetch(MODEL_URL, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({
@@ -183,28 +178,19 @@ while (attempt < 3) {
 
       if (gr.ok) break;
 
-      // 404가 뜨는 건 모델명/경로 문제일 확률이 높으므로 
-      // 실패 시 아예 모델명을 바꿔서 재시도하도록 처리했습니다.
-      if ((gr.status === 503 || gr.status === 404) && attempt < 2) {
-        // 2번째 시도부터는 모델명을 조금 더 구체적으로 변경
-        modelName = 'gemini-1.5-flash-latest'; 
-        
-        send({ type:'status', message: `연결 재시도 중... (${attempt+1}/3)` });
+      // 💡 503(혼잡) 시에만 대기 후 재시도
+      if (gr.status === 503 && attempt < 2) {
+        send({ type:'status', message: `잠시 혼잡하여 다시 시도 중... (${attempt+1}/3)` });
         await new Promise(r => setTimeout(r, 2000));
         attempt++;
         continue;
       }
       
+      // 404나 기타 에러는 재시도해도 안 되므로 즉시 중단
       const errBody = await gr.text().catch(() => '');
       console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
       throw new Error(`Gemini HTTP ${gr.status}`);
     }
-
-    const gd = await gr.json();
-    if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
-
-    const fullText = (gd.candidates?.[0]?.content?.parts || [])
-      .map(p => p.text || '').join('').trim();
 
     // ────────────────────────────────────────────
     // 4. JSONL 파싱
