@@ -549,20 +549,16 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing:-0.02em;
   margin-bottom:2px;
 }
-.pc-date {
-  font-size: 14px;
-  font-weight: 900;
-  color: var(--text1);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums; /* 숫자와 '?' 기호의 폭을 일정하게 맞춰줌 */
-}
-
-/* 날짜 범위/년월 표시 — 글자 크기 14px로 통일 */
+/* ── 날짜 폰트 크기 절대 통일 (강제 적용) ── */
+.pc-date, 
 .pc-date.range {
-  font-size: 14px; /* 기존 11px에서 14px로 변경 */
-  letter-spacing: -0.02em; /* 자간도 동일하게 통일 */
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  color: var(--text1) !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
 }
 /* TBD 토글 버튼 */
 .tbd-toggle{
