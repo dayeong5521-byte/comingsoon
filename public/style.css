@@ -699,7 +699,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   cursor: pointer;
   
   /* 텍스트 스타일 */
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: #555;
   font-family: inherit;
