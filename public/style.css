@@ -681,20 +681,26 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .pcard-img-wrap{height:130px;}
 }
 
-/* ── [1] 사이드바 '의견 보내기' 버튼 ── */
+/* ── 사이드바 '의견 보내기' 버튼 ── */
 .feedback-trigger-btn {
+  /* 다영님이 주신 피그마 수치 100% 그대로 */
   display: flex;
   height: 44px;
+  padding: 12px;
   align-items: center;
   gap: 10px;
-  padding: 0 12px;
-  margin-bottom: 16px; /* 프로필 카드와 간격 띄우기 */
-  background: #F4F4F2;
+  align-self: stretch;
+
+  /* 웹 기본 스타일 초기화 (불필요한 여백 완전 제거) */
+  margin: 0; /* 💡 제가 넣었던 넓은 간격 원인 제거 */
   width: 100%;
   box-sizing: border-box;
+  background: #F4F4F2;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  
+  /* 텍스트 & 아이콘 스타일 */
   font-size: 15px;
   font-weight: 600;
   color: #555;
@@ -702,10 +708,12 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing: -0.02em;
   transition: background 0.2s;
 }
+
 .feedback-trigger-btn:hover {
   background: #EAEAEA;
   color: #111;
 }
+
 .feedback-trigger-btn svg {
   flex-shrink: 0;
 }
