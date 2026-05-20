@@ -834,7 +834,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .feedback-modal-light .submit-btn:hover {
   background: #333;
 }
-
 /* 크롬 자동완성(Autofill) 파란색 배경 제거 */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
