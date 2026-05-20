@@ -35,17 +35,21 @@ export default async function handler(req, res) {
     const FW = `FW${String(CY).slice(2)} OR SS${String(CY+1).slice(2)}`;
 
     const queries = [
-      { q:`${keyword} (${KO}) ${CY} ${CY+1}`,          gl:'kr', hl:'ko', num:10, tbs:'qdr:m6' },
-      { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`, gl:'us', hl:'en', num:10, tbs:'qdr:m6' },
+      { q:`${keyword} (${KO}) ${CY} ${CY+1}`,           gl:'kr', hl:'ko', num:10, tbs:'qdr:m6' },
+      { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`,  gl:'us', hl:'en', num:10, tbs:'qdr:m6' },
+      // 뉴스 기사 우선 — 날짜가 텍스트에 명확히 포함됨
+      { q:`${keyword} release date ${CY}`,               gl:'us', hl:'en', num:8,  tbs:'qdr:m6', news:true },
+      { q:`${keyword} 출시일 발매일 ${CY}`,              gl:'kr', hl:'ko', num:5,  tbs:'qdr:m6', news:true },
     ];
 
-    const searchResponses = await Promise.all(queries.map(opt =>
-      fetch('https://google.serper.dev/search', {
+    const searchResponses = await Promise.all(queries.map(opt => {
+      const { news, ...body } = opt;
+      return fetch(`https://google.serper.dev/${news ? 'news' : 'search'}`, {
         method:'POST',
         headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
-        body:JSON.stringify(opt),
-      }).then(r => r.ok ? r.json() : null).catch(() => null)
-    ));
+        body:JSON.stringify(body),
+      }).then(r => r.ok ? r.json() : null).catch(() => null);
+    }));
 
     // 차단 도메인
     const BLOCKED = [
@@ -65,7 +69,7 @@ export default async function handler(req, res) {
       if (sd.answerBox?.answer || sd.answerBox?.snippet) {
         allResults.push({ title:'[직접답변]', snippet: sd.answerBox.answer || sd.answerBox.snippet, link:'' });
       }
-      for (const o of (sd.organic || [])) {
+      for (const o of (sd.organic || sd.news || [])) {
         if (!o?.link || seenUrls.has(o.link) || isBlocked(o.link)) continue;
         seenUrls.add(o.link);
         allResults.push(o);
@@ -92,7 +96,7 @@ export default async function handler(req, res) {
 
     // 상위 3개 페이지 병렬 fetch (5초 타임아웃)
     const toFetch = sortedResults
-      .filter(o => o.link && !['instagram.com','twitter.com','x.com','youtube.com','facebook.com']
+      .filter(o => o.link && !['instagram.com','twitter.com','x.com','youtube.com','facebook.com','threads.net']
         .some(d => o.link.includes(d)))
       .slice(0, 3);
 
@@ -146,13 +150,16 @@ export default async function handler(req, res) {
       `PRODUCT: fashion/sneakers/tech goods | EVENT: popup/concert/exhibition/fanmeeting\n` +
       `CULTURE: album/movie/book premiere   | CONTENT: game/streaming/digital drop\n\n` +
       `## DATE RULES\n` +
+      `- Prefer dates from NEWS ARTICLES over official brand sites (news has explicit dates in text)\n` +
       `- Exact date found → "YYYY-MM-DD"\n` +
       `- Month only → "YYYY-MM"\n` +
       `- Date range → "YYYY-MM-DD~DD"\n` +
       `- Quarter/season/year only/unclear → "TBD"\n` +
       `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
       `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
-      `## OUTPUT FORMAT — JSONL (one JSON object per line, NO array brackets)\n` +
+      `## SOURCE RULES\n` +
+      `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
+      `- Prefer official brand sites or major media outlets for the link field\n\n` +
       `Each line must be a complete, valid JSON object. No trailing commas.\n` +
       `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
       `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
@@ -227,6 +234,8 @@ export default async function handler(req, res) {
       if (!item.release_date || !isValidFmt(item.release_date)) return false;
       const base = getBaseDate(item.release_date);
       if (base && base < TODAY) return false;
+      // Gemini 출력 링크도 차단 도메인 필터
+      if (item.link && isBlocked(item.link)) return false;
       if (!item.brand?.trim()) item.brand = keyword;
       const key = `${item.item_name}||${item.release_date}`;
       if (seen.has(key)) return false;
@@ -234,15 +243,20 @@ export default async function handler(req, res) {
       return true;
     });
 
-    console.log(`[hunt] valid items: ${valid.length}`);
-    if (!valid.length) { send({ type:'done', total:0 }); return; }
+    // 날짜 확정 우선 정렬, TBD는 최대 3개만
+    const confirmed = valid.filter(i => i.release_date !== 'TBD');
+    const tbdItems  = valid.filter(i => i.release_date === 'TBD').slice(0, 3);
+    const finalList = [...confirmed, ...tbdItems];
+
+    console.log(`[hunt] confirmed: ${confirmed.length}, tbd: ${tbdItems.length}`);
+    if (!finalList.length) { send({ type:'done', total:0 }); return; }
 
     // ────────────────────────────────────────────
     // 6. 이미지 병렬 검색
     // ────────────────────────────────────────────
-    send({ type:'status', message:`이미지 검색 중... (${valid.length}개)` });
+    send({ type:'status', message:`이미지 검색 중... (${finalList.length}개)` });
 
-    await Promise.allSettled(valid.map(async item => {
+    await Promise.allSettled(finalList.map(async item => {
       try {
         const ir = await fetch('https://google.serper.dev/images', {
           method:'POST',
@@ -256,8 +270,10 @@ export default async function handler(req, res) {
     }));
 
     // 날짜순 정렬 후 전송
-    valid
+    finalList
       .sort((a, b) => {
+        if (a.release_date === 'TBD') return 1;
+        if (b.release_date === 'TBD') return -1;
         const da = getBaseDate(a.release_date) || '9999-12-31';
         const db = getBaseDate(b.release_date) || '9999-12-31';
         return da.localeCompare(db);
