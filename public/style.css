@@ -681,45 +681,40 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .pcard-img-wrap{height:130px;}
 }
 
-/* ── 사이드바 의견 보내기 버튼 ── */
+/* ── [1] 사이드바 '의견 보내기' 버튼 간격 통일 ── */
 .feedback-trigger-btn {
-  /* 다영님이 복사해 온 피그마 레이아웃 & 스타일 */
+  /* 다영님이 피그마에서 가져오신 레이아웃 속성 */
   display: flex;
-  height: 44px;
-  padding: 12px;
-  align-items: center;
+  height: 44px; /* 버튼 자체의 높이 고정 */
+  align-items: center; /* 텍스트와 아이콘을 세로 중앙 정렬 */
   gap: 10px;
   align-self: stretch;
   background: #F4F4F2;
   
-  /* 웹 구현을 위한 필수 보정 속성 */
-  width: 100%; /* align-self: stretch와 함께 가로 꽉 채움 */
-  box-sizing: border-box; /* 패딩 12px가 삐져나가지 않게 고정 */
+  /* 💡 디테일 보정: 내부 간격 통일 및 하단 여백 추가 */
+  padding-top: 12px !important; /* 위쪽 내부 간격 */
+  padding-bottom: 12px !important; /* 아래쪽 내부 간격 */
+  padding-left: 12px !important; 
+  padding-right: 12px !important;
+  margin-bottom: 16px !important; /* 💡 프로필 카드와의 확실한 간격 추가 */
+
+  /* 웹 구현 필수 속성 */
+  width: 100%;
+  box-sizing: border-box;
   border: none;
   cursor: pointer;
+  border-radius: 8px; /* 모서리 둥글기 */
   
-  /* 텍스트 & 아이콘 스타일 (기존 값 유지) */
+  /* 텍스트 & 아이콘 스타일 */
   font-size: 15px;
   font-weight: 500;
   color: #555;
   font-family: inherit;
   letter-spacing: -0.02em;
-  border-radius: 8px; /* 모서리 둥글기가 피그마에 있다면 이 값을 수정해 주세요 */
   transition: background 0.2s;
 }
 
-/* 마우스 올렸을 때 살짝 진해지는 호버 효과 */
-.feedback-trigger-btn:hover {
-  background: #EAEAEA;
-  color: #111;
-}
-
-/* 안의 SVG 아이콘이 찌그러지지 않게 방지 */
-.feedback-trigger-btn svg {
-  flex-shrink: 0;
-}
-
-/* ── 의견 보내기 모달 (Figma 100% 반영) ── */
+/* ── [2] 모달 크기 키우기 ── */
 .feedback-modal-light {
   /* 다영님이 피그마에서 가져오신 레이아웃 & 스타일 */
   display: flex;
@@ -730,84 +725,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   border-radius: 10px;
   background: var(--back, #F4F4F2);
 
-  /* 화면 중앙 배치를 위한 필수 속성 */
-  width: 90%;
-  max-width: 420px;
+  /* 💡 디테일 보정: 모달의 최대 너비를 더 키움 */
+  width: 90%; /* 모바일 대응을 위한 비율 */
+  max-width: 480px !important; /* 💡 기존 420px에서 480px로 변경 */
+  
+  /* 화면 중앙 배치 및 그림자 */
   box-shadow: 0 10px 40px rgba(0,0,0,0.1);
   box-sizing: border-box;
-}
-
-/* Flex 컨테이너 안에서 가로 길이를 꽉 채우도록(100%) 설정 */
-.feedback-modal-light .modal-header {
-  width: 100%; 
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  /* gap이 있으므로 불필요한 margin 제거 */
-}
-
-.feedback-modal-light .modal-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #111;
-  letter-spacing: -0.02em;
-}
-
-.feedback-modal-light .close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.feedback-modal-light .modal-desc {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.5;
-  letter-spacing: -0.02em;
-}
-
-.feedback-modal-light textarea {
-  width: 100%; 
-  height: 130px;
-  background: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  padding: 16px;
-  color: #111;
-  font-size: 14px;
-  line-height: 1.5;
-  resize: none;
-  font-family: inherit;
-  box-sizing: border-box;
-  letter-spacing: -0.02em;
-}
-
-.feedback-modal-light textarea::placeholder {
-  color: #999;
-}
-
-.feedback-modal-light textarea:focus {
-  outline: 1px solid #111;
-}
-
-.feedback-modal-light .submit-btn {
-  width: 100%; 
-  background: #151515;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
-  padding: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  letter-spacing: -0.01em;
-}
-
-.feedback-modal-light .submit-btn:hover {
-  background: #333;
 }
