@@ -697,14 +697,14 @@ document.addEventListener('DOMContentLoaded',function(){
   ['tbdToggle','tbdToggleArc'].forEach(function(id){
     var btn=document.getElementById(id);
     if(!btn) return;
-    btn.classList.add('on'); // 기본: 미정 포함(on)
+    btn.classList.add('on'); // 기본: 날짜 미정 포함(on)
     btn.onclick=function(){
       showTbd=!showTbd;
       // 두 버튼 동기화
       ['tbdToggle','tbdToggleArc'].forEach(function(bid){
         var b=document.getElementById(bid);
         if(b){
-          b.textContent=showTbd?'미정 포함':'날짜 확정만';
+          b.textContent=showTbd?'날짜 미정 포함':'날짜 미정 포함';
           showTbd?b.classList.add('on'):b.classList.remove('on');
         }
       });
