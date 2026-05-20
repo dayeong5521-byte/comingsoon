@@ -130,12 +130,9 @@ export default async function handler(req, res) {
     if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
 
     // ────────────────────────────────────────────
-    // 3. Gemini 호출 — JSONL 형식
+    // 3. Gemini 호출 — 💡 2.0 세대 기반 철벽 방어 자동 우회(Fallback) 시스템
     // ────────────────────────────────────────────
     send({ type:'status', message:'AI 분석 중...' });
-
-    const GEMINI_URL =
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const prompt =
       `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
@@ -162,8 +159,17 @@ export default async function handler(req, res) {
       `## SOURCES\n${context}`;
 
     let gr, attempt = 0;
+    
     while (attempt < 3) {
-      gr = await fetch(GEMINI_URL, {
+      // 💡 1트: 메인 모델 (v1 주소 + gemini-2.5-flash)
+      let currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+      
+      if (attempt > 0) {
+        // 🌟 메인 통로 에러 시, 같은 2.0 세대의 초고속 엔진인 gemini-2.0-flash 예비 주소로 즉시 대피!
+        currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+      }
+
+      gr = await fetch(currentUrl, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({
@@ -177,13 +183,19 @@ export default async function handler(req, res) {
           ],
         }),
       });
+
       if (gr.ok) break;
-      if (gr.status === 503 && attempt < 2) {
-        send({ type:'status', message:`AI 서버 혼잡, 재시도... (${attempt+1}/3)` });
-        await new Promise(r => setTimeout(r, (attempt+1)*1500));
+
+      // 503(혼잡) 혹은 404(주소 꼬임) 발생 시 대피 로직 작동
+      if ((gr.status === 503 || gr.status === 404) && attempt < 2) {
+        const fallbackMsg = gr.status === 404 ? '데이터 연결을 최적화하고 있어요...' : `소식이 많아 찾는 데 시간이 조금 더 걸려요... (${attempt+1}/3)`;
+        send({ type:'status', message: fallbackMsg });
+        
+        await new Promise(r => setTimeout(r, 500));
         attempt++;
         continue;
       }
+      
       const errBody = await gr.text().catch(() => '');
       console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
       throw new Error(`Gemini HTTP ${gr.status}`);
@@ -283,6 +295,6 @@ export default async function handler(req, res) {
     console.error('[hunt] Error:', err.message);
     send({ type:'error', message:err.message });
   } finally {
-    res.end(); // 이 부분의 괄호가 완벽하게 닫혔습니다!
+    res.end(); 
   }
 }
