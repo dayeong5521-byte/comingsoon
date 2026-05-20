@@ -126,14 +126,44 @@ export default async function handler(req, res) {
 
     if (pageTexts) context += '\n\n=== 페이지 상세 내용 ===\n' + pageTexts;
 
-   let gr, attempt = 0;
+    // ────────────────────────────────────────────
+    // 3. Gemini 호출 — 💡 잃어버린 프롬프트 복구 & 완벽한 1.5 우회망 적용
+    // ────────────────────────────────────────────
+    send({ type:'status', message:'AI 분석 중...' });
+
+    // 🌟 핵심: 이 영어 텍스트 덩어리(프롬프트)가 있어야 AI가 일을 합니다!
+    const prompt =
+      `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
+      `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
+      `## CATEGORIES\n` +
+      `PRODUCT: fashion/sneakers/tech goods | EVENT: popup/concert/exhibition/fanmeeting\n` +
+      `CULTURE: album/movie/book premiere   | CONTENT: game/streaming/digital drop\n\n` +
+      `## DATE RULES\n` +
+      `- CRITICAL: Distinguish between the "article publication date" and the "actual event/release date". NEVER extract the publication date of the webpage as the release_date.\n` +
+      `- If the text says "Next Friday" or "Tomorrow", calculate the exact date based on Today (${TODAY}).\n` +
+      `- Exact date found → "YYYY-MM-DD"\n` +
+      `- Month only → "YYYY-MM"\n` +
+      `- Date range → "YYYY-MM-DD~DD"\n` +
+      `- Quarter/season/year only/unclear → "TBD"\n` +
+      `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
+      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
+      `## SOURCE RULES\n` +
+      `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
+      `- Prefer official brand sites or major media outlets for the link field\n\n` +
+      `Each line must be a complete, valid JSON object. No trailing commas.\n` +
+      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
+      `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
+      `Extract ALL items found. If none, output nothing.\n\n` +
+      `## SOURCES\n${context}`;
+
+    let gr, attempt = 0;
     
     while (attempt < 3) {
       // 💡 1트: 가장 똑똑한 최신 2.5-flash 엔진으로 시도
       let currentUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
       
       if (attempt > 0) {
-        // 🌟 2트, 3트: 2.5 서버가 터졌다면? 아예 다른 물리 서버인 '1.5-flash'로 확실하게 진짜 우회!
+        // 🌟 2트, 3트: 2.5 서버가 터졌다면? 무적의 안정성 '1.5-flash'로 확실하게 대피!
         currentUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
       }
 
@@ -141,7 +171,7 @@ export default async function handler(req, res) {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({
-          contents:[{ parts:[{ text: prompt }] }],
+          contents:[{ parts:[{ text: prompt }] }], // 위에서 정의한 prompt가 여기에 들어갑니다.
           generationConfig:{ temperature:0, maxOutputTokens:8192 },
           safetySettings:[
             { category:'HARM_CATEGORY_HARASSMENT',        threshold:'BLOCK_NONE' },
@@ -162,8 +192,7 @@ export default async function handler(req, res) {
           
         send({ type:'status', message: fallbackMsg });
         
-        // 🌟 핵심: 대기 시간 대폭 증가! (1트 실패 시 2초 대기, 2트 실패 시 4초 대기)
-        // 구글 서버가 숨 돌릴 시간을 확실히 벌어줍니다.
+        // 🌟 핵심: 대기 시간 증가! (1트 실패 시 2초 대기, 2트 실패 시 4초 대기)
         const delay = (attempt + 1) * 2000; 
         await new Promise(r => setTimeout(r, delay));
         attempt++;
@@ -174,6 +203,13 @@ export default async function handler(req, res) {
       console.error(`[hunt] Gemini ${gr.status}:`, errBody.slice(0, 200));
       throw new Error(`Gemini HTTP ${gr.status}`);
     }
+
+    const gd = await gr.json();
+    if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
+
+    const fullText = (gd.candidates?.[0]?.content?.parts || [])
+      .map(p => p.text || '').join('').trim();
+
     // ────────────────────────────────────────────
     // 4. JSONL 파싱
     // ────────────────────────────────────────────
