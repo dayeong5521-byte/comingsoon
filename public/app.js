@@ -10,7 +10,14 @@ firebase.initializeApp({
 var fbAuth=firebase.auth();
 var fbProvider=new firebase.auth.GoogleAuthProvider();
 var db=firebase.firestore();
-var analytics=firebase.analytics(); // ★ Analytics 초기화
+// Analytics — measurementId 없어도 앱이 죽지 않도록
+var analytics;
+try {
+  analytics=firebase.analytics();
+} catch(e) {
+  console.warn('Analytics 초기화 실패:', e.message);
+  analytics={ logEvent:function(){} }; // no-op 폴백
+}
 
 var TODAY=new Date().toISOString().split('T')[0];
 var FALLBACK='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
@@ -686,6 +693,7 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 
   // TBD 토글
+  var ms=document.getElementById('mainSearch');
   ['tbdToggle','tbdToggleArc'].forEach(function(id){
     var btn=document.getElementById(id);
     if(!btn) return;
