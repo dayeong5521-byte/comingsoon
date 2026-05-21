@@ -1,4 +1,4 @@
-// api/hunt.js
+/ api/hunt.js
 export const config = { maxDuration: 60 };
 
 export default async function handler(req, res) {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // ────────────────────────────────────────────
     // 1. Serper 검색 — 한국어 + 영어 OR 쿼리 병렬
     // ────────────────────────────────────────────
-    send({ type:'status', message:`'${keyword}' 검색 중...` });
+    send({ type:'status', message:`'${keyword}' 찾는 중...` });
 
     const KO = '출시 OR 발매 OR 오픈 OR 공연 OR 팝업 OR 출간';
     const EN = 'release OR launch OR drop OR concert OR collection';
@@ -143,11 +143,6 @@ export default async function handler(req, res) {
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-    // 3초 후 "거의 다 됐어요" 메시지 (Gemini 분석 중 이탈 방지)
-    const almostDoneTimer = setTimeout(() => {
-      send({ type:'status', message:'분석이 거의 다 끝났어요! 조금만 기다려주세요 ✨' });
-    }, 3000);
-
     const prompt =
       `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
       `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
@@ -200,7 +195,6 @@ export default async function handler(req, res) {
     }
 
     const gd = await gr.json();
-    clearTimeout(almostDoneTimer); // Gemini 응답 오면 타이머 취소
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
     const fullText = (gd.candidates?.[0]?.content?.parts || [])
@@ -252,8 +246,8 @@ export default async function handler(req, res) {
     console.log(`[hunt] valid items: ${valid.length}`);
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
-    // 거의 완료 메시지
-    send({ type:'status', message:`${valid.length}개 찾았어요! 이미지 가져오는 중...` });
+    // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
+    send({ type:'status', message:`거의 다 끝나가요! ${valid.length}개 찾았어요.` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
