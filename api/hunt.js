@@ -99,10 +99,12 @@ export default async function handler(req, res) {
         .some(d => o.link.includes(d)))
       .slice(0, 2); // 3 → 2
 
+    const ogImageMap = {}; // URL → og:image 매핑
+
     const pageContents = await Promise.allSettled(toFetch.map(async item => {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 3000); // 5초 → 3초
+        const timer = setTimeout(() => ctrl.abort(), 3000);
         const r = await fetch(item.link, {
           signal: ctrl.signal,
           headers: { 'User-Agent':'Mozilla/5.0 (compatible; Googlebot/2.1)' },
@@ -110,13 +112,19 @@ export default async function handler(req, res) {
         clearTimeout(timer);
         if (!r.ok) return null;
         const html = await r.text();
+
+        // ★ og:image 추출 (태그 제거 전에)
+        const ogImg = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1]
+                   || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1];
+        if (ogImg && ogImg.startsWith('http')) ogImageMap[item.link] = ogImg;
+
         const text = html
           .replace(/<script[\s\S]*?<\/script>/gi, '')
           .replace(/<style[\s\S]*?<\/style>/gi, '')
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 2500); // 5000 → 2500자
+          .slice(0, 2500);
         return `[페이지: ${item.link}]\n${text}`;
       } catch { return null; }
     }));
@@ -259,22 +267,21 @@ export default async function handler(req, res) {
     // 날짜 확정된 항목만 이미지 검색 (TBD는 스킵 → API 절약)
     await Promise.allSettled(valid.filter(i => i.release_date !== 'TBD').map(async item => {
       try {
-        // 한국어 제거 + 따옴표 제거
+        // 1순위: 링크의 og:image 사용 (빠르고 정확)
+        if (item.link && ogImageMap[item.link]) {
+          item.image_url = ogImageMap[item.link];
+          return;
+        }
+
+        // 2순위: Serper 이미지 검색 (fallback)
         const cleanText = `${item.brand} ${item.item_name}`
           .replace(/["""'']/g, '')
           .replace(/[\uAC00-\uD7A3\u3131-\u318E]/gu, '')
           .replace(/\s+/g, ' ')
           .trim();
-
-        // 연도 추출 (날짜에서 year 뽑기)
-        const year = item.release_date && item.release_date !== 'TBD'
-          ? item.release_date.slice(0, 4)
-          : CY;
-
-        // 카테고리 대신 연도 붙이기 → 더 범용적이고 정확함
+        const year = item.release_date?.slice(0, 4) || CY;
         const imgQuery = cleanText.length > 2
-          ? `${cleanText} ${year}`.trim()
-          : `${item.item_name} ${year}`.trim();
+          ? `${cleanText} ${year}` : `${item.item_name} ${year}`;
 
         const ir = await fetch('https://google.serper.dev/images', {
           method:'POST',
