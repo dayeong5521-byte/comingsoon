@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     // 2. 상위 페이지 fetch — 리스트 페이지 우선 선택
     //    release-dates, schedule, calendar 등 키워드 포함 URL 우선
     // ────────────────────────────────────────────
-    send({ type:'status', message:'페이지 내용을 수집하고 있어요...' });
+    send({ type:'status', message:'페이지 내용 수집 중...' });
 
     const LIST_KEYWORDS = ['release-date','release-dates','schedule','calendar',
       'lineup','upcoming','drop-list','출시일정','발매일정'];
@@ -138,7 +138,7 @@ export default async function handler(req, res) {
     // 3. Gemini 호출 — JSONL 형식 (한 줄 = 하나의 아이템)
     //    JSON 배열 대신 JSONL → 토큰 잘려도 앞 항목은 살아있음
     // ────────────────────────────────────────────
-    send({ type:'status', message:'AI가 열심히 분석 중이에요...' });
+    send({ type:'status', message:'AI 분석 중...' });
 
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
@@ -184,7 +184,7 @@ export default async function handler(req, res) {
       });
       if (gr.ok) break;
       if (gr.status === 503 && attempt < 2) {
-        send({ type:'status', message:`소식이 많아 찾는 데 시간이 조금 더 걸려요... (${attempt+1}/3)` });
+        send({ type:'status', message:`AI 서버 혼잡, 재시도... (${attempt+1}/3)` });
         await new Promise(r => setTimeout(r, (attempt+1)*1500));
         attempt++;
         continue;
@@ -246,21 +246,27 @@ export default async function handler(req, res) {
     console.log(`[hunt] valid items: ${valid.length}`);
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
-    // ────────────────────────────────────────────
-    // 6. 이미지 병렬 검색
-    // ────────────────────────────────────────────
-    send({ type:'status', message:`이미지를 찾는 중이에요... (${valid.length}개)` });
+    // 거의 완료 메시지
+    send({ type:'status', message:`${valid.length}개 찾았어요! 이미지 가져오는 중...` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
+        // 이미지 검색은 영어로 + 따옴표 제거 (한국어 쿼리는 이미지 결과 없음)
+        const imgQuery = `${item.brand} ${item.item_name}`
+          .replace(/["""'']/g, '')   // 따옴표 제거
+          .replace(/[\u3131-\uD79D]/gu, '') // 한국어 제거
+          .replace(/\s+/g, ' ').trim()
+          || `${item.brand} ${item.item_name}`.replace(/["""'']/g, '');
         const ir = await fetch('https://google.serper.dev/images', {
           method:'POST',
           headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
-          body: JSON.stringify({ q:`${item.brand} ${item.item_name}`, num:1 }),
+          body: JSON.stringify({ q: imgQuery, num:3, gl:'us', hl:'en' }),
         });
         if (!ir.ok) return;
         const id = await ir.json();
-        if (id.images?.[0]) item.image_url = id.images[0].imageUrl;
+        // 첫 번째 유효한 이미지 URL 사용
+        const img = (id.images || []).find(i => i.imageUrl && i.imageUrl.startsWith('http'));
+        if (img) item.image_url = img.imageUrl;
       } catch {}
     }));
 
