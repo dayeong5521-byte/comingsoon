@@ -143,8 +143,7 @@ export default async function handler(req, res) {
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     // 분석 대기 중 단계별 메시지 (이탈 방지)
-    const t1 = setTimeout(() => send({ type:'status', message:'거의 다 왔어요! 조금만 더 기다려주세요 🔍' }), 5000);
-    const t2 = setTimeout(() => send({ type:'status', message:'마지막 정리 중이에요... 곧 나와요! ✨' }), 10000);
+    const t1 = setTimeout(() => send({ type:'status', message:'거의 다 끝나가요... 조금만 더 기다려 주세요!' }), 10000);
     const clearTimers = () => { clearTimeout(t1); };
 
     const prompt =
@@ -255,7 +254,7 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:`거의 다 끝났어요! ${valid.length}개 찾았어요 🎉` });
+    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요 ` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
