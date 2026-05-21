@@ -37,7 +37,6 @@ export default async function handler(req, res) {
     const queries = [
       { q:`${keyword} (${KO}) ${CY} ${CY+1}`,           gl:'kr', hl:'ko', num:10, tbs:'qdr:m6' },
       { q:`${keyword} (${EN} OR ${FW}) ${CY} ${CY+1}`,  gl:'us', hl:'en', num:10, tbs:'qdr:m6' },
-      // 뉴스 기사 우선 — 날짜가 텍스트에 명확히 포함됨
       { q:`${keyword} release date ${CY}`,               gl:'us', hl:'en', num:8,  tbs:'qdr:m6', news:true },
       { q:`${keyword} 출시일 발매일 ${CY}`,              gl:'kr', hl:'ko', num:5,  tbs:'qdr:m6', news:true },
     ];
@@ -144,7 +143,7 @@ export default async function handler(req, res) {
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     // 분석 대기 중 단계별 메시지 (이탈 방지)
-    const t1 = setTimeout(() => send({ type:'status', message:'거의 끝나가요! 조금만 더 기다려 주세요...' }), 10000);
+    const t1 = setTimeout(() => send({ type:'status', message:'거의 끝나가요... 조금만 더 기다려 주세요!' }), 10000);
     const clearTimers = () => { clearTimeout(t1); clearTimeout(t2); };
 
     const prompt =
@@ -161,8 +160,8 @@ export default async function handler(req, res) {
       `- Quarter/season/year only/unclear → "TBD"\n` +
       `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
       `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n` +
-      `- If a date is clearly in the past (before ${TODAY}), DO NOT include that item at all.\n` +
-      `- DO NOT convert a past date into a future date. If you're unsure, use TBD.\n\n` +
+      `- If a date is clearly in the past (before ${TODAY}), skip that item.\n` +
+      `- If uncertain whether a date is past or future, include it with TBD.\n\n` +
       `## SOURCE RULES\n` +
       `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
       `- Prefer official brand sites or major media outlets for the link field\n` +
@@ -255,7 +254,7 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:` ${valid.length}개 찾았어요!` });
+    send({ type:'status', message:`거의 다 끝났어요! ${valid.length}개 찾았어요 🎉` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
