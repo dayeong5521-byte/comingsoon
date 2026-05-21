@@ -254,16 +254,27 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요 ` });
+    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요...` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
-        // 이미지 검색은 영어로 + 따옴표 제거 (한국어 쿼리는 이미지 결과 없음)
-        const imgQuery = `${item.brand} ${item.item_name}`
-          .replace(/["""'']/g, '')   // 따옴표 제거
-          .replace(/[\u3131-\uD79D]/gu, '') // 한국어 제거
-          .replace(/\s+/g, ' ').trim()
-          || `${item.brand} ${item.item_name}`.replace(/["""'']/g, '');
+        // 한국어 제거 + 따옴표 제거
+        const cleanText = `${item.brand} ${item.item_name}`
+          .replace(/["""'']/g, '')
+          .replace(/[\uAC00-\uD7A3\u3131-\u318E]/gu, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        // 연도 추출 (날짜에서 year 뽑기)
+        const year = item.release_date && item.release_date !== 'TBD'
+          ? item.release_date.slice(0, 4)
+          : CY;
+
+        // 카테고리 대신 연도 붙이기 → 더 범용적이고 정확함
+        const imgQuery = cleanText.length > 2
+          ? `${cleanText} ${year}`.trim()
+          : `${item.item_name} ${year}`.trim();
+
         const ir = await fetch('https://google.serper.dev/images', {
           method:'POST',
           headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
@@ -271,8 +282,7 @@ export default async function handler(req, res) {
         });
         if (!ir.ok) return;
         const id = await ir.json();
-        // 첫 번째 유효한 이미지 URL 사용
-        const img = (id.images || []).find(i => i.imageUrl && i.imageUrl.startsWith('http'));
+        const img = (id.images || []).find(i => i.imageUrl?.startsWith('http'));
         if (img) item.image_url = img.imageUrl;
       } catch {}
     }));
