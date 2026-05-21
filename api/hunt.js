@@ -143,7 +143,7 @@ export default async function handler(req, res) {
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     // 분석 대기 중 단계별 메시지 (이탈 방지)
-    const t2 = setTimeout(() => send({ type:'status', message:'거의 다 끝나가요... 조금만 더 기다려 주세요!' }), 10000);
+    const t1 = setTimeout(() => send({ type:'status', message:'거의 다 끝나가요... 조금만 더 기다려 주세요!' }), 10000);
     const clearTimers = () => { clearTimeout(t1); clearTimeout(t2); };
 
     const prompt =
