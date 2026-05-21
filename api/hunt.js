@@ -143,6 +143,11 @@ export default async function handler(req, res) {
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
+    // 3초 후 "거의 다 됐어요" 메시지 (Gemini 분석 중 이탈 방지)
+    const almostDoneTimer = setTimeout(() => {
+      send({ type:'status', message:'분석이 거의 다 끝났어요! 조금만 기다려주세요 ✨' });
+    }, 3000);
+
     const prompt =
       `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
       `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
@@ -195,6 +200,7 @@ export default async function handler(req, res) {
     }
 
     const gd = await gr.json();
+    clearTimeout(almostDoneTimer); // Gemini 응답 오면 타이머 취소
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
     const fullText = (gd.candidates?.[0]?.content?.parts || [])
