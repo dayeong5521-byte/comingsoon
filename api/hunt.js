@@ -262,31 +262,32 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요...` });
+    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요!` });
 
-    // 날짜 확정된 항목만 이미지 검색 (TBD는 스킵 → API 절약)
-    await Promise.allSettled(valid.filter(i => i.release_date !== 'TBD').map(async item => {
+    // 모든 항목 이미지 검색 (TBD 포함 — 이미지 없는 카드 너무 많아짐)
+    await Promise.allSettled(valid.map(async item => {
       try {
-        // 1순위: 링크의 og:image 사용 (빠르고 정확)
+        // 1순위: 링크의 og:image
         if (item.link && ogImageMap[item.link]) {
           item.image_url = ogImageMap[item.link];
           return;
         }
 
-        // 2순위: Serper 이미지 검색 (fallback)
+        // 2순위: Serper 이미지 검색 (gl/hl 제거 — images 엔드포인트 비호환)
         const cleanText = `${item.brand} ${item.item_name}`
           .replace(/["""'']/g, '')
           .replace(/[\uAC00-\uD7A3\u3131-\u318E]/gu, '')
           .replace(/\s+/g, ' ')
           .trim();
-        const year = item.release_date?.slice(0, 4) || CY;
+        const year = item.release_date && item.release_date !== 'TBD'
+          ? item.release_date.slice(0, 4) : CY;
         const imgQuery = cleanText.length > 2
           ? `${cleanText} ${year}` : `${item.item_name} ${year}`;
 
         const ir = await fetch('https://google.serper.dev/images', {
           method:'POST',
           headers:{ 'X-API-KEY':SERPER_KEY, 'Content-Type':'application/json' },
-          body: JSON.stringify({ q: imgQuery, num:3, gl:'us', hl:'en' }),
+          body: JSON.stringify({ q: imgQuery, num:3 }),
         });
         if (!ir.ok) return;
         const id = await ir.json();
