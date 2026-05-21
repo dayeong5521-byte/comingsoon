@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // ────────────────────────────────────────────
     // 1. Serper 검색 — 한국어 + 영어 OR 쿼리 병렬
     // ────────────────────────────────────────────
-    send({ type:'status', message:`'${keyword}' 찾는 중...` });
+    send({ type:'status', message:`'${keyword}' 검색 중...` });
 
     const KO = '출시 OR 발매 OR 오픈 OR 공연 OR 팝업 OR 출간';
     const EN = 'release OR launch OR drop OR concert OR collection';
@@ -156,10 +156,13 @@ export default async function handler(req, res) {
       `- Date range → "YYYY-MM-DD~DD"\n` +
       `- Quarter/season/year only/unclear → "TBD"\n` +
       `- DO NOT guess or infer. Copy dates verbatim from source.\n` +
-      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n\n` +
+      `- Year in product name ≠ release year (e.g. FW26 collection ≠ released in 2026 necessarily)\n` +
+      `- If a date is clearly in the past (before ${TODAY}), DO NOT include that item at all.\n` +
+      `- DO NOT convert a past date into a future date. If you're unsure, use TBD.\n\n` +
       `## SOURCE RULES\n` +
       `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
-      `- Prefer official brand sites or major media outlets for the link field\n\n` +
+      `- Prefer official brand sites or major media outlets for the link field\n` +
+      `- ALWAYS include a link — use the source URL where you found the info. Never leave link empty.\n\n` +
       `Each line must be a complete, valid JSON object. No trailing commas.\n` +
       `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
       `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
@@ -247,7 +250,7 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:`거의 다 끝나가요! ${valid.length}개 찾았어요.` });
+    send({ type:'status', message:`거의 다 끝났어요! ${valid.length}개 찾았어요 🎉` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
