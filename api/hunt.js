@@ -93,16 +93,16 @@ export default async function handler(req, res) {
       ...allResults.filter(o => o.link && !isListPage(o.link)),
     ];
 
-    // 상위 3개 페이지 병렬 fetch (5초 타임아웃)
+    // 상위 2개 페이지 병렬 fetch (타임아웃 3초로 단축)
     const toFetch = sortedResults
       .filter(o => o.link && !['instagram.com','twitter.com','x.com','youtube.com','facebook.com','threads.net']
         .some(d => o.link.includes(d)))
-      .slice(0, 3);
+      .slice(0, 2); // 3 → 2
 
     const pageContents = await Promise.allSettled(toFetch.map(async item => {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 5000);
+        const timer = setTimeout(() => ctrl.abort(), 3000); // 5초 → 3초
         const r = await fetch(item.link, {
           signal: ctrl.signal,
           headers: { 'User-Agent':'Mozilla/5.0 (compatible; Googlebot/2.1)' },
@@ -116,7 +116,7 @@ export default async function handler(req, res) {
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 5000); // 넉넉하게 5000자
+          .slice(0, 2500); // 5000 → 2500자
         return `[페이지: ${item.link}]\n${text}`;
       } catch { return null; }
     }));
@@ -256,7 +256,8 @@ export default async function handler(req, res) {
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
     send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요...` });
 
-    await Promise.allSettled(valid.map(async item => {
+    // 날짜 확정된 항목만 이미지 검색 (TBD는 스킵 → API 절약)
+    await Promise.allSettled(valid.filter(i => i.release_date !== 'TBD').map(async item => {
       try {
         // 한국어 제거 + 따옴표 제거
         const cleanText = `${item.brand} ${item.item_name}`
