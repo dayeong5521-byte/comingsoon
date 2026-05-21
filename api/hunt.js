@@ -304,7 +304,7 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:` ${valid.length}개 찾았어요 🎉` });
+    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요!` });
 
     // 모든 항목 이미지 검색 (TBD 포함 — 이미지 없는 카드 너무 많아짐)
     await Promise.allSettled(valid.map(async item => {
