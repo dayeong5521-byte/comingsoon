@@ -184,7 +184,7 @@ export default async function handler(req, res) {
       });
       if (gr.ok) break;
       if (gr.status === 503 && attempt < 2) {
-        send({ type:'status', message:`내용이 많아서 찾는 데 시간이 좀 더 걸려요... (${attempt+1}/3)` });
+        send({ type:'status', message:`소식이 많아 찾는 데 시간이 조금 더 걸려요... (${attempt+1}/3)` });
         await new Promise(r => setTimeout(r, (attempt+1)*1500));
         attempt++;
         continue;
