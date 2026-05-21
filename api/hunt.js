@@ -129,10 +129,23 @@ export default async function handler(req, res) {
       } catch { return null; }
     }));
 
-    // 컨텍스트 구성 (스니펫 + 페이지 내용)
-    let context = allResults.slice(0, 12).map((o, i) =>
-      `[${i+1}] ${o.title}\n${o.snippet || ''}\n${o.link ? 'URL: '+o.link : ''}`
+    // 컨텍스트 구성 — SOURCE 번호 태깅 (Gemini가 반드시 이 URL 중 하나만 쓰도록)
+    const contextResults = allResults.filter(o => o.link).slice(0, 12);
+    // answerBox 등 link 없는 것도 뒤에 추가
+    const noLinkResults = allResults.filter(o => !o.link);
+
+    let context = contextResults.map((o, i) =>
+      `[S${i+1}] URL: ${o.link}\n제목: ${o.title}\n내용: ${o.snippet || ''}`
     ).join('\n\n');
+
+    if (noLinkResults.length) {
+      context += '\n\n=== 추가 정보 ===\n' +
+        noLinkResults.map(o => `${o.title}: ${o.snippet || ''}`).join('\n');
+    }
+
+    // SOURCE URL 빠른 조회용 맵 (후처리 B에서 사용)
+    const sourceUrlMap = new Map(contextResults.map((o, i) => [`S${i+1}`, o.link]));
+    const sourceLinks = new Set(contextResults.map(o => o.link));
 
     const pageTexts = pageContents
       .filter(r => r.status === 'fulfilled' && r.value)
@@ -171,11 +184,12 @@ export default async function handler(req, res) {
       `- If a date is clearly in the past (before ${TODAY}), skip that item.\n` +
       `- If uncertain whether a date is past or future, include it with TBD.\n\n` +
       `## SOURCE RULES\n` +
-      `- Do NOT use Facebook, Threads, personal blogs as link sources\n` +
-      `- Prefer official brand sites or major media outlets for the link field\n` +
-      `- ALWAYS include a link — use the source URL where you found the info. Never leave link empty.\n\n` +
+      `- The link field MUST be one of the [S1]~[S${contextResults.length}] URLs listed below.\n` +
+      `- Do NOT invent or construct URLs. Only use exact URLs from the SOURCES section.\n` +
+      `- Do NOT use Facebook, Threads, personal blogs as link sources.\n` +
+      `- If no matching source URL exists for an item, set link to "".\n\n` +
       `Each line must be a complete, valid JSON object. No trailing commas.\n` +
-      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"..."}\n` +
+      `{"category":"PRODUCT","brand":"${keyword}","item_name":"...","release_date":"...","description":"한 줄 한국어 설명","image_url":"","link":"[S번호 URL 중 하나 또는 빈 문자열]"}\n` +
       `{"category":"EVENT","brand":"${keyword}","item_name":"...","release_date":"...","description":"...","image_url":"","link":"..."}\n\n` +
       `Extract ALL items found. If none, output nothing.\n\n` +
       `## SOURCES\n${context}`;
@@ -258,11 +272,39 @@ export default async function handler(req, res) {
       return true;
     });
 
+    // ── Option B: 후처리 링크 검증 ──
+    // Gemini가 준 link가 실제 SOURCE URL인지 확인
+    // 없으면 item_name 키워드로 allResults에서 매칭 시도
+    for (const item of valid) {
+      if (item.link && sourceLinks.has(item.link)) continue; // ✅ 정확한 SOURCE URL
+
+      // 링크가 없거나 SOURCE에 없는 링크(할루시네이션)인 경우
+      // item_name 단어로 allResults 제목/스니펫에서 가장 관련 있는 결과 매칭
+      const words = item.item_name.toLowerCase()
+        .replace(/[^a-z0-9가-힣\s]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 2);
+
+      let bestMatch = null;
+      let bestScore = 0;
+      for (const r of contextResults) {
+        const haystack = `${r.title} ${r.snippet || ''}`.toLowerCase();
+        const score = words.filter(w => haystack.includes(w)).length;
+        if (score > bestScore) { bestScore = score; bestMatch = r; }
+      }
+
+      if (bestMatch && bestScore >= 1) {
+        item.link = bestMatch.link;
+      } else if (!sourceLinks.has(item.link)) {
+        item.link = ''; // 매칭 실패 시 빈 문자열 (구글 검색 fallback은 app.js가 처리)
+      }
+    }
+
     console.log(`[hunt] valid items: ${valid.length}`);
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:` 관련 소식 ${valid.length}개를 찾았어요!` });
+    send({ type:'status', message:` ${valid.length}개 찾았어요 🎉` });
 
     // 모든 항목 이미지 검색 (TBD 포함 — 이미지 없는 카드 너무 많아짐)
     await Promise.allSettled(valid.map(async item => {
