@@ -601,6 +601,16 @@ function bindCardEvents(container){
       window.open(this.getAttribute('data-link'),'_blank','noopener');
     });
   });
+  // 링크 없는 카드 → 구글 검색 fallback
+  container.querySelectorAll('.pcard-img-wrap:not([data-link])').forEach(function(el){
+    el.style.cursor='pointer';
+    el.addEventListener('click',function(){
+      var card=this.closest('.pcard');
+      var brand=card?.querySelector('.pc-brand')?.textContent||'';
+      var name=card?.querySelector('.pc-name')?.textContent||'';
+      window.open('https://www.google.com/search?q='+encodeURIComponent(brand+' '+name),'_blank','noopener');
+    });
+  });
   container.querySelectorAll('.lcard[data-link]').forEach(function(el){
     el.style.cursor='pointer';
     el.addEventListener('click',function(e){
