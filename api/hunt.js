@@ -143,6 +143,11 @@ export default async function handler(req, res) {
     const GEMINI_URL =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
+    // 분석 대기 중 단계별 메시지 (이탈 방지)
+    const t1 = setTimeout(() => send({ type:'status', message:'거의 끝나가요... 조금만 더 기다려주세요!' }), 5000);
+    const t2 = setTimeout(() => send({ type:'status', message:'이미지를 검색 중이에요...' }), 10000);
+    const clearTimers = () => { clearTimeout(t1); clearTimeout(t2); };
+
     const prompt =
       `You are a release curator. Extract ALL upcoming items for "${keyword}" from the sources.\n` +
       `Today: ${TODAY}. Only include items with release date >= ${TODAY}.\n\n` +
@@ -198,6 +203,7 @@ export default async function handler(req, res) {
     }
 
     const gd = await gr.json();
+    clearTimers(); // Gemini 응답 시 타이머 취소
     if (gd.error) throw new Error(`Gemini: ${gd.error.message}`);
 
     const fullText = (gd.candidates?.[0]?.content?.parts || [])
@@ -250,7 +256,7 @@ export default async function handler(req, res) {
     if (!valid.length) { send({ type:'done', total:0 }); return; }
 
     // 아이템 파싱 완료 = 진짜 2/3 시점 → 거의 다 끝났다는 메시지
-    send({ type:'status', message:`거의 다 끝났어요! ${valid.length}개 찾았어요 🎉` });
+    send({ type:'status', message:` ${valid.length}개 찾았어요!` });
 
     await Promise.allSettled(valid.map(async item => {
       try {
@@ -288,6 +294,7 @@ export default async function handler(req, res) {
 
   } catch(err) {
     console.error('[hunt] Error:', err.message);
+    if (typeof clearTimers === 'function') clearTimers();
     send({ type:'error', message:err.message });
   } finally {
     res.end();
