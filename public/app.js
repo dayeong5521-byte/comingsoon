@@ -427,7 +427,7 @@ async function startHunt(){
   var saveBtn=document.getElementById('kwSaveBtn');
   if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='탐색 중...'; }
 
-  setStatus("'"+kw+"' 수색 중...",true);
+  setStatus("'"+kw+"' 검색 중...",true);
   currentSearchItems=[]; renderItems([]);
   try{
     var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
