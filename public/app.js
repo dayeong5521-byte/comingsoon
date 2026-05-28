@@ -488,14 +488,15 @@ function addToCalendar(url){
   var left = window.screenX + (window.outerWidth - popupWidth) / 2;
   var top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
+  // ★ 수정 포인트: 두 번째 인자를 '_blank'로 설정하고, 세 번째 인자에 절대 띄어쓰기를 넣지 않습니다.
   var popup = window.open(
     url, 
-    'CalendarPopup', 
+    '_blank', 
     'width=' + popupWidth + ',height=' + popupHeight + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes'
   );
 
   if(!popup) {
-    showToast('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+    showToast('팝업이 차단되었습니다. 주소창에서 팝업 차단을 해제해주세요.');
   }
 }
 
@@ -605,13 +606,16 @@ function bindCardEvents(container){
       toggleArchive(this.getAttribute('data-key'),this);
     });
   });
-  /* 캘린더 버튼 — data-cal-url 속성에서 URL 읽기 */
+  
+  /* ★ 수정 포인트: 캘린더 버튼 — e.preventDefault() 추가로 링크 이동 강제 차단 */
   container.querySelectorAll('.cal-btn,.lcal-btn').forEach(function(btn){
     btn.addEventListener('click',function(e){
-      e.stopPropagation();
+      e.preventDefault();  // 버튼의 기본 동작(페이지 이동 등) 차단
+      e.stopPropagation(); // 부모 카드 클릭 이벤트 차단
       addToCalendar(this.getAttribute('data-cal-url'));
     });
   });
+  
   /* 이미지/카드 클릭 → 링크 열기 */
   container.querySelectorAll('.pcard-img-wrap[data-link]').forEach(function(el){
     el.style.cursor='pointer';
