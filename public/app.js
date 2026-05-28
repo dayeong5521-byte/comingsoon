@@ -477,11 +477,26 @@ async function startHunt(){
 /* ── 캘린더 추가 — 로그인 필요 ── */
 function addToCalendar(url){
   if(!currentUser){
-    analytics.logEvent('login_prompted',{feature:'calendar_add'}); // ★
+    analytics.logEvent('login_prompted',{feature:'calendar_add'});
     openModal('loginModalBg'); return;
   }
-  analytics.logEvent('calendar_added',{url:url}); // ★
-  window.open(url,'_blank','noopener');
+  analytics.logEvent('calendar_added',{url:url});
+
+  // ★ 새 탭 대신 중앙 정렬 팝업 모달로 열기
+  var popupWidth = 600;
+  var popupHeight = 700;
+  var left = window.screenX + (window.outerWidth - popupWidth) / 2;
+  var top = window.screenY + (window.outerHeight - popupHeight) / 2;
+
+  var popup = window.open(
+    url, 
+    'CalendarPopup', 
+    'width=' + popupWidth + ',height=' + popupHeight + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes'
+  );
+
+  if(!popup) {
+    showToast('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+  }
 }
 
 /* ── 아이콘 ── */
