@@ -99,21 +99,24 @@ function formatSingle(d){
   return p[0]+'.'+p[1]+'.'+p[2];
 }
 function makeCalUrl(p){
-  var raw=p.release_date;
-  var startD,endD;
-  if(!raw||raw==='TBD'){
-    startD=endD=TODAY.replace(/-/g,'');
+  var raw = p.release_date;
+  var startD, endD;
+
+  if(!raw || raw === 'TBD'){
+    startD = endD = TODAY.replace(/-/g, '');
   } else if(raw.includes('~')){
-    var pts=raw.split('~');
-    startD=pts[0].replace(/-/g,'');
-    endD=/^\d{1,2}$/.test(pts[1])
-      ? pts[0].slice(0,7).replace('-','')+pts[1].padStart(2,'0')
-      : pts[1].replace(/-/g,'');
+    var pts = raw.split('~');
+    startD = pts[0].replace(/-/g, '');
+    endD = /^\d{1,2}$/.test(pts[1]) 
+      ? pts[0].slice(0,7).replace('-', '') + pts[1].padStart(2, '0') 
+      : pts[1].replace(/-/g, '');
   } else if(/^\d{4}-\d{2}$/.test(raw)){
-    startD=endD=raw.replace('-','')+'01';
+    startD = endD = raw.replace('-', '') + '01';
   } else {
-    startD=endD=raw.replace(/-/g,'');
+    // ★ new Date() 없이 하이픈만 제거하여 20260528 형식 보장
+    startD = endD = raw.replace(/-/g, '');
   }
+
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
     +'&text='+encodeURIComponent('[출시] '+p.brand+' '+p.item_name)
     +'&dates='+startD+'/'+endD
