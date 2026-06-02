@@ -221,7 +221,10 @@ function updateLayoutForView(viewType){
     var show=(viewType!=='radar'&&viewType!=='archive');
     if(show){
       focusHdr.classList.add('show');
-      if(focusTitle) focusTitle.textContent=(viewType==='all')?'전체':'# '+viewType;
+      if(focusTitle){
+        var isMobile=window.matchMedia&&window.matchMedia('(max-width: 700px)').matches;
+        focusTitle.textContent=(viewType==='all')?(isMobile?'# All':'전체'):'# '+viewType;
+      }
     } else {
       focusHdr.classList.remove('show');
     }
@@ -710,6 +713,22 @@ document.addEventListener('DOMContentLoaded',function(){
   var mobToggle=document.getElementById('mobToggle'),overlay=document.getElementById('overlay');
   if(mobToggle) mobToggle.onclick=openSidebar;
   if(overlay)   overlay.onclick=closeSidebar;
+
+  var mobClose=document.getElementById('mobClose');
+  if(mobClose) mobClose.onclick=closeSidebar;
+
+  var focusSearchInput=document.getElementById('focusSearchInput');
+  if(focusSearchInput){
+    focusSearchInput.oninput=function(){
+      var q=this.value.trim().toLowerCase();
+      document.querySelectorAll('#navList .nav-item-brand').forEach(function(row){
+        var label=row.querySelector('.ni-label');
+        if(!label) return;
+        var text=label.textContent.toLowerCase();
+        row.style.display=text.includes(q)?'flex':'none';
+      });
+    };
+  }
 
   var btnGrid=document.getElementById('btnGrid'),btnList=document.getElementById('btnList');
   if(btnGrid) btnGrid.onclick=function(){ viewMode='grid'; btnGrid.classList.add('on'); if(btnList) btnList.classList.remove('on'); renderItems(getSortedItems(getDisplayList())); };
