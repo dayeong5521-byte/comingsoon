@@ -18,11 +18,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .layout{display:flex;height:100dvh;min-height:0;}
 
 /* ══════════════════════════
-   SIDEBAR — Figma 1:1501
-   w:224px, bg:#f4f4f2
-   border-right: 0.5px rgba(0,0,0,0.07)
-   left/right padding: 17.75px
-   top padding: 27.75px
+   SIDEBAR
 ══════════════════════════ */
 .sb{
   width:var(--sb-w);
@@ -37,7 +33,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   transition:transform .25s;
 }
 
-/* 로고 — 16px Black, tracking 0.01em, uppercase */
 .sb-logo{margin-bottom:24px;}
 .logo-row{display:flex;align-items:center;gap:7px;}
 .logo-txt{
@@ -49,10 +44,8 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   line-height:1;
 }
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-/* 11px Regular, #666, tracking -0.32px */
 .logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;letter-spacing:-0.02em;}
 
-/* 섹션 라벨 — Figma: 9px Bold, #bdbdbd, tracking 1.08px, uppercase */
 .sb-sec-lbl{
   font-size:9px;
   font-weight:700;
@@ -63,7 +56,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   padding:0 4px;
 }
 
-/* 네비 리스트 — gap 1.5px */
 .nav-list{
   display:flex;
   flex-direction:column;
@@ -71,7 +63,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   margin-bottom:16px;
 }
 
-/* nav-item — Figma: height 38px, rounded 9px, py 9px pl 12px */
 .nav-item{
   display:flex;
   align-items:center;
@@ -85,7 +76,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .nav-item:hover{background:rgba(0,0,0,.04);}
 
-/* 상단 nav active (Release Radar, My Archive) → white bg */
 .nav-item-top.active{background:var(--white);}
 .nav-item-top.active .ni-label{
   font-weight:700;
@@ -93,20 +83,16 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .nav-item-top.active .ni-icon{color:var(--accent);}
 
-/* 브랜드 nav active → white bg */
 .nav-item-brand.active{background:var(--white);}
 .nav-item-brand.active .ni-dot{background:var(--accent);}
 .nav-item-brand.active .ni-label{font-weight:700;color:var(--text1);}
 
 .ni-left{display:flex;align-items:center;gap:9px;}
 
-/* 점 — Figma: 7px, #bdbdbd */
 .ni-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;}
 
-/* 아이콘 — Figma: 15x15px */
 .ni-icon{width:15px;height:15px;flex-shrink:0;color:var(--text3);}
 
-/* 라벨 — Figma: 13px SemiBold, #666, tracking -0.32px */
 .ni-label{
   font-size:13px;
   font-weight:600;
@@ -114,7 +100,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing:-0.02em;
 }
 
-/* 카운트 뱃지 — Figma: 18x18px circle, accent bg */
 .ni-badge{
   width:18px;
   height:18px;
@@ -134,11 +119,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   display:flex;
   align-items:center;
   gap:4px;
-  min-width:16px;  /* 삭제 버튼 너비만큼 항상 확보 → 열 정렬 */
+  min-width:16px;
   justify-content:flex-end;
 }
 
-/* 키워드 삭제 버튼 — 호버 시만 표시 */
 .ni-delete{
   width:16px;height:16px;
   border:none;background:transparent;
@@ -154,7 +138,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .ni-delete:hover{color:var(--accent);}
 .nav-item:hover .ni-delete{opacity:1;}
 
-/* Focus Groups 안 검색 — Figma 9:58: h-36px, rounded-20px, border 0.5px */
 .fg-search-bar{
   display:flex;
   align-items:center;
@@ -175,18 +158,14 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .fg-search-bar input::placeholder{color:var(--text3);}
 
-/* 구분선 — Figma: rgba(0,0,0,0.07) */
 .sb-div{height:0.5px;background:var(--border);margin:8px 0 14px;}
 .sb-footer{margin-top:auto;padding:14px 0 22px;border-top:0.5px solid var(--border);}
 
 .user-area{display:flex;align-items:center;gap:10px;}
 .av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
 .av-info{flex:1;min-width:0;}
-/* 12px Bold #111 */
 .av-name{font-size:12px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* 10px Regular #bdbdbd */
 .av-role{font-size:10px;color:var(--text3);}
-/* Login btn — h-28px, rounded-full, border 0.5px */
 .login-btn-small{
   padding:5px 10px;
   border:0.5px solid var(--border-md);
@@ -198,6 +177,9 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   display:flex;align-items:center;
 }
 .login-btn-small:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 사이드바 닫기 버튼 (모바일 전용) */
+.sb-close{display:none;}
 
 /* ══════════════════════════
    MODAL
@@ -225,16 +207,13 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .mob-header{display:none;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
 .mob-logo{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:5px;}
 .mob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
-.mob-toggle{width:34px;height:34px;border:0.5px solid var(--border-md);border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.mob-toggle{width:34px;height:34px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text1);}
+.mob-profile{display:none;}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;}
 .sb-overlay.open{display:block;}
 
 /* ══════════════════════════
    검색 헤더
-   Figma: height 80px, padding 0 28px
-   row: [input flex-1] [발견하기 btn 100px]
-   input: h-46px, rounded-20px, border 1px rgba(0,0,0,0.1)
-   ★ star icon은 input 내부 오른쪽에 위치
 ══════════════════════════ */
 .hd{
   height:80px;
@@ -252,7 +231,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   flex-wrap:nowrap;
 }
 
-/* Figma: flex-1, h-46px, rounded-20px, border 1px rgba(0,0,0,0.1) */
 .search-bar{
   flex:1;
   min-width:0;
@@ -267,7 +245,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .search-bar:focus-within{border-color:rgba(242,102,75,.5);}
 
-/* 검색 아이콘 영역 — Figma: w-39px, padding-x 12px */
 .s-icon{
   width:39px;
   height:100%;
@@ -278,7 +255,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   color:var(--text3);
 }
 
-/* 텍스트 입력 — Figma: 14px Regular, #bdbdbd placeholder, tracking -0.32px */
 .s-input{
   flex:1;
   height:100%;
@@ -293,7 +269,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .s-input::placeholder{color:var(--text3);}
 
-/* 키워드 저장 버튼 — 검색창 안 오른쪽 배치 */
 .kw-save-btn{
   flex-shrink:0;
   height:32px;
@@ -307,13 +282,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing:-0.02em;
   white-space:nowrap;
   cursor:not-allowed;
-  /* 비활성: ghost 스타일 */
   background:#EBEBEB;
   color:#B0B0B0;
   transition:background .2s, color .2s, opacity .15s;
   display:flex;align-items:center;
 }
-/* 활성: 주황 */
 .kw-save-btn:not(:disabled){
   background:var(--accent);
   color:#fff;
@@ -321,8 +294,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .kw-save-btn:not(:disabled):hover{opacity:.86;}
 
-/* 포커스 그룹 헤더 (브랜드 선택 시) */
-/* 3. 포커스 그룹 헤더 — .hd와 동일한 80px */
 .focus-group-header{
   height:80px;
   padding:0 28px;
@@ -338,8 +309,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 
 /* ══════════════════════════
    상태바 / 툴바
-   Figma toolbar: h-48.5px, padding 0 28px
-   ★ active 버튼 = 검정 #111 (orange 아님!)
 ══════════════════════════ */
 .status-bar{padding:7px 28px;background:rgba(242,102,75,.04);border-bottom:0.5px solid var(--border);font-size:11px;font-weight:500;color:var(--text2);display:none;align-items:center;gap:8px;flex-shrink:0;}
 .spinner{width:11px;height:11px;border:1.5px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
@@ -355,7 +324,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   border-bottom:0.5px solid var(--border);
 }
 
-/* 뷰 버튼 — Figma: 30x30, rounded-7px */
 .view-sw{display:flex;gap:3px;}
 .vs-btn{
   width:30px;height:30px;
@@ -365,29 +333,24 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   cursor:pointer;background:transparent;
   transition:all .15s;color:var(--text3);
 }
-/* Figma: active = 검정(#111) */
 .vs-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
 .vs-btn:hover:not(.on){background:rgba(0,0,0,.04);color:var(--text2);}
 
 .filter-sep{width:0.5px;height:18px;background:var(--border-md);}
 .sort-group{display:flex;gap:0;}
 
-/* 정렬 버튼 — Figma: h-30px, rounded pill, w≈80px */
 .sort-btn{
   height:30px;padding:0 11px;
   border:0.5px solid var(--border-md);
   border-radius:50px;
-  /* 11px SemiBold, tracking -0.32px */
   font-size:11px;font-weight:600;font-family:var(--font);
   letter-spacing:-0.02em;color:var(--text2);
   background:transparent;cursor:pointer;
   transition:all .15s;white-space:nowrap;
 }
-/* Figma: active = 검정(#111) */
 .sort-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
 .sort-btn:hover:not(.on){border-color:var(--text2);}
 
-/* 11px SemiBold, #bdbdbd */
 .result-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;letter-spacing:-0.02em;}
 
 /* ══════════════════════════
@@ -399,16 +362,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:40px;}
 .empty-icon{width:52px;height:52px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;}
-/* 15px Bold, #666 */
 .empty-title{font-size:15px;font-weight:700;color:var(--text2);}
-/* 13px Regular, #bdbdbd */
 .empty-desc{font-size:13px;color:var(--text3);line-height:1.7;max-width:300px;}
 
 /* ══════════════════════════
-   GRID CARDS — Figma 9:736 정확 반영
-   border: 0.5px #bdbdbd, rounded: 14px
-   image: 160px 고정
-   card body: 고정 높이 구조
+   GRID CARDS
 ══════════════════════════ */
 .card-grid{
   display:grid;
@@ -417,7 +375,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   align-items:start;
 }
 
-/* Figma: border 0.5px #bdbdbd, rounded-14px */
 .pcard{
   background:var(--white);
   border-radius:14px;
@@ -430,11 +387,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .pcard:hover{transform:translateY(-2px);}
 
-/* 이미지 — Figma: h-160px 고정 */
 .pcard-img-wrap{
   position:relative;
   width:100%;
-  height:160px;        /* Figma: 160.195px */
+  height:160px;
   overflow:hidden;
   flex-shrink:0;
 }
@@ -448,7 +404,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .pcard:hover .pcard-img{transform:scale(1.03);}
 
-/* D-뱃지 — Figma: h-20px, w-34px, top-9px, left-9.5px, rgba(255,255,255,0.9), rounded pill */
 .pbadge{
   position:absolute;
   top:9px;left:9.5px;
@@ -456,7 +411,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   padding:0 6.5px;
   border-radius:50px;
   background:rgba(255,255,255,.9);
-  /* 11px Bold, #666, tracking 0.225px, uppercase */
   font-size:11px;font-weight:700;
   color:var(--text2);
   letter-spacing:0.02em;
@@ -466,7 +420,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   display:flex;align-items:center;
 }
 
-/* 아카이브 버튼 — Figma: 28x28, top-9px, right-9px (left-185.5 in 224px card), rgba(255,255,255,0.9) */
 .archive-btn{
   position:absolute;
   top:9px;right:9px;
@@ -482,7 +435,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .archive-btn.archived{background:var(--accent);color:#fff;}
 .archive-btn svg{width:15px;height:15px;pointer-events:none;}
 
-/* 카드 바디 — Figma: left-12.5px, top-172px (=160+12), gap-10px */
 .pcard-body{
   padding:12px 13px 13px;
   display:flex;
@@ -491,21 +443,18 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   gap:10px;
 }
 
-/* 브랜드+타이틀 섹션 — gap-4px */
 .pc-brand-title{
   display:flex;
   flex-direction:column;
   gap:4px;
 }
 
-/* 브랜드 뱃지 — Figma: h-17.5px, w≈44.57px, rounded pill, rgba(242,102,75,0.08) bg */
 .pc-brand{
   display:inline-block;
   height:17.5px;
   padding:0 7px;
   border-radius:50px;
   background:var(--accent-bg);
-  /* 9px ExtraBold, #f2664b, tracking 0.45px, uppercase */
   font-size:9px;font-weight:800;
   color:var(--accent);
   letter-spacing:0.05em;text-transform:uppercase;
@@ -514,14 +463,12 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   white-space:nowrap;
 }
 
-/* 상품명 — Figma: 13px Bold, #111, tracking -0.32px */
-/* ★ 고정 높이 35px (2줄까지 허용, 항상 같은 높이 유지) */
 .pc-name{
   font-size:13px;
   font-weight:700;
   color:var(--text1);
   letter-spacing:-0.02em;
-  height:35px;         /* 고정 높이 */
+  height:35px;
   overflow:hidden;
   display:-webkit-box;
   -webkit-line-clamp:2;
@@ -529,7 +476,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   line-height:1.35;
 }
 
-/* 하단 푸터 — Figma: border-top 0.5px rgba(0,0,0,0.1), h-39.5px, justify-between */
 .pc-foot{
   display:flex;
   align-items:center;
@@ -537,50 +483,27 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   gap:8px;
   border-top:0.5px solid var(--border-md);
   padding-top:9px;
-  height:39.5px;       /* 고정 높이 */
+  height:39.5px;
   flex-shrink:0;
 }
 
 .pc-date-lbl {
-  font-size: 8px; /* 피그마 수치 유지 */
+  font-size: 8px;
   font-weight: 600;
   color: #BDBDBD;
   letter-spacing: -0.02em;
-  margin-bottom: 3px; /* 💡 날짜와 딱 붙도록 미세 조정 */
+  margin-bottom: 3px;
   line-height: 1;
 }
 
-/* 날짜 폰트는 다영님이 짜두신 것 그대로 유지! */
 .pc-date {
   font-size: 14px !important;
   font-weight: 900 !important;
   color: #111 !important;
   letter-spacing: -0.02em !important;
-  line-height: 1 !important; /* 위아래 쓸데없는 여백 제거 */
+  line-height: 1 !important;
 }
 
-/* ── [3] 캘린더 버튼 (날렵한 알약 모양 복구) ── */
-.calendar-btn { /* ⚠️ 다영님 코드의 실제 버튼 클래스명으로 바꿔주세요 */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* 💡 핵심: 높이를 명시적으로 깎아서 뚱뚱해지는 것 방지 */
-  height: 26px; 
-  padding: 0 10px;
-  
-  border: 1px solid #FF6B4A; /* 피그마 오렌지 컬러 */
-  border-radius: 100px; /* 완벽한 알약(Pill) 쉐입 */
-  background: transparent;
-  
-  color: #FF6B4A;
-  font-size: 11px; /* 버튼 안 텍스트 크기 미세 조정 */
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  box-sizing: border-box;
-  gap: 4px; /* 글자와 + 기호 사이 간격 */
-  cursor: pointer;
-}
 /* TBD 토글 버튼 */
 .tbd-toggle{
   height:30px;padding:0 11px;
@@ -612,8 +535,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .pc-cat-CULTURE { background:#F0FDF4;color:#16A34A; }
 .pc-cat-CONTENT { background:#FDF4FF;color:#9333EA; }
 
-/* 캘린더 버튼 — Figma: h-30px, rounded-100px, bg white, border 1px #f2664b */
-/* text: 11.827px Bold, #f2664b */
 .cal-btn{
   flex-shrink:0;
   height:30px;
@@ -682,44 +603,107 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .toast-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
 
 /* ══════════════════════════
-   RESPONSIVE
+   RESPONSIVE — Figma 모바일
 ══════════════════════════ */
 @media(max-width:900px){:root{--sb-w:200px;}}
+
 @media(max-width:700px){
-  .sb{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.1);}
+  /* 사이드바 — 풀폭 슬라이드 */
+  .sb{
+    position:fixed;left:0;top:0;bottom:0;z-index:50;
+    width:300px;min-width:300px;
+    transform:translateX(-100%);
+    box-shadow:4px 0 24px rgba(0,0,0,.12);
+    padding-top:20px;
+  }
   .sb.open{transform:translateX(0);}
-  .mob-header{display:flex;}
-  .hd{height:64px;padding:0 16px;}
-  .toolbar{padding:0 16px;}
-  .content{padding:16px 16px 24px;}
-  .focus-group-header{padding:14px 16px 0;}
-  .card-grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
+  .sb-close{
+    display:flex;position:absolute;top:16px;right:16px;
+    width:32px;height:32px;border:none;background:transparent;
+    color:var(--text2);cursor:pointer;
+    align-items:center;justify-content:center;border-radius:8px;z-index:2;
+  }
+
+  /* 모바일 헤더 — 햄버거·로고·프로필 */
+  .mob-header{display:flex;height:64px;padding:0 16px;}
+  .mob-toggle,.mob-profile{
+    width:24px;height:24px;border:none;background:transparent;
+    color:var(--text1);cursor:pointer;display:flex;
+    align-items:center;justify-content:center;padding:0;flex-shrink:0;
+  }
+  .mob-profile{display:flex;}
+  .mob-logo{font-size:16px;letter-spacing:.01em;}
+
+  /* 검색바 — 완전한 알약 */
+  .hd{height:auto;padding:8px 16px;border-bottom:none;}
+  .search-bar{height:40px;border-radius:40px;border:0.5px solid var(--text3);}
+  .s-icon{width:36px;}
+  .s-input{font-size:13px;}
+  .kw-save-btn{height:24px;padding:0 11px;font-size:11px;border-radius:24px;margin-right:6px;}
+
+  /* 툴바 — 가로 스크롤 */
+  .toolbar{
+    height:44px;padding:0 16px;gap:6px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .toolbar::-webkit-scrollbar{display:none;}
+  .view-sw,.sort-group,.tbd-toggle,.filter-sep{flex-shrink:0;}
   .result-count{display:none;}
+
+  /* 콘텐츠 / 포커스 헤더 */
+  .content{padding:14px 16px 24px;}
+  .focus-group-header{height:auto;padding:14px 16px;}
+  .fg-title{font-size:24px;}
+
+  /* 카드 그리드 — 3열 (Figma) */
+  .card-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
+
+  /* 카드 — 그림자 + radius 8px */
+  .pcard{border:none;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .pcard-img-wrap{height:80px;border-radius:8px 8px 0 0;}
+  .pbadge{top:5px;left:5px;height:15px;padding:0 5px;font-size:8px;}
+  .archive-btn{top:5px;right:5px;width:20px;height:20px;}
+  .archive-btn svg{width:11px;height:11px;}
+
+  .pcard-body{padding:6px;gap:4px;}
+  .pc-category{display:none;}
+  .pc-brand{height:auto;padding:1px 5px;font-size:7px;line-height:1.6;}
+  .pc-name{font-size:11px;height:auto;-webkit-line-clamp:1;line-height:1.3;}
+  .pc-foot{height:auto;padding-top:6px;}
+  .pc-date-lbl{font-size:7px;margin-bottom:2px;}
+  .pc-date{font-size:11px !important;}
+
+  /* 캘린더 버튼 — 아이콘만 */
+  .cal-btn{font-size:0;width:22px;height:20px;padding:0;justify-content:center;gap:0;}
+  .cal-btn svg{width:12px;height:12px;}
+
+  /* 리스트 카드 */
+  .lcard-img{width:80px;height:64px;}
+  .lcard{min-height:64px;}
 }
-@media(max-width:480px){
+
+/* 아주 좁은 화면 — 2열로 완화 */
+@media(max-width:380px){
   .card-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .kw-save-btn{padding:0 14px;font-size:13px;}
-  .pcard-img-wrap{height:130px;}
+  .pcard-img-wrap{height:110px;}
+  .pc-name{font-size:12px;}
+  .pc-date{font-size:12px !important;}
 }
+
 /* ── 사이드바 '의견 보내기' 버튼 ── */
 .feedback-trigger-btn {
-  /* 피그마 수치 100% 적용 */
   display: flex;
   height: 36px;
   align-items: center;
   gap: 4px;
   background: #F4F4F2;
-  
-  /* 웹 적용을 위한 필수 조정 */
   width: 100%;
-  padding: 0 12px; /* 좌우 패딩만 유지해 높이(44px) 찌그러짐 방지 */
-  margin: 0 0 4px 0; /* 💡 로그인 카드와의 간격만 딱 16px 띄움 */
+  padding: 0 12px;
+  margin: 0 0 4px 0;
   box-sizing: border-box;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  
-  /* 텍스트 스타일 */
   font-size: 13px;
   font-weight: 600;
   color: #555;
@@ -727,17 +711,15 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing: -0.02em;
   transition: background 0.2s;
 }
-
 .feedback-trigger-btn:hover {
   background: #EAEAEA;
   color: #111;
 }
-
 .feedback-trigger-btn svg {
   flex-shrink: 0;
 }
 
-/* ── [2] 의견 보내기 모달 (라이트 톤 픽셀 퍼펙트) ── */
+/* ── 의견 보내기 모달 ── */
 .feedback-modal-light {
   display: flex;
   flex-direction: column;
@@ -747,20 +729,17 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   background: #F4F4F2;
   border-radius: 12px;
   width: 90%;
-  max-width: 480px; /* 더 시원하게 키운 사이즈 */
+  max-width: 480px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.1);
   box-sizing: border-box;
 }
-
-/* 헤더 가로 꽉 채우고 양끝 정렬 */
 .feedback-modal-light .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin: 0; /* 불필요한 여백 제거 */
+  margin: 0;
 }
-
 .feedback-modal-light .modal-title {
   font-size: 22px;
   font-weight: 800;
@@ -768,8 +747,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   letter-spacing: -0.02em;
   margin: 0;
 }
-
-/* 닫기 버튼 찌그러짐 및 밉상 테두리 방지 */
 .feedback-modal-light .close-btn {
   background: transparent;
   border: none;
@@ -780,7 +757,6 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   justify-content: center;
   outline: none;
 }
-
 .feedback-modal-light .modal-desc {
   font-size: 14px;
   color: #555;
@@ -789,13 +765,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   width: 100%;
   margin: 0;
 }
-
-/* 텍스트박스 가로 꽉 채우기 및 브라우저 테두리 강제 제거 */
 .feedback-modal-light textarea {
   width: 100%;
   height: 130px;
   background: #FFFFFF;
-  border: none !important; /* 브라우저 기본 테두리 파괴 */
+  border: none !important;
   border-radius: 12px;
   padding: 16px;
   color: #111;
@@ -813,13 +787,11 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .feedback-modal-light textarea:focus {
   outline: 1.5px solid #111;
 }
-
-/* 제출 버튼 가로 꽉 채우기 및 찌그러짐 방지 */
 .feedback-modal-light .submit-btn {
   width: 100%;
   background: #151515;
   color: #FFFFFF;
-  border: none !important; /* 브라우저 기본 테두리 파괴 */
+  border: none !important;
   border-radius: 10px;
   padding: 16px;
   font-size: 15px;
@@ -834,672 +806,13 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .feedback-modal-light .submit-btn:hover {
   background: #333;
 }
-/* 크롬 자동완성(Autofill) 파란색 배경 제거 */
+
+/* 크롬 자동완성 배경 제거 */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    /* 💡 검색창의 원래 배경색으로 변경해 주세요 (예: 하얀색이면 #FFFFFF, 연회색이면 #F5F5F5) */
-    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important; 
-    
-    /* 💡 입력되는 글자 색상 유지 */
-    -webkit-text-fill-color: #111 !important; 
-    
-    /* 배경색이 변하는 것을 극단적으로 지연시킴 */
-    transition: background-color 5000s ease-in-out 0s; 
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+    -webkit-text-fill-color: #111 !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
-/* Mobile-only components default */
-.sb-mobile-top, .mobile-focus-search{display:none;}
-
-
-/* =========================
-   MOBILE FIGMA VERSION
-   기준: iPhone 14 / 390px
-   웹 스타일은 유지하고 700px 이하에서만 덮어쓰기
-   ========================= */
-
-@media (max-width: 700px) {
-  html,
-  body {
-    background: #fff;
-  }
-
-  .layout {
-    height: 100dvh;
-    overflow: hidden;
-    background: #fff;
-  }
-
-  .main {
-    width: 100%;
-    background: #fff;
-  }
-
-  /* ---------- Mobile Top Header ---------- */
-
-  .mob-header {
-    display: grid;
-    grid-template-columns: 44px 1fr 44px;
-    align-items: center;
-    height: 64px;
-    padding: 0 16px;
-    background: #fff;
-    border-bottom: none;
-    flex-shrink: 0;
-  }
-
-  .mob-icon-btn,
-  .mob-profile-btn,
-  .sb-close-btn {
-    border: none;
-    background: transparent;
-    padding: 0;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #B8B8B8;
-    cursor: pointer;
-  }
-
-  .mob-logo {
-    justify-self: center;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 17px;
-    font-weight: 900;
-    color: #111;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .mob-target {
-    width: 17px;
-    height: 17px;
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .mob-target::before {
-    content: "";
-    position: absolute;
-    inset: 3px;
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-  }
-
-  .mob-target::after {
-    content: "";
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: var(--accent);
-    border-radius: 50%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .mob-profile-btn {
-    justify-self: end;
-  }
-
-  /* ---------- Mobile Drawer ---------- */
-
-  .sb {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 50;
-    width: 100vw;
-    min-width: 100vw;
-    max-width: 100vw;
-    background: #F7F7F6;
-    padding: 0 20px 24px;
-    border-right: none;
-    box-shadow: none;
-    transform: translateX(-100%);
-  }
-
-  .sb.open {
-    transform: translateX(0);
-  }
-
-  .sb-overlay,
-  .sb-overlay.open {
-    display: none;
-  }
-
-  .sb-mobile-top {
-    display: grid;
-    grid-template-columns: 44px 1fr 44px;
-    align-items: center;
-    height: 64px;
-    margin: 0 -4px 48px;
-  }
-
-  .sb-close-btn {
-    justify-self: start;
-  }
-
-  .sb .sb-logo {
-    display: none;
-  }
-
-  .sb-sec-lbl {
-    font-size: 10px;
-    font-weight: 800;
-    color: #B8B8B8;
-    letter-spacing: 0.22em;
-    padding: 0 4px;
-    margin-bottom: 12px;
-  }
-
-  .sb-div {
-    margin: 26px 0 24px;
-    background: rgba(0, 0, 0, 0.08);
-  }
-
-  .nav-list {
-    gap: 4px;
-    margin-bottom: 0;
-  }
-
-  .nav-item {
-    min-height: 40px;
-    padding: 8px 14px;
-    border-radius: 13px;
-  }
-
-  .nav-item-top {
-    height: 40px;
-    padding: 0 14px;
-  }
-
-  .nav-item-top.active {
-    background: #fff;
-  }
-
-  .nav-item-top .ni-label {
-    font-size: 17px;
-    font-weight: 800;
-    color: #777;
-  }
-
-  .nav-item-top.active .ni-label {
-    color: #111;
-  }
-
-  .nav-item-top .ni-icon {
-    width: 17px;
-    height: 17px;
-    color: #B8B8B8;
-  }
-
-  .nav-item-top.active .ni-icon {
-    color: var(--accent);
-  }
-
-  #navArchive .ni-icon {
-    display: none;
-  }
-
-  #navArchive .ni-left::before {
-    content: "♡";
-    font-size: 23px;
-    line-height: 1;
-    color: #B8B8B8;
-    width: 17px;
-    display: inline-flex;
-    justify-content: center;
-  }
-
-  .mobile-focus-search {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    height: 40px;
-    border: 0.7px solid rgba(0, 0, 0, 0.16);
-    border-radius: 999px;
-    padding: 0 14px;
-    margin-bottom: 18px;
-    color: #B8B8B8;
-    background: #fff;
-  }
-
-  .mobile-focus-search input {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-family: var(--font);
-    font-size: 14px;
-    font-weight: 600;
-    color: #111;
-    letter-spacing: -0.02em;
-  }
-
-  .mobile-focus-search input::placeholder {
-    color: #B8B8B8;
-  }
-
-  .nav-item-brand {
-    padding: 8px 14px;
-  }
-
-  .nav-item-brand .ni-left {
-    gap: 12px;
-  }
-
-  .nav-item-brand .ni-dot {
-    width: 7px;
-    height: 7px;
-    background: #B8B8B8;
-  }
-
-  .nav-item-brand .ni-label {
-    font-size: 17px;
-    font-weight: 800;
-    color: #6F6F6F;
-    letter-spacing: -0.03em;
-  }
-
-  .nav-item-brand .ni-label::before {
-    content: "# ";
-  }
-
-  #allFilter .ni-label::before {
-    content: "#";
-  }
-
-  .nav-item-brand.active {
-    background: transparent;
-  }
-
-  .nav-item-brand.active .ni-label {
-    color: #111;
-  }
-
-  .nav-item-brand.active .ni-dot {
-    background: var(--accent);
-  }
-
-  .ni-delete,
-  .feedback-trigger-btn,
-  .sb-footer {
-    display: none;
-  }
-
-  /* ---------- Search Header ---------- */
-
-  .hd {
-    height: auto;
-    padding: 56px 16px 16px;
-    border-bottom: none;
-  }
-
-  .search-row {
-    width: 100%;
-  }
-
-  .search-bar {
-    height: 40px;
-    border: 0.7px solid rgba(0, 0, 0, 0.15);
-    border-radius: 999px;
-    overflow: hidden;
-    background: #fff;
-  }
-
-  .s-icon {
-    width: 37px;
-    color: #B8B8B8;
-  }
-
-  .s-input {
-    height: 100%;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .s-input::placeholder {
-    color: #B8B8B8;
-  }
-
-  .kw-save-btn {
-    height: 32px;
-    margin-right: 4px;
-    padding: 0 15px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .kw-save-btn:disabled {
-    background: var(--accent);
-    color: #fff;
-    opacity: 1;
-  }
-
-  /* ---------- Focus Group Title Header ---------- */
-
-  .focus-group-header {
-    height: auto;
-    min-height: unset;
-    padding: 42px 20px 20px;
-    border-bottom: none;
-    justify-content: flex-start;
-  }
-
-  .fg-label {
-    font-size: 10px;
-    font-weight: 800;
-    color: #B8B8B8;
-    letter-spacing: 0.22em;
-    margin-bottom: 8px;
-  }
-
-  .fg-title {
-    font-size: 32px;
-    font-weight: 900;
-    color: #111;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  /* ---------- Toolbar ---------- */
-
-  .toolbar {
-    height: auto;
-    min-height: 44px;
-    padding: 0 20px 16px;
-    border-bottom: none;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .toolbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .view-sw {
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .vs-btn {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    border: 0.7px solid rgba(0, 0, 0, 0.10);
-    color: #777;
-  }
-
-  .vs-btn.on {
-    background: #111;
-    border-color: #111;
-    color: #fff;
-  }
-
-  .filter-sep {
-    display: none;
-  }
-
-  .sort-group {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .sort-btn,
-  .tbd-toggle {
-    height: 24px;
-    padding: 0 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 0.7px solid rgba(0, 0, 0, 0.10);
-    color: #777;
-  }
-
-  .sort-btn.on,
-  .tbd-toggle.on {
-    background: #111;
-    border-color: #111;
-    color: #fff;
-  }
-
-  .tbd-toggle {
-    display: none;
-  }
-
-  .result-count {
-    display: block;
-    margin-left: auto;
-    font-size: 12px;
-    font-weight: 700;
-    color: #B8B8B8;
-    flex-shrink: 0;
-  }
-
-  /* ---------- Content / Empty ---------- */
-
-  .content {
-    padding: 0 20px 40px;
-    background: #fff;
-  }
-
-  .empty-state {
-    height: calc(100dvh - 230px);
-    padding: 0 26px;
-    gap: 14px;
-  }
-
-  .empty-icon {
-    width: 52px;
-    height: 52px;
-    background: #F4F4F3;
-  }
-
-  .empty-title {
-    font-size: 17px;
-    font-weight: 900;
-    color: #6F6F6F;
-  }
-
-  .empty-desc {
-    max-width: 270px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #B8B8B8;
-    line-height: 1.8;
-  }
-
-  /* ---------- Card Grid: 3 columns ---------- */
-
-  .card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px 8px;
-  }
-
-  .pcard {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-  }
-
-  .pcard:hover {
-    transform: none;
-  }
-
-  .pcard-img-wrap {
-    height: 78px;
-  }
-
-  .pcard-img {
-    border-radius: 8px 8px 0 0;
-  }
-
-  .pbadge {
-    top: 7px;
-    left: 7px;
-    height: 16px;
-    padding: 0 7px;
-    font-size: 8px;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.78);
-    color: #8D8D8D;
-  }
-
-  .archive-btn {
-    top: 7px;
-    right: 7px;
-    width: 17px;
-    height: 17px;
-    background: transparent;
-    color: #fff;
-  }
-
-  .archive-btn svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 1.8;
-  }
-
-  .archive-btn.archived {
-    background: transparent;
-    color: var(--accent);
-  }
-
-  .pcard-body {
-    padding: 7px 7px 8px;
-    gap: 5px;
-  }
-
-  .pc-brand-title {
-    gap: 4px;
-  }
-
-  .pc-brand {
-    height: auto;
-    padding: 0;
-    background: transparent;
-    color: var(--accent);
-    font-size: 7px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: 0.08em;
-  }
-
-  .pc-category {
-    display: none;
-  }
-
-  .pc-name {
-    height: 25px;
-    font-size: 9px;
-    font-weight: 800;
-    line-height: 1.35;
-    letter-spacing: -0.03em;
-  }
-
-  .pc-foot {
-    height: auto;
-    min-height: 21px;
-    padding-top: 0;
-    border-top: none;
-    align-items: flex-end;
-    gap: 4px;
-  }
-
-  .pc-date-lbl {
-    font-size: 5px;
-    font-weight: 600;
-    color: #C8C8C8;
-    margin-bottom: 2px;
-  }
-
-  .pc-date {
-    font-size: 10px !important;
-    font-weight: 900 !important;
-    letter-spacing: -0.03em !important;
-  }
-
-  .cal-btn {
-    height: 16px;
-    padding: 0 6px;
-    border-radius: 999px;
-    font-size: 7px;
-    font-weight: 800;
-    gap: 2px;
-    border: 0.7px solid var(--accent);
-  }
-
-  .cal-btn svg {
-    width: 8px;
-    height: 8px;
-  }
-
-  #btnList,
-  #btnListArc {
-    display: none;
-  }
-
-  /* ---------- Archive ---------- */
-
-  .archive-header {
-    padding: 42px 20px 20px;
-    border-bottom: none;
-  }
-
-  .archive-title {
-    font-size: 32px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-  }
-
-  .archive-subtitle {
-    display: none;
-  }
-
-  .archive-meta {
-    display: none !important;
-  }
-
-  #archiveLoginBtn {
-    display: none !important;
-  }
-}
-
-@media (max-width: 380px) {
-  .mob-logo {
-    font-size: 15px;
-    gap: 6px;
-  }
-
-  .card-grid {
-    gap: 10px 7px;
-  }
-
-  .pcard-img-wrap {
-    height: 72px;
-  }
-
-  .cal-btn {
-    padding: 0 5px;
-  }
-}
-
