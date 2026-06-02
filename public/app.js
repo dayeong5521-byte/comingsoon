@@ -99,24 +99,21 @@ function formatSingle(d){
   return p[0]+'.'+p[1]+'.'+p[2];
 }
 function makeCalUrl(p){
-  var raw = p.release_date;
-  var startD, endD;
-
-  if(!raw || raw === 'TBD'){
-    startD = endD = TODAY.replace(/-/g, '');
+  var raw=p.release_date;
+  var startD,endD;
+  if(!raw||raw==='TBD'){
+    startD=endD=TODAY.replace(/-/g,'');
   } else if(raw.includes('~')){
-    var pts = raw.split('~');
-    startD = pts[0].replace(/-/g, '');
-    endD = /^\d{1,2}$/.test(pts[1]) 
-      ? pts[0].slice(0,7).replace('-', '') + pts[1].padStart(2, '0') 
-      : pts[1].replace(/-/g, '');
+    var pts=raw.split('~');
+    startD=pts[0].replace(/-/g,'');
+    endD=/^\d{1,2}$/.test(pts[1])
+      ? pts[0].slice(0,7).replace('-','')+pts[1].padStart(2,'0')
+      : pts[1].replace(/-/g,'');
   } else if(/^\d{4}-\d{2}$/.test(raw)){
-    startD = endD = raw.replace('-', '') + '01';
+    startD=endD=raw.replace('-','')+'01';
   } else {
-    // ★ new Date() 없이 하이픈만 제거하여 20260528 형식 보장
-    startD = endD = raw.replace(/-/g, '');
+    startD=endD=raw.replace(/-/g,'');
   }
-
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
     +'&text='+encodeURIComponent('[출시] '+p.brand+' '+p.item_name)
     +'&dates='+startD+'/'+endD
@@ -221,10 +218,7 @@ function updateLayoutForView(viewType){
     var show=(viewType!=='radar'&&viewType!=='archive');
     if(show){
       focusHdr.classList.add('show');
-      if(focusTitle){
-        var isMobile=window.matchMedia&&window.matchMedia('(max-width: 700px)').matches;
-        focusTitle.textContent=(viewType==='all')?(isMobile?'# All':'전체'):'# '+viewType;
-      }
+      if(focusTitle) focusTitle.textContent=(viewType==='all')?'전체':'# '+viewType;
     } else {
       focusHdr.classList.remove('show');
     }
@@ -433,7 +427,7 @@ async function startHunt(){
   var saveBtn=document.getElementById('kwSaveBtn');
   if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='탐색 중...'; }
 
-  setStatus("'"+kw+"' 검색 중...",true);
+  setStatus("'"+kw+"' 수색 중...",true);
   currentSearchItems=[]; renderItems([]);
   try{
     var res=await fetch('/api/hunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw})});
@@ -480,27 +474,11 @@ async function startHunt(){
 /* ── 캘린더 추가 — 로그인 필요 ── */
 function addToCalendar(url){
   if(!currentUser){
-    analytics.logEvent('login_prompted',{feature:'calendar_add'});
+    analytics.logEvent('login_prompted',{feature:'calendar_add'}); // ★
     openModal('loginModalBg'); return;
   }
-  analytics.logEvent('calendar_added',{url:url});
-
-  // ★ 새 탭 대신 중앙 정렬 팝업 모달로 열기
-  var popupWidth = 600;
-  var popupHeight = 700;
-  var left = window.screenX + (window.outerWidth - popupWidth) / 2;
-  var top = window.screenY + (window.outerHeight - popupHeight) / 2;
-
-  // ★ 수정 포인트: 두 번째 인자를 '_blank'로 설정하고, 세 번째 인자에 절대 띄어쓰기를 넣지 않습니다.
-  var popup = window.open(
-    url, 
-    '_blank', 
-    'width=' + popupWidth + ',height=' + popupHeight + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes'
-  );
-
-  if(!popup) {
-    showToast('팝업이 차단되었습니다. 주소창에서 팝업 차단을 해제해주세요.');
-  }
+  analytics.logEvent('calendar_added',{url:url}); // ★
+  window.open(url,'_blank','noopener');
 }
 
 /* ── 아이콘 ── */
@@ -546,7 +524,7 @@ function mkGrid(p){
         '</div>'+
         /* ★ 캘린더 버튼: data-cal-url 속성 사용 */
         '<button class="cal-btn" data-cal-url="'+escapeHtml(calUrl)+'">'+
-          'Calendar '+ICON_PLUS+
+          '<span class="cal-label">Calendar</span>'+ICON_PLUS+
         '</button>'+
       '</div>'+
     '</div>'+
@@ -588,7 +566,7 @@ function renderItems(list){
       '<div class="empty-state">'+
         '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="7.5" stroke="#BDBDBD" stroke-width="1.5"/><line x1="16" y1="16" x2="22" y2="22" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round"/></svg></div>'+
         '<div class="empty-title">데이터가 없습니다</div>'+
-        '<div class="empty-desc"> 브랜드,테크,그리고 컬처까지.<br>놓치고 싶지 않은 모든 관심사의 릴리즈 소식을 선점하세요.</div>'+
+        '<div class="empty-desc">키워드를 검색해서 릴리즈 소식을 찾아보세요.</div>'+
       '</div>';
     return;
   }
@@ -609,16 +587,13 @@ function bindCardEvents(container){
       toggleArchive(this.getAttribute('data-key'),this);
     });
   });
-  
-  /* ★ 수정 포인트: 캘린더 버튼 — e.preventDefault() 추가로 링크 이동 강제 차단 */
+  /* 캘린더 버튼 — data-cal-url 속성에서 URL 읽기 */
   container.querySelectorAll('.cal-btn,.lcal-btn').forEach(function(btn){
     btn.addEventListener('click',function(e){
-      e.preventDefault();  // 버튼의 기본 동작(페이지 이동 등) 차단
-      e.stopPropagation(); // 부모 카드 클릭 이벤트 차단
+      e.stopPropagation();
       addToCalendar(this.getAttribute('data-cal-url'));
     });
   });
-  
   /* 이미지/카드 클릭 → 링크 열기 */
   container.querySelectorAll('.pcard-img-wrap[data-link]').forEach(function(el){
     el.style.cursor='pointer';
@@ -626,7 +601,7 @@ function bindCardEvents(container){
       window.open(this.getAttribute('data-link'),'_blank','noopener');
     });
   });
-  // 링크 없는 카드 → 구글 검색 fallback
+  // 링크 없는 카드 — 아이템명으로 구글 검색
   container.querySelectorAll('.pcard-img-wrap:not([data-link])').forEach(function(el){
     el.style.cursor='pointer';
     el.addEventListener('click',function(){
@@ -714,22 +689,6 @@ document.addEventListener('DOMContentLoaded',function(){
   if(mobToggle) mobToggle.onclick=openSidebar;
   if(overlay)   overlay.onclick=closeSidebar;
 
-  var mobClose=document.getElementById('mobClose');
-  if(mobClose) mobClose.onclick=closeSidebar;
-
-  var focusSearchInput=document.getElementById('focusSearchInput');
-  if(focusSearchInput){
-    focusSearchInput.oninput=function(){
-      var q=this.value.trim().toLowerCase();
-      document.querySelectorAll('#navList .nav-item-brand').forEach(function(row){
-        var label=row.querySelector('.ni-label');
-        if(!label) return;
-        var text=label.textContent.toLowerCase();
-        row.style.display=text.includes(q)?'flex':'none';
-      });
-    };
-  }
-
   var btnGrid=document.getElementById('btnGrid'),btnList=document.getElementById('btnList');
   if(btnGrid) btnGrid.onclick=function(){ viewMode='grid'; btnGrid.classList.add('on'); if(btnList) btnList.classList.remove('on'); renderItems(getSortedItems(getDisplayList())); };
   if(btnList) btnList.onclick=function(){ viewMode='list'; btnList.classList.add('on'); if(btnGrid) btnGrid.classList.remove('on'); renderItems(getSortedItems(getDisplayList())); };
@@ -748,14 +707,14 @@ document.addEventListener('DOMContentLoaded',function(){
   ['tbdToggle','tbdToggleArc'].forEach(function(id){
     var btn=document.getElementById(id);
     if(!btn) return;
-    btn.classList.add('on'); // 기본: 날짜 미정 포함(on)
+    btn.classList.add('on'); // 기본: 미정 포함(on)
     btn.onclick=function(){
       showTbd=!showTbd;
       // 두 버튼 동기화
       ['tbdToggle','tbdToggleArc'].forEach(function(bid){
         var b=document.getElementById(bid);
         if(b){
-          b.textContent=showTbd?'날짜 미정 포함':'날짜 미정 포함';
+          b.textContent=showTbd?'미정 포함':'날짜 확정만';
           showTbd?b.classList.add('on'):b.classList.remove('on');
         }
       });
