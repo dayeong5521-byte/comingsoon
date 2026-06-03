@@ -481,10 +481,11 @@ function addToCalendar(url){
   window.open(url,'_blank','noopener');
 }
 
-/* ── 아이콘 ── */
-var ICON_ARCHIVE='<svg viewBox="0 0 15 15" fill="none"><rect x="1.5" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h12" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
-var ICON_CHECK='<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-var ICON_PLUS='<svg viewBox="0 0 15 15" fill="none"><line x1="7.5" y1="3" x2="7.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="3" y1="7.5" x2="12" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+/* ── 아이콘 (Figma: tabler:heart, uil:calender) ── */
+var ICON_ARCHIVE='<svg viewBox="0 0 24 24" fill="none"><path d="M19.5 12.57 12 20l-7.5-7.43A5 5 0 1 1 12 6.01a5 5 0 1 1 7.5 6.56" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var ICON_CHECK='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.98 3.07a6 6 0 0 1 4.99 1.43l.03.03.04-.03a6 6 0 0 1 4.98-1.4 6 6 0 0 1 3.36 10l-.18.19-.05.04-7.45 7.38a1 1 0 0 1-1.4 0l-7.5-7.42A6 6 0 0 1 6.98 3.07"/></svg>';
+var ICON_CALENDAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-2V3a1 1 0 0 0-2 0v1H9V3a1 1 0 0 0-2 0v1H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3m1 15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7h16zm0-9H4V7a1 1 0 0 1 1-1h2v1a1 1 0 0 0 2 0V6h6v1a1 1 0 0 0 2 0V6h2a1 1 0 0 1 1 1z"/></svg>';
+var ICON_PLUS=ICON_CALENDAR;
 
 /* ── 그리드 카드 ── */
 /* ── 그리드 카드 — inline onclick 제거, data 속성으로 처리 ── */
