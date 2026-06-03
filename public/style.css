@@ -13,7 +13,7 @@
   --font:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
   --sb-w:224px;
 }
-html,body{height:100%;background:var(--sidebar);}
+html,body{height:100%;background:var(--sidebar);overflow-x:hidden;max-width:100%;}
 body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .layout{display:flex;height:100dvh;min-height:0;}
 
@@ -44,6 +44,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   line-height:1;
 }
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.logo-mark{color:var(--accent);flex-shrink:0;}
 .logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;letter-spacing:-0.02em;}
 
 .sb-sec-lbl{
@@ -207,6 +208,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .mob-header{display:none;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
 .mob-logo{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:5px;}
 .mob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+.mob-logo .logo-mark{color:var(--accent);flex-shrink:0;}
 .mob-toggle{width:34px;height:34px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text1);}
 .mob-profile{display:none;}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;}
@@ -608,10 +610,13 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 @media(max-width:900px){:root{--sb-w:200px;}}
 
 @media(max-width:700px){
+  /* 가로 오버플로우 차단 — 무엇도 화면 밖으로 못 나감 */
+  .layout,.main,.content{overflow-x:hidden;min-width:0;max-width:100%;}
+
   /* 사이드바 — 풀폭 슬라이드 */
   .sb{
     position:fixed;left:0;top:0;bottom:0;z-index:50;
-    width:300px;min-width:300px;
+    width:min(300px,85vw);min-width:min(300px,85vw);
     transform:translateX(-100%);
     box-shadow:4px 0 24px rgba(0,0,0,.12);
     padding-top:20px;
@@ -654,7 +659,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   .content{padding:14px 16px 24px;}
   .focus-group-header{height:auto;padding:12px 20px;}
   .fg-label{font-size:8px;letter-spacing:.12em;}
-  .fg-title{font-size:24px;letter-spacing:.025em;line-height:28px;}
+  .fg-title{font-size:24px;letter-spacing:.025em;line-height:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 
   /* 카드 그리드 — 3열 (Figma) */
   .card-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
