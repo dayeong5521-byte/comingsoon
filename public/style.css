@@ -1,16 +1,20 @@
 /* ── Figma 정확 반영 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --accent:#F2664B;
+  /* ★ Figma get_variable_defs 반환값 (node 48:6)
+     white:#BDBDBD, black:#111111, orange:#F2664B, back:#f4f4f2, dark_gray:#666666 */
+  --accent:#F2664B;          /* Figma: orange = #F2664B */
   --accent-bg:rgba(242,102,75,0.08);
-  --sidebar:#F4F4F2;
+  --sidebar:#F4F4F2;         /* Figma: back = #f4f4f2 */
   --white:#fff;
-  --text1:#111;
-  --text2:#666;
-  --text3:#BDBDBD;
+  --text1:#111;              /* Figma: black = #111111 */
+  --text2:#666;              /* Figma: dark_gray = #666666 */
+  --text3:#BDBDBD;           /* Figma: white(light) = #BDBDBD */
   --border:rgba(0,0,0,0.07);
   --border-md:rgba(0,0,0,0.10);
   --font:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  /* ★ Figma node 48:14/48:227/48:476 — 로고 전용 폰트: Special Gothic Expanded One */
+  --font-logo:'Special Gothic Expanded One', sans-serif;
   --sb-w:224px;
 }
 html,body{height:100%;background:var(--sidebar);overflow-x:hidden;max-width:100%;}
@@ -36,22 +40,31 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .sb-logo{margin-bottom:24px;}
 .logo-row{display:flex;align-items:center;gap:7px;}
 .logo-txt{
+  /* ★ Figma node 48:476 — Special Gothic Expanded One, Regular, 16px, tracking=0.16px, uppercase */
+  font-family: var(--font-logo);
   font-size:16px;
-  font-weight:900;
+  font-weight:400;
   color:var(--text1);
-  letter-spacing:0.01em;
+  letter-spacing:0.16px;  /* Figma: tracking=0.16px */
   text-transform:uppercase;
-  line-height:1;
+  line-height:16px;       /* Figma: lineHeight=16px */
 }
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-.logo-mark{color:var(--accent);flex-shrink:0;}
-.logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;letter-spacing:-0.02em;}
+.logo-mark{
+  color:var(--accent);  /* Figma: #F2664B */
+  flex-shrink:0;
+}
+/* ★ Figma node 48:500/48:228 — 사이드바 로고 타겟마크 19.2px */
+.sb-logo .logo-mark { width:19px; height:19px; }
+/* ★ Figma node 64:1155 — Pretendard Regular, 11px, tracking=-0.32px, color=#666, lineHeight=16.5px */
+.logo-sub{font-size:11px;font-weight:400;color:var(--text2);margin-top:4px;letter-spacing:-0.32px;line-height:16.5px;}
 
 .sb-sec-lbl{
+  /* ★ Figma node 48:489 — Pretendard Bold, 9px, tracking=1.08px, uppercase, #BDBDBD */
   font-size:9px;
   font-weight:700;
   color:var(--text3);
-  letter-spacing:0.12em;
+  letter-spacing:0.12em;  /* Figma: 1.08px / 9px ≈ 0.12em */
   text-transform:uppercase;
   margin-bottom:8px;
   padding:0 4px;
@@ -65,6 +78,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 
 .nav-item{
+  /* ★ Figma node 64:1182/64:1190 — padding=9px 12px, radius=9px, min-height=38px */
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -79,8 +93,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 
 .nav-item-top.active{background:var(--white);}
 .nav-item-top.active .ni-label{
+  /* ★ Figma node 64:1189 — Pretendard Bold, 13px, tracking=-0.32px, color=#111 (active Release Radar) */
   font-weight:700;
   color:var(--text1);
+  letter-spacing:-0.32px;
 }
 .nav-item-top.active .ni-icon{color:var(--accent);}
 
@@ -90,11 +106,13 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 
 .ni-left{display:flex;align-items:center;gap:9px;}
 
+/* ★ Figma node 48:518/523/528/533 — 사이드바 그룹 dot: 7px, radius=50%, #BDBDBD */
 .ni-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;}
 
-.ni-icon{width:15px;height:15px;flex-shrink:0;color:var(--text3);}
+.ni-icon{width:16px;height:16px;flex-shrink:0;color:var(--text3);}
 
 .ni-label{
+  /* ★ Figma node 48:520 — Pretendard SemiBold, 18px, tracking=-0.32px, #666 (inactive) */
   font-size:13px;
   font-weight:600;
   color:var(--text2);
@@ -139,23 +157,29 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .ni-delete:hover{color:var(--accent);}
 .nav-item:hover .ni-delete{opacity:1;}
 
+/* ★ Figma node 48:509 — 사이드바 포커스그룹 검색바
+   height=40px, radius=20px, border=0.3px #BDBDBD */
 .fg-search-bar{
   display:flex;
   align-items:center;
   gap:8px;
   background:var(--white);
-  border:0.5px solid var(--border-md);
-  border-radius:20px;
-  padding:0 13px;
-  height:36px;
+  border:0.3px solid var(--text3);   /* Figma: border-[0.3px] border-[#bdbdbd] */
+  border-radius:20px;                /* Figma: rounded-[20px] */
+  padding:0 12.55px;                 /* Figma: pl-[12.55px] */
+  height:40px;                       /* Figma: h-[40px] */
   margin-bottom:8px;
 }
 .fg-search-bar:focus-within{border-color:rgba(242,102,75,.4);}
 .fg-search-bar input{
   flex:1;border:none;outline:none;
-  font-size:12px;font-family:var(--font);
-  color:var(--text1);background:transparent;
-  letter-spacing:-0.02em;
+  /* ★ Figma node 48:514 — Pretendard Regular, 13.474px, tracking=-0.2695px, #BDBDBD (placeholder) */
+  font-size:13.474px;
+  font-family:var(--font);
+  font-weight:400;
+  color:var(--text1);
+  background:transparent;
+  letter-spacing:-0.2695px;
 }
 .fg-search-bar input::placeholder{color:var(--text3);}
 
@@ -165,13 +189,18 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .user-area{display:flex;align-items:center;gap:10px;}
 .av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
 .av-info{flex:1;min-width:0;}
-.av-name{font-size:12px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.av-role{font-size:10px;color:var(--text3);}
+/* ★ Figma node 64:1170 — Pretendard Bold, 12px, tracking=-0.32px, color=#111 */
+.av-name{font-size:12px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.32px;line-height:16px;}
+/* ★ Figma node 64:1172 — Pretendard Regular, 10px, tracking=-0.32px, color=#BDBDBD, lineHeight=15px */
+.av-role{font-size:10px;font-weight:400;color:var(--text3);letter-spacing:-0.32px;line-height:15px;}
 .login-btn-small{
+  /* ★ Figma node 64:1173/64:1174 — border=0.5px rgba(0,0,0,0.1), radius=999px, height=28px, width=49px
+     Pretendard SemiBold, 11px, tracking=-0.32px, color=#666, lineHeight=16.5px */
   padding:5px 10px;
-  border:0.5px solid var(--border-md);
+  border:0.5px solid rgba(0,0,0,0.1);
   border-radius:50px;
   font-size:11px;font-weight:600;font-family:var(--font);
+  letter-spacing:-0.32px;line-height:16.5px;
   color:var(--text2);background:transparent;cursor:pointer;
   white-space:nowrap;transition:all .15s;
   height:28px;
@@ -205,12 +234,35 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
    MAIN
 ══════════════════════════ */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--white);}
-.mob-header{display:none;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.mob-logo{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:5px;}
-.mob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+
+/* ★ 모바일 헤더 — 기본 숨김 (데스크탑에서 안 보임) */
+.mob-header{display:none;align-items:center;justify-content:space-between;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.mob-logo{
+  display:flex;align-items:center;gap:5px;
+}
+/* ★ Figma node 48:14 등 — 로고 텍스트: Special Gothic Expanded One, 16px, tracking=0.16px, uppercase */
+.mob-logo-txt{
+  font-family: var(--font-logo);
+  font-size:16px;
+  font-weight:400;
+  color:var(--text1);
+  letter-spacing:0.16px;
+  text-transform:uppercase;
+  line-height:16px;
+}
 .mob-logo .logo-mark{color:var(--accent);flex-shrink:0;}
-.mob-toggle{width:34px;height:34px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text1);}
-.mob-profile{display:none;}
+/* ★ Figma node 48:11 — 햄버거 버튼: 24px */
+.mob-toggle{
+  width:24px;height:24px;border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text1);padding:0;flex-shrink:0;
+}
+/* ★ Figma node 48:19 — 프로필 버튼: 24px */
+.mob-profile{
+  width:24px;height:24px;border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;flex-shrink:0;
+}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;}
 .sb-overlay.open{display:block;}
 
@@ -262,8 +314,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   height:100%;
   border:none;
   outline:none;
+  /* ★ Figma node 48:31/48:244 — Pretendard Medium, 12px, #BDBDBD(placeholder) */
   font-size:14px;
   font-family:var(--font);
+  font-weight:500;
   letter-spacing:-0.02em;
   color:var(--text1);
   background:transparent;
@@ -271,6 +325,9 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .s-input::placeholder{color:var(--text3);}
 
+/* ★ Figma node 48:32 — 키워드 저장 버튼 (활성)
+   bg=#F2664B, Pretendard SemiBold, 10px, tracking=0.1px, height=24px, radius=24px
+   비활성(node 48:245): bg=#E4E4E4, color=#fff */
 .kw-save-btn{
   flex-shrink:0;
   height:32px;
@@ -296,6 +353,9 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .kw-save-btn:not(:disabled):hover{opacity:.86;}
 
+/* ★ 포커스그룹 헤더 (Figma node 48:291)
+   라벨: Pretendard Bold, 8px, tracking=1.08px, #BDBDBD
+   타이틀: Pretendard ExtraBold, 24px, tracking=0.6px, lineHeight=28px, #111 */
 .focus-group-header{
   height:80px;
   padding:0 28px;
@@ -306,8 +366,23 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   justify-content:center;
 }
 .focus-group-header.show{display:flex;}
-.fg-label{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
-.fg-title{font-size:28px;font-weight:900;color:var(--text1);letter-spacing:-.03em;}
+.fg-label{
+  /* ★ Figma node 48:294 — Pretendard Bold, 8px, tracking=1.08px, uppercase, #BDBDBD */
+  font-size:8px;
+  font-weight:700;
+  color:var(--text3);
+  letter-spacing:1.08px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.fg-title{
+  /* ★ Figma node 48:295 — Pretendard ExtraBold, 24px, tracking=0.6px, lineHeight=28px, #111 */
+  font-size:28px;
+  font-weight:900;
+  color:var(--text1);
+  letter-spacing:0.6px;
+  line-height:28px;
+}
 
 /* ══════════════════════════
    상태바 / 툴바
@@ -316,6 +391,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .spinner{width:11px;height:11px;border:1.5px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ★ 툴바 (Figma nodes 48:39~48:60) — height=48px */
 .toolbar{
   height:48px;
   padding:0 28px;
@@ -326,6 +402,8 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   border-bottom:0.5px solid var(--border);
 }
 
+/* ★ Figma node 48:40/48:47 — 뷰 토글 버튼: 24x24px, radius=5.6px
+   활성: bg=#111, border=#111 | 비활성: border=rgba(0,0,0,0.1) */
 .view-sw{display:flex;gap:3px;}
 .vs-btn{
   width:30px;height:30px;
@@ -341,6 +419,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .filter-sep{width:0.5px;height:18px;background:var(--border-md);}
 .sort-group{display:flex;gap:0;}
 
+/* ★ Figma node 48:56~48:59 — 정렬 버튼
+   height=24px, width=64.338px, radius=999px
+   Pretendard SemiBold, 8.64px, tracking=-0.256px, lineHeight=13.2px
+   활성: bg=#111, color=#fff | 비활성: border=rgba(0,0,0,0.1), color=#666 */
 .sort-btn{
   height:30px;padding:0 11px;
   border:0.5px solid var(--border-md);
@@ -353,6 +435,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .sort-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
 .sort-btn:hover:not(.on){border-color:var(--text2);}
 
+/* ★ Figma node 48:60 — 시그널 카운트: Pretendard SemiBold, 8px, tracking=-0.1258px, #BDBDBD */
 .result-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;letter-spacing:-0.02em;}
 
 /* ══════════════════════════
@@ -362,10 +445,29 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .content::-webkit-scrollbar{width:4px;}
 .content::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:4px;}
 
+/* ★ Figma node 48:208 — 빈화면(Mein)
+   아이콘 컨테이너: 52px, radius=999px, bg=#F4F4F2
+   타이틀: Pretendard Bold, 15px, tracking=-0.32px, lineHeight=22.5px, #666
+   설명: Pretendard Regular, 12px, tracking=-0.32px, lineHeight=20px, #BDBDBD */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:40px;}
-.empty-icon{width:52px;height:52px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;}
-.empty-title{font-size:15px;font-weight:700;color:var(--text2);}
-.empty-desc{font-size:13px;color:var(--text3);line-height:1.7;max-width:300px;}
+.empty-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--sidebar);  /* Figma: bg=#F4F4F2 */
+  display:flex;align-items:center;justify-content:center;
+}
+.empty-title{
+  font-size:15px;font-weight:700;  /* Figma: Pretendard Bold, 15px */
+  color:var(--text2);              /* Figma: #666 */
+  letter-spacing:-0.32px;          /* Figma: tracking=-0.32px */
+  line-height:22.5px;              /* Figma: lineHeight=22.5px */
+}
+.empty-desc{
+  font-size:12px;font-weight:400;  /* Figma: Pretendard Regular, 12px */
+  color:var(--text3);              /* Figma: #BDBDBD */
+  line-height:20px;                /* Figma: lineHeight=20px */
+  letter-spacing:-0.32px;          /* Figma: tracking=-0.32px */
+  max-width:300px;
+}
 
 /* ══════════════════════════
    GRID CARDS
@@ -406,6 +508,8 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 }
 .pcard:hover .pcard-img{transform:scale(1.03);}
 
+/* ★ Figma node 48:66/48:775 등 — D-N 배지
+   bg=white, radius=12px, Pretendard SemiBold, 5.336px, tracking=0.1092px, uppercase, #BDBDBD */
 .pbadge{
   position:absolute;
   top:9px;left:9.5px;
@@ -422,6 +526,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   display:flex;align-items:center;
 }
 
+/* ★ Figma node 48:69 — 하트(아카이브) 버튼: 11.643px size, 우상단 */
 .archive-btn{
   position:absolute;
   top:9px;right:9px;
@@ -451,6 +556,8 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   gap:4px;
 }
 
+/* ★ Figma node 48:73 — 브랜드 태그: bg=rgba(242,102,75,0.08), radius=999px
+   Pretendard ExtraBold, 4.366px, tracking=0.2183px, uppercase, #F2664B */
 .pc-brand{
   display:inline-block;
   height:17.5px;
@@ -465,6 +572,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   white-space:nowrap;
 }
 
+/* ★ Figma node 48:76 — 카드 제목: Pretendard SemiBold, 6.307px, tracking=-0.1552px, #111 */
 .pc-name{
   font-size:13px;
   font-weight:700;
@@ -489,20 +597,22 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   flex-shrink:0;
 }
 
+/* ★ Figma node 48:81 — "Coming Up" 라벨: Pretendard Medium, 3.881px, tracking=-0.1148px, #BDBDBD */
 .pc-date-lbl {
   font-size: 8px;
-  font-weight: 600;
-  color: #BDBDBD;
-  letter-spacing: -0.02em;
+  font-weight: 500;        /* Figma: Medium */
+  color: #BDBDBD;          /* Figma: #BDBDBD */
+  letter-spacing: -0.1148px;
   margin-bottom: 3px;
   line-height: 1;
 }
 
+/* ★ Figma node 48:82 — 날짜: Pretendard Black, 8px, tracking=-0.1434px, #111 */
 .pc-date {
   font-size: 14px !important;
   font-weight: 900 !important;
   color: #111 !important;
-  letter-spacing: -0.02em !important;
+  letter-spacing: -0.1434px !important;
   line-height: 1 !important;
 }
 
@@ -537,6 +647,10 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .pc-cat-CULTURE { background:#F0FDF4;color:#16A34A; }
 .pc-cat-CONTENT { background:#FDF4FF;color:#9333EA; }
 
+/* ★ Figma node 48:83 — "Add" 버튼 (캘린더)
+   border=#F2664B 0.412px, radius=50px, height=14px, gap=1.2px
+   Pretendard SemiBold, 6.184px, tracking=-0.1183px, #F2664B
+   캘린더 아이콘: uil:calender 8.8px */
 .cal-btn{
   flex-shrink:0;
   height:30px;
@@ -604,24 +718,37 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .toast.show{opacity:1;}
 .toast-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
 
-/* ══════════════════════════
-   RESPONSIVE — Figma 모바일
-══════════════════════════ */
+/* ══════════════════════════════════════════
+   RESPONSIVE — Figma 모바일 (max-width:900px)
+══════════════════════════════════════════ */
 @media(max-width:900px){:root{--sb-w:200px;}}
 
+/* ══════════════════════════════════════════
+   RESPONSIVE — Figma 모바일 뷰 (max-width:700px)
+   
+   ★ 적용 기준: Figma 4개 프레임 (48:6, 48:208, 48:274, 48:469)
+   ★ 프레임 너비: 390px
+   ★ 데스크탑(700px 초과) 레이아웃 무변경
+══════════════════════════════════════════ */
 @media(max-width:700px){
-  /* 가로 오버플로우 차단 — 무엇도 화면 밖으로 못 나감 */
+  /* ── 가로 오버플로우 차단 ── */
   .layout,.main,.content{overflow-x:hidden;min-width:0;max-width:100%;}
 
-  /* 사이드바 — 풀폭 슬라이드 */
+  /* ── 사이드바 (Figma node 48:469 — menu)
+     슬라이드 패널, bg=#F4F4F2, 풀 높이
+     ★ 닫힘: translateX(-100%) | 열림: translateX(0) */
   .sb{
     position:fixed;left:0;top:0;bottom:0;z-index:50;
     width:min(300px,85vw);min-width:min(300px,85vw);
     transform:translateX(-100%);
     box-shadow:4px 0 24px rgba(0,0,0,.12);
+    /* ★ Figma node 48:486 — padding: 20px */
     padding-top:20px;
   }
   .sb.open{transform:translateX(0);}
+
+  /* ★ Figma node 48:473 — X 닫기 버튼 (iconoir:cancel)
+     위치: 절대 우상단, 24px, stroke=#BDBDBD */
   .sb-close{
     display:flex;position:absolute;top:16px;right:16px;
     width:32px;height:32px;border:none;background:transparent;
@@ -629,94 +756,322 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
     align-items:center;justify-content:center;border-radius:8px;z-index:2;
   }
 
-  /* 모바일 헤더 — 햄버거·로고·프로필, 배경 #f4f4f2 (Figma) */
-  .mob-header{display:flex;height:64px;padding:0 16px;background:var(--sidebar);border-bottom:none;}
-  .mob-toggle,.mob-profile{
-    width:24px;height:24px;border:none;background:transparent;
-    color:var(--text1);cursor:pointer;display:flex;
-    align-items:center;justify-content:center;padding:0;flex-shrink:0;
+  /* ── 모바일 헤더 (Figma nodes 48:10, 48:223, 48:278, 48:472)
+     ★ bg: #F4F4F2 (Figma: bg-[var(--back,#f4f4f2)])
+     ★ padding: 16px 좌우, 20px 상하 (Figma: px-[16px] py-[20px])
+     ★ height: 64px (16+20+24+4 = 기준)
+     ★ border: 없음 (Figma: border-bottom 없음) */
+  .mob-header{
+    display:flex;
+    height:64px;
+    padding:0 16px;             /* Figma: px-[16px] */
+    background:var(--sidebar);  /* Figma: bg-[var(--back,#f4f4f2)] = #F4F4F2 */
+    border-bottom:none;
+    flex-shrink:0;
+    align-items:center;
+    justify-content:space-between;
   }
-  .mob-profile{display:flex;}
-  .mob-logo{font-size:16px;letter-spacing:.01em;}
 
-  /* 검색바 — 완전한 알약 (Figma: radius 40, border 0.4px) */
-  .hd{height:auto;padding:8px 16px 12px;border-bottom:none;}
-  .search-bar{height:40px;border-radius:40px;border:0.4px solid var(--text3);}
+  /* ★ Figma node 48:11 — material-symbols:menu-rounded, 24px, fill=#BDBDBD */
+  .mob-toggle{
+    width:24px;height:24px;
+    border:none;background:transparent;
+    color:var(--text1);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;flex-shrink:0;
+  }
+
+  /* ★ Figma node 48:13/48:226 — 로고 중앙 영역
+     텍스트: Special Gothic Expanded One, Regular, 16px, tracking=0.16px, #111, uppercase
+     타겟마크: 19.2px, #F2664B */
+  .mob-logo{
+    display:flex;align-items:center;gap:4px;  /* Figma: gap-[4px] */
+  }
+  .mob-logo-txt{
+    /* ★ Figma: font-['Special_Gothic_Expanded_One:Regular'], text-[16px], tracking-[0.16px], uppercase */
+    font-family: var(--font-logo);
+    font-size:16px;
+    font-weight:400;
+    letter-spacing:0.16px;
+    text-transform:uppercase;
+    line-height:16px;
+    color:var(--text1);
+    white-space:nowrap;
+  }
+  /* ★ Figma node 48:15 — 타겟 마크: 19.2px (size-[19.2px]) */
+  .mob-logo .logo-mark{
+    width:19.2px;height:19.2px;
+    color:#F2664B;flex-shrink:0;
+  }
+
+  /* ★ Figma node 48:19/48:232 — gg:profile, 24px */
+  .mob-profile{
+    display:flex;
+    width:24px;height:24px;
+    border:none;background:transparent;
+    cursor:pointer;padding:0;flex-shrink:0;
+    align-items:center;justify-content:center;
+  }
+
+  /* ── 검색바 (Figma node 48:24/48:237)
+     ★ height=40px, radius=40px (rounded-[40px])
+     ★ border=0.4px solid #BDBDBD (border-[#bdbdbd] border-[0.4px])
+     ★ wrapper container height=48px, px=16px */
+  .hd{
+    height:auto;
+    padding:8px 16px 12px;   /* Figma: h-[48px] wrapper, px-[16px] */
+    border-bottom:none;
+  }
+  .search-bar{
+    height:40px;             /* Figma: h-[40px] */
+    border-radius:40px;      /* Figma: rounded-[40px] */
+    border:0.4px solid var(--text3);  /* Figma: border-[#bdbdbd] border-[0.4px] */
+  }
   .s-icon{width:36px;}
-  .s-input{font-size:13px;}
-  .kw-save-btn{height:24px;padding:0 10px;font-size:10px;border-radius:24px;margin-right:6px;}
+  /* ★ Figma node 48:31/48:244 — placeholder: Pretendard Medium, 12px, #BDBDBD */
+  .s-input{font-size:12px;font-weight:500;}
 
-  /* 툴바 — 가로 스크롤, 시그널 수 표시 (Figma) */
+  /* ★ Figma node 48:32 — 키워드 저장 버튼 (활성)
+     height=24px (h-[24px]), radius=24px, font=10px SemiBold, tracking=0.1px
+     비활성(node 48:245): bg=#E4E4E4 */
+  .kw-save-btn{
+    height:24px;             /* Figma: h-[24px] */
+    padding:0 10px;          /* Figma: px-[10px] */
+    font-size:10px;          /* Figma: text-[10px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:0.1px;    /* Figma: tracking-[0.1px] */
+    border-radius:24px;      /* Figma: rounded-[24px] */
+    margin-right:6px;
+  }
+
+  /* ── 툴바 (Figma nodes 48:37~48:60)
+     height=44px, padding=16px, 가로 스크롤 허용
+     ★ 뷰 토글: 24x24px, radius=5.6px
+     ★ 정렬 버튼: height=24px, width≈64px, radius=999px
+         Pretendard SemiBold, 8.64px, tracking=-0.256px
+     ★ 시그널 카운트: SemiBold, 8px, tracking=-0.1258px, #BDBDBD */
   .toolbar{
-    height:44px;padding:0 16px;gap:6px;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    height:44px;
+    padding:0 16px;
+    gap:6px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
   .toolbar::-webkit-scrollbar{display:none;}
   .view-sw,.sort-group,.tbd-toggle,.filter-sep{flex-shrink:0;}
-  .result-count{display:block;flex-shrink:0;padding-left:4px;}
 
-  /* 콘텐츠 / 포커스 헤더 (Figma: 패딩 12·20) */
+  /* ★ Figma node 48:40/48:301 — 뷰 토글: 24x24px, radius=5.6px */
+  .vs-btn{
+    width:24px;height:24px;  /* Figma: size-[24px] */
+    border-radius:5.6px;     /* Figma: rounded-[5.6px] */
+  }
+
+  /* ★ Figma node 48:56 — 정렬 버튼(활성): width=64.338px, height=24px, radius=999px
+     Pretendard SemiBold, 8.64px, tracking=-0.256px, lineHeight=13.2px */
+  .sort-btn{
+    height:24px;             /* Figma: h-[24px] */
+    width:auto;
+    min-width:64px;          /* Figma: w-[64.338px] */
+    padding:0 8px;
+    font-size:8.64px;        /* Figma: text-[8.64px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:-0.256px; /* Figma: tracking-[-0.256px] */
+    line-height:13.2px;      /* Figma: leading-[13.2px] */
+    border-radius:9999px;    /* Figma: rounded-[13421758px] ≈ 999px */
+  }
+
+  /* ★ Figma node 48:60 — 시그널 카운트: Pretendard SemiBold, 8px, tracking=-0.1258px */
+  .result-count{
+    display:block;flex-shrink:0;padding-left:4px;
+    font-size:8px;           /* Figma: text-[8px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:-0.1258px; /* Figma: tracking-[-0.1258px] */
+  }
+
+  /* ── 콘텐츠 영역 padding ── */
   .content{padding:14px 16px 24px;}
-  .focus-group-header{height:auto;padding:12px 20px;}
-  .fg-label{font-size:8px;letter-spacing:.12em;}
-  .fg-title{font-size:24px;letter-spacing:.025em;line-height:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 
-  /* 카드 그리드 — 3열 (Figma) */
-  .card-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
+  /* ── 포커스그룹 헤더 (Figma node 48:291)
+     ★ padding: 12px 20px (Figma: px-[20px] py-[12px])
+     ★ 라벨: Bold, 8px, tracking=1.08px, uppercase, #BDBDBD
+     ★ 타이틀: ExtraBold, 24px, tracking=0.6px, lineHeight=28px, #111 */
+  .focus-group-header{
+    height:auto;
+    padding:12px 20px;       /* Figma: px-[20px] py-[12px] */
+    border-bottom:0.5px solid var(--border);
+  }
+  .fg-label{
+    font-size:8px;           /* Figma: text-[8px] */
+    letter-spacing:1.08px;   /* Figma: tracking-[1.08px] */
+  }
+  .fg-title{
+    font-size:24px;          /* Figma: text-[24px] */
+    font-weight:800;         /* Figma: ExtraBold → 800 */
+    letter-spacing:0.6px;    /* Figma: tracking-[0.6px] */
+    line-height:28px;        /* Figma: leading-[28px] */
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
 
-  /* 카드 — 그림자 + radius 8px, 테두리 없음 (Figma) */
-  .pcard{border:none;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
-  .pcard-img-wrap{height:78px;border-radius:8px 8px 0 0;}
+  /* ── 카드 그리드 (Figma: 3열, gap=8px) ── */
+  .card-grid{
+    grid-template-columns:repeat(3,1fr);  /* Figma: 3열 */
+    gap:8px;                              /* Figma: gap-[8px] */
+  }
 
-  /* D-뱃지 — 흰 배경 알약, 좌상단 */
-  .pbadge{top:5px;left:5px;height:14px;padding:0 5px;font-size:7px;border-radius:12px;}
+  /* ── 카드 (Figma node 48:63 등)
+     ★ radius=8px, border=none, shadow=0px 1px 3px rgba(0,0,0,0.08) */
+  .pcard{
+    border:none;
+    border-radius:8px;                                    /* Figma: rounded-[8px] */
+    box-shadow:0 1px 3px rgba(0,0,0,.08);                 /* Figma: drop-shadow */
+  }
+  /* ★ Figma node 48:64 — 이미지 영역: h=77.621px, radius=8px */
+  .pcard-img-wrap{
+    height:77.621px;          /* Figma: h-[77.621px] */
+    border-radius:8px 8px 0 0;
+  }
 
-  /* 아카이브 — 하트 아이콘만 (배경 없음), 우상단 */
+  /* ★ Figma node 48:66 — D-N 배지: 좌상단, white 배경, radius=12px
+     top=4.85px, left=6px (Figma: top-[4.85px] px-[6px])
+     Pretendard SemiBold, 5.336px, tracking=0.1092px, uppercase, #BDBDBD */
+  .pbadge{
+    top:4.85px;              /* Figma: top-[4.85px] */
+    left:6px;                /* Figma: px-[6px] */
+    height:14px;
+    padding:0 5px;           /* Figma: px-[3px] py-[2px] */
+    font-size:5.336px;       /* Figma: text-[5.336px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:0.1092px; /* Figma: tracking-[0.1092px] */
+    border-radius:12px;      /* Figma: rounded-[12px] */
+    background:rgba(255,255,255,0.9);
+    color:var(--text3);
+  }
+
+  /* ★ Figma node 48:69 — 하트(아카이브) 버튼: 11.643px 크기, 우상단
+     배경 없음, 그림자 필터로 흰 배경 대체, 색상=#fff(기본) */
   .archive-btn{
-    top:4px;right:4px;width:16px;height:16px;
+    top:4.85px;              /* Figma: top-[4.85px] */
+    right:6px;               /* Figma: right 위치 */
+    width:auto;height:auto;
     background:transparent;
     filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));
     color:#fff;
+    padding:0;
   }
   .archive-btn:hover{background:transparent;color:#fff;}
   .archive-btn.archived{background:transparent;color:var(--accent);}
-  .archive-btn svg{width:14px;height:14px;}
+  /* ★ Figma: size-[11.643px] */
+  .archive-btn svg{width:11.643px;height:11.643px;}
 
-  /* 바디 */
-  .pcard-body{padding:6px;gap:3px;}
+  /* ★ 카드 바디: padding=6px, gap=2px (Figma: p-[6px] gap-[2px]) */
+  .pcard-body{padding:6px;gap:2px;}
   .pc-category{display:none;}
-  .pc-brand{height:auto;padding:1px 5px;font-size:7px;line-height:1.5;}
 
-  /* 제목 — 1줄 클립 (Figma) */
+  /* ★ Figma node 48:73 — 브랜드 태그: h=8.49px, radius=999px, w≈21.623px
+     Pretendard ExtraBold, 4.366px, tracking=0.2183px, uppercase, #F2664B
+     left=3px(내부 텍스트 위치), top=0.73px */
+  .pc-brand{
+    height:auto;
+    padding:1px 5px;         /* Figma: px-[3px] py-[2px] → 실용적 조정 */
+    font-size:4.366px;       /* Figma: text-[4.366px] */
+    font-weight:800;         /* Figma: ExtraBold */
+    letter-spacing:0.2183px; /* Figma: tracking-[0.2183px] */
+    line-height:6.549px;     /* Figma: leading-[6.549px] */
+    border-radius:8139188.5px; /* Figma: rounded-[8139188.5px] ≈ 999px */
+  }
+
+  /* ★ Figma node 48:76 — 카드 제목: Pretendard SemiBold, 6.307px, tracking=-0.1552px, lineHeight=9.703px, #111
+     1줄 클립 (overflow=hidden, h=8.732px) */
   .pc-name{
-    font-size:9px;height:auto;line-height:1.4;
-    display:block;-webkit-line-clamp:unset;-webkit-box-orient:unset;
+    font-size:6.307px;       /* Figma: text-[6.307px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:-0.1552px; /* Figma: tracking-[-0.1552px] */
+    line-height:9.703px;     /* Figma: leading-[9.703px] */
+    height:auto;
+    display:block;
+    -webkit-line-clamp:unset;-webkit-box-orient:unset;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
 
-  /* 푸터 — Coming Up + 날짜 / Add 버튼 */
-  .pc-foot{height:auto;padding-top:5px;gap:4px;border-top:none;}
+  /* ★ Figma node 48:77 — 푸터: pt-[4px], border-top 없음 */
+  .pc-foot{
+    height:auto;
+    padding-top:4px;         /* Figma: pt-[4px] */
+    gap:2px;                 /* Figma: gap-[1.2px] 실용 조정 */
+    border-top:none;
+  }
   .pc-foot>div:first-child{min-width:0;overflow:hidden;}
-  .pc-date-lbl{font-size:6px;margin-bottom:1px;}
-  .pc-date{font-size:9px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* Add 버튼 — 캘린더 아이콘 (Figma), 절대 안 잘림 */
-  .cal-btn{flex-shrink:0;height:15px;padding:0 4px;gap:1px;font-size:7px;border-width:.5px;}
+  /* ★ Figma node 48:81 — "Coming Up": Pretendard Medium, 3.881px, tracking=-0.1148px, lineHeight=4.851px, #BDBDBD */
+  .pc-date-lbl{
+    font-size:3.881px;       /* Figma: text-[3.881px] */
+    font-weight:500;         /* Figma: Medium */
+    letter-spacing:-0.1148px; /* Figma: tracking-[-0.1148px] */
+    line-height:4.851px;     /* Figma: leading-[4.851px] */
+    margin-bottom:1px;
+  }
+
+  /* ★ Figma node 48:82 — 날짜: Pretendard Black, 8px, tracking=-0.1434px, lineHeight=9.703px, #111 */
+  .pc-date{
+    font-size:8px !important;          /* Figma: text-[8px] */
+    font-weight:900 !important;        /* Figma: Black */
+    letter-spacing:-0.1434px !important; /* Figma: tracking-[-0.1434px] */
+    line-height:9.703px !important;    /* Figma: leading-[9.703px] */
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  /* ★ Figma node 48:83 — "Add" 버튼 + 캘린더 아이콘
+     height=14px, px=4.412px, py=0.412px, gap=1.2px
+     border=0.412px #F2664B, radius=50px
+     Pretendard SemiBold, 6.184px, tracking=-0.1183px, lineHeight=9.314px, #F2664B
+     캘린더 아이콘(uil:calender): size=8.8px */
+  .cal-btn{
+    flex-shrink:0;
+    height:14px;             /* Figma: h-[14px] */
+    padding:0.412px 4.412px; /* Figma: px-[4.412px] py-[0.412px] */
+    gap:1.2px;               /* Figma: gap-[1.2px] */
+    font-size:6.184px;       /* Figma: text-[6.184px] */
+    font-weight:600;         /* Figma: SemiBold */
+    letter-spacing:-0.1183px; /* Figma: tracking-[-0.1183px] */
+    line-height:9.314px;     /* Figma: leading-[9.314px] */
+    border-width:0.412px;    /* Figma: border-[0.412px] */
+    border-radius:50px;      /* Figma: rounded-[50px] */
+  }
+  /* ★ "Calendar" 텍스트 숨김, "Add" 텍스트로 대체 */
   .cal-label{display:none;}
-  .cal-btn::before{content:"Add";font-size:7px;font-weight:600;letter-spacing:-.02em;}
-  .cal-btn svg{width:9px;height:9px;flex-shrink:0;}
+  .cal-btn::before{
+    content:"Add";
+    font-size:6.184px;       /* Figma: text-[6.184px] */
+    font-weight:600;
+    letter-spacing:-0.1183px;
+  }
+  /* ★ Figma node 48:85 — uil:calender: size=8.8px */
+  .cal-btn svg{width:8.8px;height:8.8px;flex-shrink:0;}
 
-  /* 리스트 카드 */
+  /* ── 리스트 카드 ── */
   .lcard-img{width:80px;height:64px;}
   .lcard{min-height:64px;}
+
+  /* ── 빈 상태 (Figma node 48:208 Mein)
+     ★ 아이콘: 빈화면 empty-state 검색 아이콘 (24px, stroke=#BDBDBD)
+     ★ 컨테이너: 52px, radius=999px, bg=#F4F4F2 */
+  .empty-icon{
+    width:52px;height:52px;   /* Figma: size-[52px] */
+    border-radius:9999px;     /* Figma: rounded-[16777200px] ≈ 999px */
+    background:var(--sidebar); /* Figma: bg-[var(--back,#f4f4f2)] */
+  }
 }
 
-/* 아주 좁은 화면 */
+/* ── 아주 좁은 화면 ── */
 @media(max-width:340px){
-  .pc-name{font-size:8.5px;}
+  .pc-name{font-size:5.5px;}
 }
 
-/* ── 사이드바 '의견 보내기' 버튼 ── */
+/* ══════════════════════════
+   사이드바 '의견 보내기' 버튼
+   ★ Figma node 48:617 — lineicons:message-2 24px + Pretendard SemiBold 16px, tracking=-0.2957px, #666
+══════════════════════════ */
 .feedback-trigger-btn {
   display: flex;
   height: 36px;
@@ -730,11 +1085,12 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  /* ★ Figma node 48:615 — Pretendard SemiBold, 16px, tracking=-0.2957px, #666 */
   font-size: 13px;
   font-weight: 600;
   color: #555;
   font-family: inherit;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.2957px;
   transition: background 0.2s;
 }
 .feedback-trigger-btn:hover {
@@ -745,7 +1101,9 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   flex-shrink: 0;
 }
 
-/* ── 의견 보내기 모달 ── */
+/* ══════════════════════════
+   의견 보내기 모달
+══════════════════════════ */
 .feedback-modal-light {
   display: flex;
   flex-direction: column;
