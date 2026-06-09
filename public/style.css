@@ -1,4 +1,5 @@
 /* ── Figma 정확 반영 ── */
+
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
   /* ★ Figma get_variable_defs 반환값 (node 48:6)
