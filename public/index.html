@@ -1,25 +1,14 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>COMING SOON. — Release Tracker</title>
 <link rel="icon" href="/favicon.png?v=2" type="image/png" />
-
-<!-- Pretendard Variable (기존 유지) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
-<!-- ★ Figma node 64:1149 — 로고 폰트: Special Gothic Expanded One, Regular, 16px, tracking=0.16px -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
-
-<!-- ★ Figma node 48:14 — 로고 "Coming Soon" 텍스트: fontFamily = Special Gothic Expanded One -->
-<!-- Figma 값: fontFamily="Special Gothic Expanded One", fontWeight=Regular, fontSize=16px, tracking=0.16px -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
-
 <link rel="stylesheet" href="style.css"/>
 <script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","wnf1ptnwa0");</script>
 <script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};</script>
@@ -31,8 +20,6 @@
   <div class="modal login-modal">
     <div class="login-header">
       <div class="login-logo-mark">
-        <!-- ★ Figma node 48:15 — 로고 타겟 마크 (inline SVG, 19.2px) -->
-        <!-- Figma: circle r=9, r=3.5, dot r=0.8, stroke=#F2664B, fill=#F2664B -->
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
           <path d="M9.60017 17.2802C13.8417 17.2802 17.2802 13.8417 17.2802 9.60017C17.2802 5.35862 13.8417 1.92017 9.60017 1.92017C5.35862 1.92017 1.92017 5.35862 1.92017 9.60017C1.92017 13.8417 5.35862 17.2802 9.60017 17.2802Z" stroke="white" stroke-width="2"/>
           <path d="M9.60013 13.4399C11.7209 13.4399 13.4401 11.7207 13.4401 9.59989C13.4401 7.47911 11.7209 5.75989 9.60013 5.75989C7.47936 5.75989 5.76013 7.47911 5.76013 9.59989C5.76013 11.7207 7.47936 13.4399 9.60013 13.4399Z" stroke="white" stroke-width="2"/>
@@ -74,12 +61,7 @@
 <div class="layout">
 <div class="sb-overlay" id="overlay"></div>
 
-<!-- ════════════════════════════
-     SIDEBAR (Figma node 48:469 — menu)
-     ════════════════════════════ -->
 <aside class="sb" id="sidebar">
-
-  <!-- ★ Figma node 48:473 — iconoir:cancel (X 닫기 버튼, 24px, stroke=#BDBDBD) -->
   <button class="sb-close" onclick="closeSidebar()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <path d="M6.00098 17.9999L12.001 11.9999L18.001 17.9999M18.001 5.99988L11.9998 11.9999L6.00098 5.99988" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -88,9 +70,7 @@
 
   <div class="sb-logo">
     <div class="logo-row">
-      <!-- ★ Figma node 48:476 — "Coming Soon" 텍스트: Special Gothic Expanded One, 16px, tracking=0.16px -->
       <span class="logo-txt">Coming Soon</span>
-      <!-- ★ Figma node 48:477 — 로고 타겟 마크 inline SVG, 19.2px, #F2664B -->
       <svg class="logo-mark" width="19" height="19" viewBox="0 0 20 20" fill="none">
         <path d="M9.60017 17.2802C13.8417 17.2802 17.2802 13.8417 17.2802 9.60017C17.2802 5.35862 13.8417 1.92017 9.60017 1.92017C5.35862 1.92017 1.92017 5.35862 1.92017 9.60017C1.92017 13.8417 5.35862 17.2802 9.60017 17.2802Z" stroke="currentColor" stroke-width="2"/>
         <path d="M9.60013 13.4399C11.7209 13.4399 13.4401 11.7207 13.4401 9.59989C13.4401 7.47911 11.7209 5.75989 9.60013 5.75989C7.47936 5.75989 5.76013 7.47911 5.76013 9.59989C5.76013 11.7207 7.47936 13.4399 9.60013 13.4399Z" stroke="currentColor" stroke-width="2"/>
@@ -100,24 +80,20 @@
     <div class="logo-sub">Release Tracker</div>
   </div>
 
-  <!-- ★ Figma node 48:489 — "NAVIGATION" 라벨: Pretendard Bold, 9px, tracking=1.08px, #BDBDBD -->
   <div class="sb-sec-lbl">Navigation</div>
   <div class="nav-list" style="margin-bottom:16px;">
     <div class="nav-item nav-item-top" id="navRadar" onclick="switchView('radar')">
       <div class="ni-left">
-        <!-- ★ Figma node 48:493 — Release Radar 아이콘 (타겟 마크 16px) -->
         <svg class="ni-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M8 1.29993C11.7003 1.29993 14.7002 4.29981 14.7002 8.00012C14.7002 11.7004 11.7003 14.7003 8 14.7003C4.29969 14.7003 1.2998 11.7004 1.2998 8.00012C1.2998 4.29981 4.29969 1.29993 8 1.29993Z" stroke="currentColor" stroke-width="1.6"/>
           <path d="M8 4.76758C9.78498 4.76758 11.2324 6.21502 11.2324 8C11.2324 9.78498 9.78498 11.2324 8 11.2324C6.21502 11.2324 4.76758 9.78498 4.76758 8C4.76758 6.21502 6.21502 4.76758 8 4.76758Z" stroke="currentColor" stroke-width="1.536"/>
           <path d="M8 8.99976C8.55228 8.99976 9 8.55204 9 7.99976C9 7.44747 8.55228 6.99976 8 6.99976C7.44772 6.99976 7 7.44747 7 7.99976C7 8.55204 7.44772 8.99976 8 8.99976Z" fill="currentColor"/>
         </svg>
-        <!-- ★ Figma node 48:497 — Pretendard SemiBold, 18px, tracking=-0.32px, #111 (active) / #666 (inactive) -->
         <span class="ni-label">Release Radar</span>
       </div>
     </div>
     <div class="nav-item nav-item-top" id="navArchive" onclick="switchView('archive')">
       <div class="ni-left">
-        <!-- ★ Figma node 48:500 — My Archive 아이콘 (하트 16px, stroke=#BDBDBD) -->
         <svg class="ni-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M13.6271 8.43297L8.00615 14L2.38516 8.43297C2.0144 8.07219 1.72236 7.63855 1.52743 7.15935C1.3325 6.68016 1.2389 6.1658 1.25252 5.64865C1.26614 5.13151 1.38669 4.62279 1.60658 4.15452C1.82647 3.68626 2.14094 3.26859 2.53017 2.92783C2.91941 2.58707 3.37498 2.33059 3.86821 2.17454C4.36144 2.0185 4.88163 1.96627 5.39604 2.02114C5.91044 2.07602 6.40792 2.2368 6.85713 2.49338C7.30634 2.74996 7.69756 3.09677 8.00615 3.51198C8.31608 3.09979 8.70776 2.75601 9.15666 2.50215C9.60556 2.24829 10.102 2.08983 10.615 2.03667C11.128 1.98351 11.6464 2.0368 12.1378 2.19321C12.6292 2.34962 13.0831 2.60578 13.4709 2.94565C13.8588 3.28553 14.1723 3.70181 14.3919 4.16843C14.6115 4.63505 14.7324 5.14198 14.7471 5.65748C14.7617 6.17298 14.6698 6.68596 14.4771 7.16431C14.2844 7.64266 13.9951 8.07609 13.6271 8.43747" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -129,17 +105,12 @@
 
   <div class="sb-div"></div>
 
-  <!-- ★ Figma node 48:508 — "FOCUS GROUPS" 라벨: Pretendard Bold, 9px, tracking=1.08px, #BDBDBD -->
   <div class="sb-sec-lbl">Focus Groups</div>
-
-  <!-- ★ Figma node 48:509 — 키워드 검색바: radius=20px, border=0.3px #BDBDBD, height=40px -->
   <div class="fg-search-bar">
-    <!-- ★ Figma node 48:510 — 검색 아이콘 18px, stroke=#BDBDBD -->
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M8.25 14.25C11.5637 14.25 14.25 11.5637 14.25 8.25C14.25 4.93629 11.5637 2.25 8.25 2.25C4.93629 2.25 2.25 4.93629 2.25 8.25C2.25 11.5637 4.93629 14.25 8.25 14.25Z" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M15.7501 15.7501L12.5251 12.5251" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M6.41667 11.0833C9.01999 11.0833 11.125 8.97832 11.125 6.375C11.125 3.77168 9.01999 1.66667 6.41667 1.66667C3.81334 1.66667 1.70833 3.77168 1.70833 6.375C1.70833 8.97832 3.81334 11.0833 6.41667 11.0833Z" stroke="#BDBDBD" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12.25 12.25L10.0625 10.0625" stroke="#BDBDBD" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <!-- ★ Figma node 48:514 — placeholder: Pretendard Regular, 13.474px, tracking=-0.2695px, #BDBDBD -->
     <input type="text" placeholder="저장한 키워드 찾기"/>
   </div>
 
@@ -147,25 +118,18 @@
     <div class="nav-item nav-item-brand" id="allFilter" onclick="switchView('all')">
       <div class="ni-left">
         <div class="ni-dot"></div>
-        <!-- ★ Figma node 48:520 — "#All": Pretendard SemiBold, 18px, tracking=-0.32px, #666 -->
         <span class="ni-label">전체</span>
       </div>
       <span id="allFilterCnt" style="display:none">0</span>
     </div>
   </div>
 
-  <div class="sb-footer" style="border-top: none;">
-    <!-- ★ Figma node 48:612 — 의견 보내기: lineicons:message-2, 24px, #BDBDBD -->
-    <!-- ★ Figma node 48:615 — 텍스트: Pretendard SemiBold, 16px, tracking=-0.2957px, #666 -->
+  <div class="sb-footer" style="border-top:none;">
     <button class="feedback-trigger-btn" onclick="openModal('feedbackModalBg')">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 6C2.5 5.40326 2.73705 4.83097 3.15901 4.40901C3.58097 3.98705 4.15326 3.75 4.75 3.75H19.25C19.8467 3.75 20.419 3.98705 20.841 4.40901C21.2629 4.83097 21.5 5.40326 21.5 6V16.548C21.5 17.1447 21.2629 17.717 20.841 18.139C20.419 18.5609 19.8467 18.798 19.25 18.798H7.635L3.75 22.277C3.64209 22.3735 3.50854 22.4367 3.36549 22.459C3.22244 22.4813 3.07599 22.4617 2.94382 22.4026C2.81165 22.3435 2.69942 22.2474 2.62067 22.126C2.54191 22.0045 2.5 21.8628 2.5 21.718V6ZM4.75 5.25C4.55109 5.25 4.36032 5.32902 4.21967 5.46967C4.07902 5.61032 4 5.80109 4 6V20.04L6.848 17.49C6.98535 17.3666 7.16338 17.2983 7.348 17.298H19.25C19.4489 17.298 19.6397 17.219 19.7803 17.0783C19.921 16.9377 20 16.7469 20 16.548V6C20 5.80109 19.921 5.61032 19.7803 5.46967C19.6397 5.32902 19.4489 5.25 19.25 5.25H4.75Z" fill="#BDBDBD" stroke="#BDBDBD" stroke-width="0.48"/>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
       의견 보내기
     </button>
-
-    <div class="sb-div" style="margin: 8px 0;"></div>
-
+    <div class="sb-div" style="margin:8px 0;"></div>
     <div class="user-area" id="userArea">
       <div class="av" id="userAv">?</div>
       <div class="av-info">
@@ -175,28 +139,15 @@
       <button class="login-btn-small" id="loginBtnSb" onclick="openModal('loginModalBg')">로그인</button>
     </div>
   </div>
-
 </aside>
 
-<!-- ════════════════════════════
-     MAIN
-     ════════════════════════════ -->
 <div class="main">
-
-  <!-- ★ 모바일 헤더 (Figma nodes 48:10, 48:223, 48:278, 48:472)
-       배경: #F4F4F2, padding: 16px 좌우, 20px 상하
-       좌: 햄버거(24px #BDBDBD) | 중: 로고텍스트+타겟마크 | 우: 프로필(24px #BDBDBD) -->
   <div class="mob-header">
-    <!-- ★ Figma node 48:11 — material-symbols:menu-rounded, 24px, #BDBDBD -->
     <button class="mob-toggle" id="mobToggle">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M4 18C3.71667 18 3.47934 17.904 3.288 17.712C3.09667 17.52 3.00067 17.2827 3 17C2.99934 16.7173 3.09534 16.48 3.288 16.288C3.48067 16.096 3.718 16 4 16H20C20.2833 16 20.521 16.096 20.713 16.288C20.905 16.48 21.0007 16.7173 21 17C20.9993 17.2827 20.9033 17.5203 20.712 17.713C20.5207 17.9057 20.2833 18.0013 20 18H4ZM4 13C3.71667 13 3.47934 12.904 3.288 12.712C3.09667 12.52 3.00067 12.2827 3 12C2.99934 11.7173 3.09534 11.48 3.288 11.288C3.48067 11.096 3.718 11 4 11H20C20.2833 11 20.521 11.096 20.713 11.288C20.905 11.48 21.0007 11.7173 21 12C20.9993 12.2827 20.9033 12.5203 20.712 12.713C20.5207 12.9057 20.2833 13.0013 20 13H4ZM4 8C3.71667 8 3.47934 7.904 3.288 7.712C3.09667 7.52 3.00067 7.28267 3 7C2.99934 6.71733 3.09534 6.48 3.288 6.288C3.48067 6.096 3.718 6 4 6H20C20.2833 6 20.521 6.096 20.713 6.288C20.905 6.48 21.0007 6.71733 21 7C20.9993 7.28267 20.9033 7.52033 20.712 7.713C20.5207 7.90567 20.2833 8.00133 20 8H4Z" fill="#BDBDBD"/>
       </svg>
     </button>
-
-    <!-- ★ Figma node 48:13/48:226 등 — 로고 중앙 정렬
-         텍스트: Special Gothic Expanded One, 16px, tracking=0.16px, #111, uppercase
-         타겟마크: 19.2px, #F2664B -->
     <div class="mob-logo">
       <span class="mob-logo-txt">Coming Soon</span>
       <svg class="logo-mark" width="19" height="19" viewBox="0 0 20 20" fill="none">
@@ -205,51 +156,33 @@
         <path d="M9.60014 10.8285C10.2788 10.8285 10.8289 10.2783 10.8289 9.59965C10.8289 8.921 10.2788 8.37085 9.60014 8.37085C8.92149 8.37085 8.37134 8.921 8.37134 9.59965C8.37134 10.2783 8.92149 10.8285 9.60014 10.8285Z" fill="#F2664B"/>
       </svg>
     </div>
-
-    <!-- ★ Figma node 48:19/48:232 — gg:profile, 24px, #BDBDBD -->
     <button class="mob-profile" onclick="openModal('loginModalBg')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <g clip-path="url(#clip0_mob_profile)">
+        <g clip-path="url(#cp1)">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M16.3636 8.72728C16.3636 9.88459 15.9039 10.9945 15.0855 11.8128C14.2672 12.6312 13.1573 13.0909 12 13.0909C10.8427 13.0909 9.73277 12.6312 8.91443 11.8128C8.09609 10.9945 7.63635 9.88459 7.63635 8.72728C7.63635 7.56998 8.09609 6.46007 8.91443 5.64173C9.73277 4.82339 10.8427 4.36365 12 4.36365C13.1573 4.36365 14.2672 4.82339 15.0855 5.64173C15.9039 6.46007 16.3636 7.56998 16.3636 8.72728ZM14.1818 8.72728C14.1818 9.30594 13.9519 9.86089 13.5428 10.2701C13.1336 10.6792 12.5786 10.9091 12 10.9091C11.4213 10.9091 10.8664 10.6792 10.4572 10.2701C10.048 9.86089 9.81817 9.30594 9.81817 8.72728C9.81817 8.14863 10.048 7.59368 10.4572 7.18451C10.8664 6.77534 11.4213 6.54547 12 6.54547C12.5786 6.54547 13.1336 6.77534 13.5428 7.18451C13.9519 7.59368 14.1818 8.14863 14.1818 8.72728Z" fill="#BDBDBD" stroke="white" stroke-width="0.5"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M12 0C5.37273 0 0 5.37273 0 12C0 18.6273 5.37273 24 12 24C18.6273 24 24 18.6273 24 12C24 5.37273 18.6273 0 12 0ZM2.18182 12C2.18182 14.28 2.95964 16.3789 4.26327 18.0458C5.17903 16.8438 6.36017 15.8696 7.71452 15.1993C9.06886 14.5291 10.5598 14.1808 12.0709 14.1818C13.5626 14.1801 15.035 14.519 16.3758 15.1728C17.7166 15.8265 18.8904 16.7779 19.8076 17.9542C20.7529 16.7145 21.3893 15.2675 21.6642 13.733C21.9392 12.1985 21.8448 10.6206 21.3889 9.1298C20.933 7.63902 20.1286 6.27823 19.0423 5.16004C17.9561 4.04185 16.6192 3.19839 15.1422 2.69946C13.6653 2.20054 12.0908 2.06048 10.5489 2.29088C9.00711 2.52128 7.54232 3.11552 6.27575 4.02442C5.00918 4.93333 3.97725 6.13077 3.26534 7.51767C2.55343 8.90457 2.18202 10.4411 2.18182 12ZM12 21.8182C9.74608 21.8218 7.56016 21.0464 5.81236 19.6233C6.51579 18.6159 7.45221 17.7935 8.5419 17.226C9.63159 16.6584 10.8423 16.3626 12.0709 16.3636C13.2842 16.3626 14.4802 16.651 15.5596 17.2051C16.639 17.7591 17.5706 18.5627 18.2771 19.5491C16.5158 21.0185 14.2938 21.8218 12 21.8182Z" fill="#BDBDBD" stroke="white" stroke-width="0.5"/>
         </g>
-        <defs>
-          <clipPath id="clip0_mob_profile">
-            <rect width="24" height="24" fill="white"/>
-          </clipPath>
-        </defs>
+        <defs><clipPath id="cp1"><rect width="24" height="24" fill="white"/></clipPath></defs>
       </svg>
     </button>
   </div>
 
   <div id="radarPanel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-
-    <!-- ★ 검색헤더 (Figma node 48:23/48:236) -->
     <div class="hd" id="searchHeader">
       <div class="search-row">
         <div class="search-bar">
-          <!-- ★ Figma node 48:28 — 검색 아이콘 20px, stroke=#BDBDBD -->
           <div class="s-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M9.16715 15.8333C12.8491 15.8333 15.8338 12.8486 15.8338 9.16667C15.8338 5.48477 12.8491 2.5 9.16715 2.5C5.48526 2.5 2.50049 5.48477 2.50049 9.16667C2.50049 12.8486 5.48526 15.8333 9.16715 15.8333Z" stroke="#BDBDBD" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M17.4998 17.4998L13.9165 13.9165" stroke="#BDBDBD" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <!-- ★ Figma node 48:31/48:244 — placeholder: Pretendard Medium, 12px, #BDBDBD -->
           <input class="s-input" id="mainSearch" type="text" placeholder="새로운 일정을 알고 싶은 키워드 검색"/>
-          <!-- ★ Figma node 48:32/48:245 — 키워드 저장 버튼:
-               active: bg=#F2664B, Pretendard SemiBold, 10px, tracking=0.1px, height=24px, radius=24px
-               inactive: bg=#E4E4E4, color=#fff -->
-          <button class="kw-save-btn" id="kwSaveBtn" disabled onclick="saveCurrentKeyword()">
-            키워드 저장
-          </button>
+          <button class="kw-save-btn" id="kwSaveBtn" disabled onclick="saveCurrentKeyword()">키워드 저장</button>
         </div>
       </div>
     </div>
 
-    <!-- ★ 포커스그룹 헤더 (Figma node 48:291)
-         라벨: Pretendard Bold, 8px, tracking=1.08px, #BDBDBD, uppercase
-         타이틀: Pretendard ExtraBold, 24px, tracking=0.6px, #111 -->
     <div class="focus-group-header" id="focusGroupHeader">
       <div class="fg-label">Focus Groups</div>
       <div class="fg-title" id="focusGroupTitle"></div>
@@ -260,14 +193,8 @@
       <span id="statusMsg"></span>
     </div>
 
-    <!-- ★ 툴바 (Figma nodes 48:37~48:60)
-         뷰 토글: 24x24px, radius=5.6px
-         정렬 버튼: height=24px, width=64.338px, radius=999px, Pretendard SemiBold 8.64px, tracking=-0.256px
-         활성: bg=#111, color=#fff | 비활성: border=rgba(0,0,0,0.1), color=#666
-         시그널카운트: Pretendard SemiBold, 8px, tracking=-0.1258px, #BDBDBD -->
     <div class="toolbar">
       <div class="view-sw">
-        <!-- ★ Figma node 48:40/48:301 — 그리드 버튼: 24x24px, radius=5.6px, bg=#111(active) -->
         <button class="vs-btn on" id="btnGrid">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M7.59971 1.19983H1.99971C1.55788 1.19983 1.19971 1.558 1.19971 1.99983V7.59983C1.19971 8.04166 1.55788 8.39983 1.99971 8.39983H7.59971C8.04153 8.39983 8.39971 8.04166 8.39971 7.59983V1.99983C8.39971 1.558 8.04153 1.19983 7.59971 1.19983Z" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -277,7 +204,6 @@
             <path d="M5.99976 1.19983V8.39983" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <!-- ★ Figma node 48:47/48:308 — 리스트 버튼: 24x24px, border=rgba(0,0,0,0.1) -->
         <button class="vs-btn" id="btnList">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M1.19971 4.7998H1.20364" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -295,9 +221,7 @@
         <button class="sort-btn" data-sort="recent">최근 발표된순</button>
       </div>
       <div class="filter-sep"></div>
-      <button class="tbd-toggle" id="tbdToggle" data-show-tbd="true">
-        날짜 미정 포함
-      </button>
+      <button class="tbd-toggle" id="tbdToggle">날짜 확정만</button>
       <div class="result-count" id="resultCount">0개 시그널</div>
     </div>
 
@@ -336,9 +260,7 @@
         <button class="sort-btn" data-sort-arc="recent">최근 발표된순</button>
       </div>
       <div class="filter-sep"></div>
-      <button class="tbd-toggle" id="tbdToggleArc" data-show-tbd="true">
-        날짜 미정 포함
-      </button>
+      <button class="tbd-toggle" id="tbdToggleArc">날짜 확정만</button>
       <div class="result-count" id="archiveResultCount">0개 보관됨</div>
     </div>
     <div class="content" id="archiveContent"></div>
