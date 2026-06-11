@@ -651,7 +651,6 @@ document.addEventListener('DOMContentLoaded',function(){
       ['tbdToggle','tbdToggleArc'].forEach(function(bid){
         var b=document.getElementById(bid);
         if(b){
-          b.textContent='날짜 확정만';
           showTbd ? b.classList.add('on') : b.classList.remove('on');
         }
       });
