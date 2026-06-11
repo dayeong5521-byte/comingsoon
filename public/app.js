@@ -105,8 +105,23 @@ function makeCalUrl(p){
 ── */
 var showTbd=false;
 
+function hasConfirmedDate(p){
+  var d = p.release_date;
+
+  if(!d || d === 'TBD') return false;
+
+  // 2026-05-22 처럼 정확한 날짜
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return true;
+
+  // 2026-05-22~27 또는 2026-05-22~2026-05-27 같은 날짜 범위
+  if(/^\d{4}-\d{2}-\d{2}~(\d{1,2}|\d{4}-\d{2}-\d{2})$/.test(d)) return true;
+
+  // 2026-07, 2026-09, ?? 이런 건 제외
+  return false;
+}
+
 function applyTbdFilter(list){
-  return showTbd ? list : list.filter(function(p){ return p.release_date!=='TBD'; });
+  return showTbd ? list : list.filter(hasConfirmedDate);
 }
 function getAllItems(){
   var all=[],seen=new Set();
