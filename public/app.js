@@ -99,30 +99,29 @@ function makeCalUrl(p){
     +'&details='+encodeURIComponent(p.description||'');
 }
 
-/* ── TBD 토글
-   showTbd=false: 기본값 — 날짜 확정만 표시 (TBD 숨김)
-   showTbd=true:  토글 on — 미정 포함 전체 표시
+/* ── 날짜 확정 필터
+   confirmedOnly=false: 기본값 — 모든 소식 표시
+   confirmedOnly=true:  토글 ON — 정확한 날짜가 있는 소식만 표시
 ── */
-var confirmedOnly = false; 
-// false = 모든 소식 보기
-// true = 날짜 확정만 보기
+var confirmedOnly = false;
+
 function hasConfirmedDate(p){
   var d = p.release_date;
 
   if(!d || d === 'TBD') return false;
 
-  // 2026-05-22 처럼 정확한 날짜
+  // 정확한 날짜: 2026-05-22
   if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return true;
 
-  // 2026-05-22~27 또는 2026-05-22~2026-05-27 같은 날짜 범위
+  // 날짜 범위: 2026-05-22~27 또는 2026-05-22~2026-05-27
   if(/^\d{4}-\d{2}-\d{2}~(\d{1,2}|\d{4}-\d{2}-\d{2})$/.test(d)) return true;
 
-  // 2026-07, 2026-09, ?? 이런 건 제외
+  // 2026-07, 2026.07.??, ?? 등은 날짜 확정 아님
   return false;
 }
 
 function applyTbdFilter(list){
-  return showTbd ? list : list.filter(hasConfirmedDate);
+  return confirmedOnly ? list.filter(hasConfirmedDate) : list;
 }
 function getAllItems(){
   var all=[],seen=new Set();
@@ -686,23 +685,26 @@ document.addEventListener('DOMContentLoaded',function(){
     };
   });
 
-  /* ── TBD 토글
-     기본값: showTbd=false → "날짜 확정만" 버튼이 off 상태 (미정 숨김)
-     클릭하면 on → 미정 포함 전체 표시
+  /* ── 날짜 확정만 보기 토글
+     기본값: confirmedOnly=false → 모든 소식 표시, 토글 off
+     클릭하면 confirmedOnly=true → 날짜 확정 소식만 표시, 토글 on
   ── */
   ['tbdToggle','tbdToggleArc'].forEach(function(id){
     var btn=document.getElementById(id);
     if(!btn) return;
-    // 기본 off (showTbd=false, 미정 숨김)
-    btn.classList.toggle('on', !showTbd);
+
+    btn.classList.toggle('on', confirmedOnly);
+
     btn.onclick=function(){
-      showTbd=!showTbd;
+      confirmedOnly = !confirmedOnly;
+
       ['tbdToggle','tbdToggleArc'].forEach(function(bid){
         var b=document.getElementById(bid);
         if(b){
-          !showTbd ? b.classList.add('on') : b.classList.remove('on');
+          b.classList.toggle('on', confirmedOnly);
         }
       });
+
       if(currentView==='archive') renderArchive();
       else renderItems(getSortedItems(getDisplayList()));
     };
