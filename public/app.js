@@ -643,7 +643,6 @@ document.addEventListener('DOMContentLoaded',function(){
   ['tbdToggle','tbdToggleArc'].forEach(function(id){
     var btn=document.getElementById(id);
     if(!btn) return;
-    btn.textContent='날짜 확정만';
     // 기본 off (showTbd=false, 미정 숨김)
     btn.classList.remove('on');
     btn.onclick=function(){
