@@ -204,8 +204,9 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
   /* Figma 48:56/48:58 — 정렬버튼: h=24px, SemiBold 8.64px, tracking=-0.256px */
   .sort-btn{height:24px;width:auto;min-width:64px;padding:0 8px;font-size:8.64px;font-weight:600;letter-spacing:-0.256px;line-height:13.2px;border-radius:9999px;}
   /* Figma 48:1552 — 날짜미정포함: 동일 스타일 */
-  .tbd-toggle{height:24px;padding:0 8px;font-size:8.64px;font-weight:600;letter-spacing:-0.256px;line-height:13.2px;border-radius:9999px;gap:4px;}
-  .tbd-toggle::before{width:5px;height:5px;}
+ /* Figma 48:1552 — off: border=0.4px rgba(0,0,0,0.1), on: bg=#111 */
+  .tbd-toggle{height:24px;padding:0 8px;font-size:8.64px;font-weight:600;letter-spacing:-0.256px;line-height:13.2px;border-radius:9999px;border-width:0.4px;gap:0;}
+  .tbd-toggle::before{display:none;}
   /* Figma 48:60 — 시그널카운트: SemiBold 8px, tracking=-0.1258px */
   .result-count{display:block;flex-shrink:0;padding-left:4px;font-size:8px;font-weight:600;letter-spacing:-0.1258px;}
   .content{padding:14px 16px 24px;}
