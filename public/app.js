@@ -103,8 +103,9 @@ function makeCalUrl(p){
    showTbd=false: 기본값 — 날짜 확정만 표시 (TBD 숨김)
    showTbd=true:  토글 on — 미정 포함 전체 표시
 ── */
-var showTbd=false;
-
+var confirmedOnly = false; 
+// false = 모든 소식 보기
+// true = 날짜 확정만 보기
 function hasConfirmedDate(p){
   var d = p.release_date;
 
