@@ -98,8 +98,7 @@ body{font-family:var(--font);letter-spacing:-0.02em;color:var(--text1);}
 .status-bar{padding:7px 28px;background:rgba(242,102,75,.04);border-bottom:0.5px solid var(--border);font-size:11px;font-weight:500;color:var(--text2);display:none;align-items:center;gap:8px;flex-shrink:0;}
 .spinner{width:11px;height:11px;border:1.5px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.toolbar{height:48px;padding:0 28px;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:0.5px solid var(--border);}
-.view-sw{display:flex;gap:3px;}
+.toolbar{min-height:48px;padding:0 28px;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:0.5px solid var(--border);}.view-sw{display:flex;gap:3px;}
 .vs-btn{width:30px;height:30px;border:0.5px solid var(--border-md);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;transition:all .15s;color:var(--text3);}
 .vs-btn.on{background:var(--text1);border-color:var(--text1);color:#fff;}
 .vs-btn:hover:not(.on){background:rgba(0,0,0,.04);color:var(--text2);}
