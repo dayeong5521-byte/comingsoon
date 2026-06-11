@@ -693,13 +693,13 @@ document.addEventListener('DOMContentLoaded',function(){
     var btn=document.getElementById(id);
     if(!btn) return;
     // 기본 off (showTbd=false, 미정 숨김)
-    btn.classList.remove('on');
+    btn.classList.toggle('on', !showTbd);
     btn.onclick=function(){
       showTbd=!showTbd;
       ['tbdToggle','tbdToggleArc'].forEach(function(bid){
         var b=document.getElementById(bid);
         if(b){
-          showTbd ? b.classList.add('on') : b.classList.remove('on');
+          !showTbd ? b.classList.add('on') : b.classList.remove('on');
         }
       });
       if(currentView==='archive') renderArchive();
